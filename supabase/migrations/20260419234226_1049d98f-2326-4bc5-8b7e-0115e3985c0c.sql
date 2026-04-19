@@ -1,0 +1,1 @@
+ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS time_spent_seconds integer NOT NULL DEFAULT 0;
