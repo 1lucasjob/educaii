@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock } from "lucide-react";
 
 interface Question {
   question: string;
@@ -25,12 +25,16 @@ export default function Simulado() {
   const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
+  const TIME_LIMIT = difficulty === "hard" ? 10 * 60 : 15 * 60; // seconds
+  const lockNavigation = difficulty === "hard";
+
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
 
   useEffect(() => {
     const load = async () => {
@@ -48,10 +52,31 @@ export default function Simulado() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Countdown timer
+  useEffect(() => {
+    if (loading || finished) return;
+    if (timeLeft <= 0) {
+      toast({ title: "Tempo esgotado!", description: "Seu simulado foi finalizado automaticamente.", variant: "destructive" });
+      submit();
+      return;
+    }
+    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft, loading, finished]);
+
+  const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
   const select = (idx: number) => {
+    // Hard mode: lock answer once chosen (no changes)
+    if (lockNavigation && answers[current] >= 0) return;
     const next = [...answers];
     next[current] = idx;
     setAnswers(next);
+    // Auto-advance on hard mode after answering
+    if (lockNavigation && current < questions.length - 1) {
+      setTimeout(() => setCurrent((c) => c + 1), 350);
+    }
   };
 
   const submit = async () => {
@@ -147,38 +172,66 @@ export default function Simulado() {
   const q = questions[current];
   const answered = answers.filter((a) => a >= 0).length;
 
+  const lowTime = timeLeft <= 60;
+  const locked = lockNavigation && answers[current] >= 0;
+
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Badge variant="outline">Questão {current + 1} de {questions.length}</Badge>
+        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-sm font-semibold border ${lowTime ? "bg-destructive/10 text-destructive border-destructive/40 animate-pulse" : "bg-muted border-border"}`}>
+          <Clock className="w-4 h-4" /> {formatTime(timeLeft)}
+        </div>
         <Badge className="gradient-primary text-primary-foreground border-0">{difficulty === "hard" ? "DIFÍCIL" : "FÁCIL"}</Badge>
       </div>
       <Progress value={((current + 1) / questions.length) * 100} />
+
+      {lockNavigation && (
+        <p className="text-xs text-warning flex items-center gap-1.5">
+          <Lock className="w-3 h-3" /> Modo difícil: você não pode voltar nem alterar respostas.
+        </p>
+      )}
 
       <Card className="p-6">
         <p className="text-sm text-muted-foreground mb-2">Vale {q.points} pts</p>
         <h2 className="text-lg font-medium mb-5">{q.question}</h2>
         <div className="space-y-2">
-          {q.options.map((opt, i) => (
-            <button
-              key={i}
-              onClick={() => select(i)}
-              className={`w-full text-left p-3 rounded-md border transition-all ${
-                answers[current] === i
-                  ? "border-primary bg-primary/10 shadow-glow"
-                  : "border-border hover:border-primary/50 hover:bg-muted"
-              }`}
-            >
-              <span className="font-bold mr-2">{String.fromCharCode(65 + i)}.</span> {opt}
-            </button>
-          ))}
+          {q.options.map((opt, i) => {
+            const selected = answers[current] === i;
+            return (
+              <button
+                key={i}
+                onClick={() => select(i)}
+                disabled={locked && !selected}
+                className={`w-full text-left p-3 rounded-md border transition-all ${
+                  selected
+                    ? "border-primary bg-primary/10 shadow-glow"
+                    : "border-border hover:border-primary/50 hover:bg-muted"
+                } ${locked && !selected ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <span className="font-bold mr-2">{String.fromCharCode(65 + i)}.</span> {opt}
+              </button>
+            );
+          })}
         </div>
       </Card>
 
       <div className="flex justify-between gap-2">
-        <Button variant="outline" disabled={current === 0} onClick={() => setCurrent(current - 1)}>Anterior</Button>
+        <Button
+          variant="outline"
+          disabled={current === 0 || lockNavigation}
+          onClick={() => setCurrent(current - 1)}
+        >
+          Anterior
+        </Button>
         {current < questions.length - 1 ? (
-          <Button onClick={() => setCurrent(current + 1)} className="gradient-primary text-primary-foreground">Próxima</Button>
+          <Button
+            onClick={() => setCurrent(current + 1)}
+            disabled={lockNavigation && answers[current] < 0}
+            className="gradient-primary text-primary-foreground"
+          >
+            Próxima
+          </Button>
         ) : (
           <Button onClick={submit} disabled={answered < questions.length} className="gradient-primary text-primary-foreground shadow-glow">
             Finalizar simulado
