@@ -73,7 +73,7 @@ export default function Simulado() {
         answers: answers as any,
       });
 
-      const updates: Record<string, any> = { last_score: total };
+      const updates: { last_score: number; current_topic_unlocked?: boolean } = { last_score: total };
       if (difficulty === "hard" && total >= 80) {
         updates.current_topic_unlocked = true;
       }
