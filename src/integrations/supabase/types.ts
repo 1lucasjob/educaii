@@ -14,16 +14,196 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      available_slots: {
+        Row: {
+          count: number
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          count?: number
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          count?: number
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      invites: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          token: string
+          used: boolean
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          token: string
+          used?: boolean
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          current_topic: string | null
+          current_topic_unlocked: boolean
+          email: string
+          id: string
+          last_score: number
+          reserve_code_hash: string | null
+          secret_answer_hash: string | null
+          secret_question: string | null
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_topic?: string | null
+          current_topic_unlocked?: boolean
+          email: string
+          id: string
+          last_score?: number
+          reserve_code_hash?: string | null
+          secret_answer_hash?: string | null
+          secret_question?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_topic?: string | null
+          current_topic_unlocked?: boolean
+          email?: string
+          id?: string
+          last_score?: number
+          reserve_code_hash?: string | null
+          secret_answer_hash?: string | null
+          secret_question?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quiz_attempts: {
+        Row: {
+          answers: Json | null
+          created_at: string
+          difficulty: Database["public"]["Enums"]["quiz_difficulty"]
+          id: string
+          questions: Json
+          score: number
+          topic: string
+          total_points: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["quiz_difficulty"]
+          id?: string
+          questions: Json
+          score?: number
+          topic: string
+          total_points?: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["quiz_difficulty"]
+          id?: string
+          questions?: Json
+          score?: number
+          topic?: string
+          total_points?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          summary: string
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          summary: string
+          topic: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          summary?: string
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
+      quiz_difficulty: "easy" | "hard"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +330,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+      quiz_difficulty: ["easy", "hard"],
+    },
   },
 } as const
