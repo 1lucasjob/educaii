@@ -73,6 +73,21 @@ export default function Progresso() {
     [attempts],
   );
 
+  const timeData = useMemo(() => {
+    let sum = 0;
+    return attempts
+      .filter((a) => (a.time_spent_seconds ?? 0) > 0)
+      .map((a, i) => {
+        const minutes = +(a.time_spent_seconds / 60).toFixed(2);
+        sum += minutes;
+        return {
+          label: new Date(a.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          tempo: minutes,
+          media: +(sum / (i + 1)).toFixed(2),
+        };
+      });
+  }, [attempts]);
+
   const byTopic = useMemo(() => {
     const map = new Map<string, { topic: string; total: number; sum: number }>();
     attempts.forEach((a) => {
@@ -89,7 +104,8 @@ export default function Progresso() {
 
   const chartConfig = {
     score: { label: "Pontuação", color: "hsl(var(--primary))" },
-    media: { label: "Média", color: "hsl(var(--primary))" },
+    media: { label: "Média (min)", color: "hsl(var(--primary))" },
+    tempo: { label: "Tempo (min)", color: "hsl(var(--muted-foreground))" },
   };
 
   const reversed = [...attempts].reverse();
@@ -178,6 +194,25 @@ export default function Progresso() {
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="media" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
             </BarChart>
+          </ChartContainer>
+        )}
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="font-bold mb-1 flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Evolução do tempo por simulado</h2>
+        <p className="text-xs text-muted-foreground mb-4">Tempo gasto em cada simulado e média acumulada (em minutos)</p>
+        {timeData.length === 0 ? (
+          <p className="text-center text-muted-foreground py-10">Sem dados de tempo registrados ainda.</p>
+        ) : (
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
+            <LineChart data={timeData} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} width={32} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line type="monotone" dataKey="tempo" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="media" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
+            </LineChart>
           </ChartContainer>
         )}
       </Card>
