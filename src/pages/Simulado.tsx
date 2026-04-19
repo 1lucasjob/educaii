@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock } from "lucide-react";
 
 interface Question {
   question: string;
@@ -25,12 +25,16 @@ export default function Simulado() {
   const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
+  const TIME_LIMIT = difficulty === "hard" ? 10 * 60 : 15 * 60; // seconds
+  const lockNavigation = difficulty === "hard";
+
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
 
   useEffect(() => {
     const load = async () => {
