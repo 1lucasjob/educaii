@@ -48,6 +48,8 @@ export default function Progresso() {
   const avg = total ? Math.round(attempts.reduce((s, a) => s + a.score, 0) / total) : 0;
   const best = total ? Math.max(...attempts.map((a) => a.score)) : 0;
   const passed = attempts.filter((a) => a.difficulty === "hard" && a.score >= 80).length;
+  const achievements = useMemo(() => computeAchievements(attempts), [attempts]);
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
   const evolutionData = useMemo(
     () =>
@@ -107,7 +109,18 @@ export default function Progresso() {
       </div>
 
       <Card className="p-6">
-        <h2 className="font-bold mb-1 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Evolução das pontuações</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold flex items-center gap-2">
+            <Award className="w-4 h-4 text-primary" /> Conquistas
+          </h2>
+          <span className="text-sm text-muted-foreground">
+            {unlockedCount}/{achievements.length} desbloqueadas
+          </span>
+        </div>
+        <AchievementsGrid items={achievements} />
+      </Card>
+
+
         <p className="text-xs text-muted-foreground mb-4">Linha de meta em 80 pontos (aprovação no difícil)</p>
         {evolutionData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum dado para exibir ainda.</p>
