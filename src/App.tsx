@@ -14,6 +14,7 @@ import Estudar from "./pages/Estudar";
 import Simulado from "./pages/Simulado";
 import Normas from "./pages/Normas";
 import Progresso from "./pages/Progresso";
+import Ranking from "./pages/Ranking";
 import Admin from "./pages/Admin";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound.tsx";
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="simulado" element={<Simulado />} />
               <Route path="normas" element={<Normas />} />
               <Route path="progresso" element={<Progresso />} />
+              <Route path="ranking" element={<Ranking />} />
               <Route path="admin" element={<Admin />} />
               <Route path="configuracoes" element={<Configuracoes />} />
             </Route>
