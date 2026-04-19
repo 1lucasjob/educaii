@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Trophy, TrendingUp, Target, Award } from "lucide-react";
+import { BarChart3, Trophy, TrendingUp, Target, Award, Clock } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { AchievementsGrid } from "@/components/AchievementsGrid";
 import {
@@ -28,7 +28,16 @@ interface Attempt {
   difficulty: string;
   score: number;
   created_at: string;
+  time_spent_seconds: number;
 }
+
+const formatDuration = (s: number) => {
+  if (!s) return "—";
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  if (m === 0) return `${sec}s`;
+  return `${m}m ${String(sec).padStart(2, "0")}s`;
+};
 
 export default function Progresso() {
   const { user } = useAuth();
@@ -38,7 +47,7 @@ export default function Progresso() {
     if (!user) return;
     supabase
       .from("quiz_attempts")
-      .select("id,topic,difficulty,score,created_at")
+      .select("id,topic,difficulty,score,created_at,time_spent_seconds")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
       .then(({ data }) => setAttempts((data as Attempt[]) ?? []));
@@ -48,6 +57,8 @@ export default function Progresso() {
   const avg = total ? Math.round(attempts.reduce((s, a) => s + a.score, 0) / total) : 0;
   const best = total ? Math.max(...attempts.map((a) => a.score)) : 0;
   const passed = attempts.filter((a) => a.difficulty === "hard" && a.score >= 80).length;
+  const totalTime = attempts.reduce((s, a) => s + (a.time_spent_seconds ?? 0), 0);
+  const avgTime = total ? Math.round(totalTime / total) : 0;
   const achievements = useMemo(() => computeAchievements(attempts), [attempts]);
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
@@ -89,7 +100,7 @@ export default function Progresso() {
         <BarChart3 className="text-primary" /> Meu Progresso
       </h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="p-5">
           <p className="text-sm text-muted-foreground">Simulados</p>
           <p className="text-3xl font-bold">{total}</p>
@@ -105,6 +116,14 @@ export default function Progresso() {
         <Card className="p-5">
           <p className="text-sm text-muted-foreground flex items-center gap-1"><Target className="w-3 h-3" /> Aprovações</p>
           <p className="text-3xl font-bold">{passed}</p>
+        </Card>
+        <Card className="p-5">
+          <p className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo total</p>
+          <p className="text-2xl font-bold">{formatDuration(totalTime)}</p>
+        </Card>
+        <Card className="p-5">
+          <p className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo médio</p>
+          <p className="text-2xl font-bold">{formatDuration(avgTime)}</p>
         </Card>
       </div>
 
@@ -170,7 +189,10 @@ export default function Progresso() {
             <div key={a.id} className="flex items-center justify-between p-3 rounded-md bg-muted">
               <div className="min-w-0">
                 <p className="font-medium truncate">{a.topic}</p>
-                <p className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString("pt-BR")}</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                  <span>{new Date(a.created_at).toLocaleString("pt-BR")}</span>
+                  <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDuration(a.time_spent_seconds ?? 0)}</span>
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={a.difficulty === "hard" ? "default" : "outline"} className={a.difficulty === "hard" ? "gradient-primary text-primary-foreground border-0" : ""}>
