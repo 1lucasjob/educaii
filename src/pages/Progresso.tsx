@@ -199,6 +199,25 @@ export default function Progresso() {
       </Card>
 
       <Card className="p-6">
+        <h2 className="font-bold mb-1 flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Evolução do tempo por simulado</h2>
+        <p className="text-xs text-muted-foreground mb-4">Tempo gasto em cada simulado e média acumulada (em minutos)</p>
+        {timeData.length === 0 ? (
+          <p className="text-center text-muted-foreground py-10">Sem dados de tempo registrados ainda.</p>
+        ) : (
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
+            <LineChart data={timeData} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} width={32} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line type="monotone" dataKey="tempo" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="media" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ChartContainer>
+        )}
+      </Card>
+
+      <Card className="p-6">
         <h2 className="font-bold mb-4">Histórico</h2>
         <div className="space-y-2">
           {reversed.map((a) => (
