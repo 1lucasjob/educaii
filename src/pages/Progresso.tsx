@@ -120,7 +120,8 @@ export default function Progresso() {
         <AchievementsGrid items={achievements} />
       </Card>
 
-
+      <Card className="p-6">
+        <h2 className="font-bold mb-1 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Evolução das pontuações</h2>
         <p className="text-xs text-muted-foreground mb-4">Linha de meta em 80 pontos (aprovação no difícil)</p>
         {evolutionData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum dado para exibir ainda.</p>
