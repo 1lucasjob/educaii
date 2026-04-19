@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock } from "lucide-react";
+import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award } from "lucide-react";
+import { computeAchievements } from "@/lib/achievements";
 
 interface Question {
   question: string;
@@ -92,6 +93,14 @@ export default function Simulado() {
     setFinished(true);
 
     if (profile) {
+      const { data: prevAttempts } = await supabase
+        .from("quiz_attempts")
+        .select("topic,difficulty,score,created_at,time_spent_seconds")
+        .eq("user_id", profile.id);
+      const prevUnlocked = new Set(
+        computeAchievements((prevAttempts as any) ?? []).filter((a) => a.unlocked).map((a) => a.id),
+      );
+
       await supabase.from("quiz_attempts").insert({
         user_id: profile.id,
         topic,
@@ -109,6 +118,21 @@ export default function Simulado() {
       }
       await supabase.from("profiles").update(updates).eq("id", profile.id);
       await refreshProfile();
+
+      const newAttempt = { topic, difficulty, score: total, created_at: new Date().toISOString(), time_spent_seconds: timeSpent };
+      const allAttempts = [...((prevAttempts as any) ?? []), newAttempt];
+      const newlyUnlocked = computeAchievements(allAttempts)
+        .filter((a) => a.unlocked && !prevUnlocked.has(a.id));
+
+      newlyUnlocked.forEach((ach, i) => {
+        setTimeout(() => {
+          toast({
+            title: "🏆 Conquista desbloqueada!",
+            description: `${ach.title} — ${ach.description}`,
+            className: "animate-scale-in border-primary bg-gradient-to-br from-primary/10 to-background",
+          });
+        }, i * 600);
+      });
     }
   };
 
