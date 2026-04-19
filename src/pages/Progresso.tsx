@@ -3,7 +3,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Trophy, TrendingUp, Target } from "lucide-react";
+import { BarChart3, Trophy, TrendingUp, Target, Award } from "lucide-react";
+import { computeAchievements } from "@/lib/achievements";
+import { AchievementsGrid } from "@/components/AchievementsGrid";
 import {
   ChartContainer,
   ChartTooltip,
