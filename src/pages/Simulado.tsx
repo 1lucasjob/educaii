@@ -52,10 +52,31 @@ export default function Simulado() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Countdown timer
+  useEffect(() => {
+    if (loading || finished) return;
+    if (timeLeft <= 0) {
+      toast({ title: "Tempo esgotado!", description: "Seu simulado foi finalizado automaticamente.", variant: "destructive" });
+      submit();
+      return;
+    }
+    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft, loading, finished]);
+
+  const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
   const select = (idx: number) => {
+    // Hard mode: lock answer once chosen (no changes)
+    if (lockNavigation && answers[current] >= 0) return;
     const next = [...answers];
     next[current] = idx;
     setAnswers(next);
+    // Auto-advance on hard mode after answering
+    if (lockNavigation && current < questions.length - 1) {
+      setTimeout(() => setCurrent((c) => c + 1), 350);
+    }
   };
 
   const submit = async () => {
