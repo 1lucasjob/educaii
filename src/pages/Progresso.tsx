@@ -73,6 +73,21 @@ export default function Progresso() {
     [attempts],
   );
 
+  const timeData = useMemo(() => {
+    let sum = 0;
+    return attempts
+      .filter((a) => (a.time_spent_seconds ?? 0) > 0)
+      .map((a, i) => {
+        const minutes = +(a.time_spent_seconds / 60).toFixed(2);
+        sum += minutes;
+        return {
+          label: new Date(a.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+          tempo: minutes,
+          media: +(sum / (i + 1)).toFixed(2),
+        };
+      });
+  }, [attempts]);
+
   const byTopic = useMemo(() => {
     const map = new Map<string, { topic: string; total: number; sum: number }>();
     attempts.forEach((a) => {
@@ -89,7 +104,8 @@ export default function Progresso() {
 
   const chartConfig = {
     score: { label: "Pontuação", color: "hsl(var(--primary))" },
-    media: { label: "Média", color: "hsl(var(--primary))" },
+    media: { label: "Média (min)", color: "hsl(var(--primary))" },
+    tempo: { label: "Tempo (min)", color: "hsl(var(--muted-foreground))" },
   };
 
   const reversed = [...attempts].reverse();
