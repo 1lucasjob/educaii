@@ -1,10 +1,11 @@
-import { Trophy, Flame, Star, Target, Award, Crown, Zap, BookOpen, Medal, Rocket } from "lucide-react";
+import { Trophy, Flame, Star, Target, Award, Crown, Zap, BookOpen, Medal, Rocket, Timer } from "lucide-react";
 
 export interface AttemptLite {
   topic: string;
   difficulty: string;
   score: number;
   created_at: string;
+  time_spent_seconds?: number;
 }
 
 export interface Achievement {
@@ -35,6 +36,14 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
 
   // Daily activity: unique days
   const uniqueDays = new Set(attempts.map((a) => new Date(a.created_at).toDateString())).size;
+
+  // Speedster: hard quiz passed (80+) in under 5 minutes
+  const speedsterCount = hardAttempts.filter(
+    (a) => a.score >= 80 && (a.time_spent_seconds ?? Infinity) < 300,
+  ).length;
+  const bestHardTime = hardAttempts
+    .filter((a) => a.score >= 80 && a.time_spent_seconds && a.time_spent_seconds > 0)
+    .reduce((m, a) => Math.min(m, a.time_spent_seconds!), Infinity);
 
   const pct = (val: number, target: number) => Math.min(100, Math.round((val / target) * 100));
 
@@ -119,6 +128,15 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
       unlocked: uniqueDays >= 7,
       progress: pct(uniqueDays, 7),
       hint: `${uniqueDays}/7 dias`,
+    },
+    {
+      id: "speedster",
+      title: "Velocista",
+      description: "Termine um simulado difícil em menos de 5 min com 80+",
+      icon: Timer,
+      unlocked: speedsterCount >= 1,
+      progress: speedsterCount >= 1 ? 100 : (bestHardTime !== Infinity ? Math.min(99, Math.round((300 / bestHardTime) * 100)) : 0),
+      hint: bestHardTime !== Infinity ? `Melhor tempo: ${Math.floor(bestHardTime / 60)}m ${String(bestHardTime % 60).padStart(2, "0")}s` : "Sem tempos válidos",
     },
     {
       id: "master",
