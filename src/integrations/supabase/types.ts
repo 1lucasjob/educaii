@@ -115,6 +115,7 @@ export type Database = {
           id: string
           questions: Json
           score: number
+          time_spent_seconds: number
           topic: string
           total_points: number
           user_id: string
@@ -126,6 +127,7 @@ export type Database = {
           id?: string
           questions: Json
           score?: number
+          time_spent_seconds?: number
           topic: string
           total_points?: number
           user_id: string
@@ -137,6 +139,7 @@ export type Database = {
           id?: string
           questions?: Json
           score?: number
+          time_spent_seconds?: number
           topic?: string
           total_points?: number
           user_id?: string

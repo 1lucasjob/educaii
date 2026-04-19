@@ -35,6 +35,7 @@ export default function Simulado() {
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
+  const [timeSpent, setTimeSpent] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -60,7 +61,10 @@ export default function Simulado() {
       submit();
       return;
     }
-    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    const id = setTimeout(() => {
+      setTimeLeft((t) => t - 1);
+      setTimeSpent((t) => t + 1);
+    }, 1000);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, loading, finished]);
@@ -96,6 +100,7 @@ export default function Simulado() {
         total_points: 100,
         questions: questions as any,
         answers: answers as any,
+        time_spent_seconds: timeSpent,
       });
 
       const updates: { last_score: number; current_topic_unlocked?: boolean } = { last_score: total };
@@ -124,6 +129,9 @@ export default function Simulado() {
           <Trophy className={`mx-auto w-16 h-16 mb-3 ${passed ? "text-success" : "text-primary"}`} />
           <h1 className="text-4xl font-bold mb-2">{score}<span className="text-muted-foreground text-2xl">/100</span></h1>
           <p className="text-muted-foreground">Simulado {difficulty === "hard" ? "Difícil" : "Fácil"} · {topic}</p>
+          <p className="text-xs text-muted-foreground mt-2 inline-flex items-center gap-1.5">
+            <Clock className="w-3 h-3" /> Tempo gasto: <strong className="text-foreground">{formatTime(timeSpent)}</strong>
+          </p>
           {passed && (
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/20 text-success font-medium">
               <Unlock className="w-4 h-4" /> Tema desbloqueado! Você pode estudar um novo agora.
