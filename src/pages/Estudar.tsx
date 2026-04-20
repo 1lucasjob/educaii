@@ -199,26 +199,40 @@ export default function Estudar() {
       {summary && (
         <Card className="p-6 animate-fade-in">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain className="text-primary" /> Resumo Técnico</h3>
+          {summaryIsDraft && (
+            <Alert className="mb-4 border-warning/40 bg-warning/10">
+              <Sparkles className="w-4 h-4 text-warning" />
+              <AlertDescription className="text-sm">
+                <strong>Modo rascunho:</strong> este resumo não foi salvo no histórico e não conta para o ranking. Escreva 1000+ caracteres para salvar e desbloquear simulados que valem pontos.
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground">
             {summary}
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3 mt-6">
-            <Button onClick={() => startQuiz("easy")} variant="outline" className="border-primary/40 hover:bg-primary/10 h-14">
-              <Target className="mr-2" />
-              <div className="text-left">
-                <p className="font-bold">Simulado Fácil</p>
-                <p className="text-xs text-muted-foreground">10–25 questões · 100 pts</p>
-              </div>
-            </Button>
-            <Button onClick={() => startQuiz("hard")} className="gradient-primary text-primary-foreground h-14 shadow-glow">
-              <Zap className="mr-2" />
-              <div className="text-left">
-                <p className="font-bold">Simulado Difícil</p>
-                <p className="text-xs opacity-80">5–15 questões · libera novo tema (≥80)</p>
-              </div>
-            </Button>
-          </div>
+          {summaryIsDraft ? (
+            <p className="text-xs text-muted-foreground mt-6 text-center">
+              Para fazer simulado deste tema, escreva 1000+ caracteres e gere novamente.
+            </p>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3 mt-6">
+              <Button onClick={() => startQuiz("easy")} variant="outline" className="border-primary/40 hover:bg-primary/10 h-14">
+                <Target className="mr-2" />
+                <div className="text-left">
+                  <p className="font-bold">Simulado Fácil</p>
+                  <p className="text-xs text-muted-foreground">10–25 questões · 100 pts</p>
+                </div>
+              </Button>
+              <Button onClick={() => startQuiz("hard")} className="gradient-primary text-primary-foreground h-14 shadow-glow">
+                <Zap className="mr-2" />
+                <div className="text-left">
+                  <p className="font-bold">Simulado Difícil</p>
+                  <p className="text-xs opacity-80">5–15 questões · libera novo tema (≥80)</p>
+                </div>
+              </Button>
+            </div>
+          )}
         </Card>
       )}
     </div>
