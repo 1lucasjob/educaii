@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock, Sparkles } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
@@ -26,6 +26,7 @@ const items = [
   { title: "Normas Principais", url: "/app/normas", icon: BookOpen },
   { title: "Meu Progresso", url: "/app/progresso", icon: BarChart3 },
   { title: "Ranking", url: "/app/ranking", icon: Trophy },
+  { title: "Planos", url: "/app/planos", icon: Sparkles },
 ];
 
 const adminItems = [
