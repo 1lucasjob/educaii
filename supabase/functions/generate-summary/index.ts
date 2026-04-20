@@ -15,10 +15,10 @@ REGRA DE OURO — FOCO ABSOLUTO NO TEXTO DO ALUNO:
 ESTRUTURA OBRIGATÓRIA do resumo (Markdown):
 1. **Visão geral do tema apresentado** — reformule com precisão técnica o que o aluno descreveu (1 parágrafo).
 2. **Conceitos-chave presentes no texto** — bullets com os pontos técnicos centrais do tema enviado.
-3. **Normas Regulamentadoras aplicáveis ao caso** — cite apenas as NRs diretamente relacionadas ao texto, com itens/subitens quando possível.
-4. **Aplicação prática no contexto descrito** — como aplicar no cenário do aluno especificamente.
-5. **Riscos e medidas de controle pertinentes** — riscos do tema apresentado, na hierarquia (eliminação → EPC → EPI).
-6. **Pontos críticos para prova/concurso** — armadilhas de banca, pegadinhas e detalhes técnicos sobre ESTE tema.
+3. **Aplicação prática no contexto descrito** — como aplicar no cenário do aluno especificamente.
+4. **Riscos e medidas de controle pertinentes** — riscos do tema apresentado, na hierarquia (eliminação → EPC → EPI).
+5. **Pontos críticos para prova/concurso** — armadilhas de banca, pegadinhas e detalhes técnicos sobre ESTE tema.
+6. **Normas Regulamentadoras aplicáveis ao caso** — cite apenas as NRs diretamente relacionadas ao texto, com itens/subitens quando possível.
 
 APENAS NO FINAL, adicione uma seção opcional:
 7. **🎓 Observações do Professor** (1 parágrafo curto, máximo 4 linhas) — aqui, e SOMENTE aqui, você pode mencionar brevemente temas correlatos, conexões com outras NRs, leituras complementares ou um comentário pessoal de mestre. Use tom de orientação acadêmica ("Vale a pena, aluno, observar que…").
