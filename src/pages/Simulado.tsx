@@ -10,6 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
+import { computeFreeTrial } from "@/lib/freeTrial";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 interface Question {
   question: string;
@@ -30,6 +33,11 @@ export default function Simulado() {
   const TIME_LIMIT = difficulty === "hard" ? 10 * 60 : 15 * 60; // seconds
   const lockNavigation = difficulty === "hard";
 
+  const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
+  const freeBlocked =
+    trial.isFree &&
+    ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
+
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
@@ -38,8 +46,14 @@ export default function Simulado() {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
+  const [upgradeOpen, setUpgradeOpen] = useState(freeBlocked);
 
   useEffect(() => {
+    if (freeBlocked) {
+      setUpgradeOpen(true);
+      setLoading(false);
+      return;
+    }
     const load = async () => {
       const { data, error } = await supabase.functions.invoke("generate-quiz", { body: { topic, difficulty } });
       if (error || data?.error) {
@@ -181,6 +195,35 @@ export default function Simulado() {
       });
     }
   };
+
+  if (freeBlocked) {
+    const isHard = difficulty === "hard";
+    return (
+      <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) navigate("/app/estudar"); setUpgradeOpen(o); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-warning" />
+              {isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
+            </DialogTitle>
+            <DialogDescription>
+              {isHard
+                ? "Seus 15 dias gratuitos de Simulado Difícil acabaram. Faça upgrade para continuar treinando com o nível avançado."
+                : "Seus 30 dias do plano FREE acabaram. Faça upgrade para continuar acessando os simulados."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => navigate("/app/estudar")}>
+              Voltar
+            </Button>
+            <Button asChild className="gradient-primary text-primary-foreground shadow-glow">
+              <Link to="/app/planos">Ver planos</Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (loading) {
     return (

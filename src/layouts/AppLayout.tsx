@@ -19,6 +19,7 @@ import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trop
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
+import { computeFreeTrial } from "@/lib/freeTrial";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
@@ -39,7 +40,8 @@ function AppSidebar() {
   const { isAdmin, profile } = useAuth();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const chatLocked = !isAdmin && !profile?.chat_unlocked;
+  const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
+  const chatLocked = !isAdmin && !profile?.chat_unlocked && !trial.freeChatActive;
   const cls = (path: string) =>
     location.pathname === path
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
