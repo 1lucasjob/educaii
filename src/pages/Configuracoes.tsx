@@ -142,12 +142,21 @@ export default function Configuracoes() {
               expiresAt: profile.access_expires_at,
             }) : "#";
             return showButton ? (
-              <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-glow shrink-0">
-                <a href={mailto}>
-                  <RefreshCw className="w-4 h-4 mr-2" /> Renovar agora
+              <div className="flex flex-col items-stretch gap-2 shrink-0">
+                <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-glow">
+                  <a href={mailto}>
+                    <RefreshCw className="w-4 h-4 mr-2" /> Renovar agora
+                  </a>
+                </Button>
+                <a href="/app/planos" className="text-xs text-primary hover:underline text-center">
+                  Ver todos os planos
                 </a>
-              </Button>
-            ) : null;
+              </div>
+            ) : (
+              <a href="/app/planos" className="text-xs text-primary hover:underline shrink-0 self-center">
+                Ver todos os planos
+              </a>
+            );
           })()}
         </div>
       </Card>

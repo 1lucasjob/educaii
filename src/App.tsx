@@ -20,6 +20,7 @@ import Ranking from "./pages/Ranking";
 import Admin from "./pages/Admin";
 import Configuracoes from "./pages/Configuracoes";
 import ChatProfessor from "./pages/ChatProfessor";
+import Planos from "./pages/Planos";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="admin" element={<Admin />} />
               <Route path="configuracoes" element={<Configuracoes />} />
               <Route path="chat" element={<ChatProfessor />} />
+              <Route path="planos" element={<Planos />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

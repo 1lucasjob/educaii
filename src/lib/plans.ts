@@ -44,3 +44,23 @@ export function buildRenewalMailto(opts: {
   ].join("\n");
   return `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
+
+export function buildPurchaseMailto(opts: {
+  userEmail: string;
+  plan: AccessPlan;
+}): string {
+  const subject = `Quero contratar o plano ${planLabel(opts.plan)} — EducA.I.`;
+  const body = [
+    `Olá,`,
+    ``,
+    `Tenho interesse em contratar o plano ${planLabel(opts.plan)} do EducA.I.`,
+    ``,
+    `Email da conta: ${opts.userEmail}`,
+    `Plano desejado: ${planLabel(opts.plan)}`,
+    ``,
+    `Aguardo instruções para pagamento.`,
+    ``,
+    `Obrigado!`,
+  ].join("\n");
+  return `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
