@@ -78,10 +78,14 @@ export default function Normas() {
       </div>
 
       <Tabs defaultValue={filtered[0]?.id ?? "NR-01"} orientation="vertical" className="flex flex-col md:flex-row gap-4">
-        <TabsList className="md:flex-col h-auto bg-card p-2 md:w-56 flex-wrap md:flex-nowrap overflow-x-auto md:overflow-visible">
+        <TabsList className="grid grid-cols-4 sm:grid-cols-6 md:flex md:flex-col h-auto bg-card p-2 md:w-40 gap-1 md:max-h-[70vh] md:overflow-y-auto">
           {filtered.map((n) => (
-            <TabsTrigger key={n.id} value={n.id} className="md:w-full md:justify-start data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
-              <HardHat className="w-3.5 h-3.5 mr-2 shrink-0" />
+            <TabsTrigger
+              key={n.id}
+              value={n.id}
+              className="md:w-full md:justify-start px-2 py-1.5 text-xs data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground"
+            >
+              <HardHat className="w-3 h-3 mr-1 shrink-0 hidden md:inline" />
               {n.id}
             </TabsTrigger>
           ))}
