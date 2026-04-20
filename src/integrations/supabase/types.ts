@@ -106,6 +106,7 @@ export type Database = {
           benefits: Json
           duration_label: string
           highlight: string | null
+          locked: boolean
           old_price: string | null
           plan: Database["public"]["Enums"]["access_plan"]
           price: string
@@ -116,6 +117,7 @@ export type Database = {
           benefits?: Json
           duration_label?: string
           highlight?: string | null
+          locked?: boolean
           old_price?: string | null
           plan: Database["public"]["Enums"]["access_plan"]
           price?: string
@@ -126,6 +128,7 @@ export type Database = {
           benefits?: Json
           duration_label?: string
           highlight?: string | null
+          locked?: boolean
           old_price?: string | null
           plan?: Database["public"]["Enums"]["access_plan"]
           price?: string

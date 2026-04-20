@@ -1,0 +1,1 @@
+ALTER TABLE public.plan_settings ADD COLUMN IF NOT EXISTS locked boolean NOT NULL DEFAULT false;
