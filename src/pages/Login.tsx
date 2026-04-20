@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, HardHat } from "lucide-react";
+import { ShieldCheck, HardHat, AlertTriangle } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,6 +14,18 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [params] = useSearchParams();
+  const expired = params.get("expired") === "1";
+
+  useEffect(() => {
+    if (expired) {
+      toast({
+        title: "Acesso expirado",
+        description: "Seu plano terminou. Entre em contato com o administrador para renovar.",
+        variant: "destructive",
+      });
+    }
+  }, [expired, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +38,7 @@ export default function Login() {
     }
     navigate("/app/estudar");
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
