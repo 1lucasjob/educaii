@@ -20,7 +20,7 @@ import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
 import TermsGate from "@/components/TermsGate";
-import { computeFreeTrial } from "@/lib/freeTrial";
+import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
@@ -42,7 +42,10 @@ function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
-  const chatLocked = !isAdmin && !profile?.chat_unlocked && !trial.freeChatActive;
+  const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
+  const days60ChatActive = profile?.plan === "days_60" && planWindow.chatActive;
+  const baseChatUnlock = profile?.plan === "days_60" ? days60ChatActive : !!profile?.chat_unlocked;
+  const chatLocked = !isAdmin && !baseChatUnlock && !trial.freeChatActive;
   const cls = (path: string) =>
     location.pathname === path
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"

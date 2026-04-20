@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { GraduationCap, Send, Lock, Mail, Trash2, Loader2, Bookmark, BookmarkCheck, Clock, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { buildRenewalMailto, planLabel } from "@/lib/plans";
-import { computeFreeTrial } from "@/lib/freeTrial";
+import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
 import ReactMarkdown from "react-markdown";
 
 type Msg = {
@@ -31,7 +31,12 @@ export default function ChatProfessor() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
-  const unlocked = isAdmin || !!profile?.chat_unlocked || trial.freeChatActive;
+  const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
+  const days60ChatActive = profile?.plan === "days_60" && planWindow.chatActive;
+  const days60ChatExpired = profile?.plan === "days_60" && !planWindow.chatActive;
+  // Para days_60, o chat é controlado pela janela de 15 dias (ignora chat_unlocked).
+  const baseUnlock = profile?.plan === "days_60" ? days60ChatActive : !!profile?.chat_unlocked;
+  const unlocked = isAdmin || baseUnlock || trial.freeChatActive;
 
   useEffect(() => {
     if (!unlocked || !profile) {
@@ -83,9 +88,11 @@ export default function ChatProfessor() {
             Seu plano atual é <strong className="text-foreground">{planName}</strong>.
           </p>
           <p className="text-sm text-muted-foreground mb-6">
-            {isFreeExpired
+            {days60ChatExpired
+              ? "Seus 15 dias de Chat com Professor Saraiva incluídos no plano 60 DAYS acabaram. Faça upgrade para 90 DAYS ou PREMIUM para continuar."
+              : isFreeExpired
               ? "Seus 15 dias gratuitos de chat acabaram. Faça upgrade para continuar conversando com o Professor Saraiva."
-              : "O Chat com Professor Saraiva está disponível para alunos do plano 90 DAYS, PREMIUM ou 30 DAYS a partir da primeira renovação."}
+              : "O Chat com Professor Saraiva está disponível para alunos do plano 90 DAYS, PREMIUM, 60 DAYS (15 dias) ou 30 DAYS a partir da primeira renovação."}
           </p>
           <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-glow">
             <a href={mailto}>

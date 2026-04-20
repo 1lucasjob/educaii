@@ -3,6 +3,7 @@ import type { AccessPlan } from "@/contexts/AuthContext";
 export const PLANS: { id: AccessPlan; label: string; days: number; description: string }[] = [
   { id: "free", label: "FREE", days: 30, description: "30 dias · sem renovação" },
   { id: "days_30", label: "30 DAYS", days: 30, description: "30 dias · renovável" },
+  { id: "days_60", label: "60 DAYS", days: 60, description: "60 dias · renovável" },
   { id: "days_90", label: "90 DAYS", days: 90, description: "90 dias · renovável" },
   { id: "premium", label: "PREMIUM", days: 366, description: "366 dias · renovável" },
 ];
