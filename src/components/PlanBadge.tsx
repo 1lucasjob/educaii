@@ -1,22 +1,29 @@
 import type { AccessPlan } from "@/contexts/AuthContext";
-import { Crown, Star, Clock } from "lucide-react";
+import { Crown, Star, Clock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crown } | null> = {
-  free: null,
+const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crown }> = {
+  free: {
+    label: "FREE",
+    cls: "bg-white text-zinc-700 border-zinc-300 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-300",
+    Icon: Sparkles,
+  },
   days_30: {
     label: "30 DAYS",
-    cls: "bg-muted text-muted-foreground border-muted-foreground/30",
+    // Silver/prateado
+    cls: "bg-gradient-to-r from-zinc-200 to-zinc-400 text-zinc-800 border-zinc-400 dark:from-zinc-300 dark:to-zinc-500 dark:text-zinc-900 dark:border-zinc-400",
     Icon: Clock,
   },
   days_90: {
     label: "90 DAYS",
-    cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40",
+    // Gold/dourado
+    cls: "bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border-amber-500 dark:from-amber-300 dark:to-amber-500 dark:text-amber-950 dark:border-amber-500",
     Icon: Star,
   },
   premium: {
     label: "PREMIUM",
-    cls: "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/40",
+    // Roxo
+    cls: "bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white border-purple-600",
     Icon: Crown,
   },
 };
@@ -35,7 +42,7 @@ export default function PlanBadge({ plan, size = "sm", showIcon = true, classNam
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border font-bold uppercase tracking-wide",
+        "inline-flex items-center gap-1 rounded-full border font-bold uppercase tracking-wide shadow-sm",
         size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
         s.cls,
         className

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +34,8 @@ interface StudentRow {
   plan: AccessPlan;
   access_expires_at: string | null;
   last_score: number;
+  current_topic: string | null;
+  current_topic_unlocked: boolean;
 }
 
 export default function Admin() {
@@ -53,7 +55,7 @@ export default function Admin() {
     const [{ data: s }, { data: i }, { data: st }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score").order("access_expires_at", { ascending: true }),
+      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked").order("access_expires_at", { ascending: true }),
     ]);
     setSlots(s?.count ?? 0);
     setInvites((i as Invite[]) ?? []);
@@ -85,6 +87,20 @@ export default function Admin() {
       return;
     }
     toast({ title: "Acesso renovado!", description: `Plano ${planLabel(newPlan)} aplicado.` });
+    load();
+  };
+
+  const unlockStudy = async (userId: string, email: string) => {
+    if (!confirm(`Liberar próximo tópico de estudo para ${email}? O aluno poderá escolher um novo tema mesmo sem ter atingido 80 pontos.`)) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ current_topic_unlocked: true })
+      .eq("id", userId);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Estudo liberado!", description: `${email} pode escolher novo tópico.` });
     load();
   };
 
@@ -267,6 +283,7 @@ export default function Admin() {
               <TableHead>Email</TableHead>
               <TableHead>Plano</TableHead>
               <TableHead>Expira</TableHead>
+              <TableHead>Estudo</TableHead>
               <TableHead>Renovar</TableHead>
             </TableRow>
           </TableHeader>
@@ -286,6 +303,23 @@ export default function Admin() {
                     ) : "—"}
                   </TableCell>
                   <TableCell>
+                    {s.current_topic_unlocked ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
+                        <Unlock className="w-3 h-3" /> Liberado
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs"
+                        onClick={() => unlockStudy(s.id, s.email)}
+                        title={`Tópico atual: ${s.current_topic ?? "—"} · Pontos: ${s.last_score}`}
+                      >
+                        <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-8 w-[130px] text-xs">
                         <RefreshCw className="w-3 h-3 mr-1" />
@@ -302,7 +336,7 @@ export default function Admin() {
               );
             })}
             {students.length === 0 && (
-              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
