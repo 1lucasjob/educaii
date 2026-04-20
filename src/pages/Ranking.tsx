@@ -46,6 +46,7 @@ const cutoffFor = (p: Period): number | null => {
 
 export default function Ranking() {
   const { user, profile } = useAuth();
+  const { enabled: demoEnabled, fakeLeaderboard } = useDemoMode();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("all");
@@ -58,9 +59,14 @@ export default function Ranking() {
     });
   }, []);
 
+  const sourceRows = useMemo<Row[]>(
+    () => (demoEnabled ? [...rows, ...(fakeLeaderboard as Row[])] : rows),
+    [demoEnabled, rows, fakeLeaderboard],
+  );
+
   const ranked = useMemo(() => {
     const cutoff = cutoffFor(period);
-    return rows
+    return sourceRows
       .map((r) => {
         const list = (Array.isArray(r.attempts_data) ? r.attempts_data : []).filter(
           (a) => cutoff === null || +new Date(a.created_at) >= cutoff,
@@ -85,7 +91,7 @@ export default function Ranking() {
       })
       .filter((r): r is NonNullable<typeof r> => r !== null)
       .sort((a, b) => b.composite_score - a.composite_score || b.total_score - a.total_score);
-  }, [rows, period]);
+  }, [sourceRows, period]);
 
   const totalAchievements = computeAchievements([]).length;
   const myIndex = ranked.findIndex((r) => r.user_id === user?.id);
@@ -95,6 +101,12 @@ export default function Ranking() {
       <h1 className="text-3xl font-bold flex items-center gap-2">
         <Trophy className="text-primary" /> Ranking
       </h1>
+      {demoEnabled && (
+        <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-sm">
+          <FlaskConical className="w-4 h-4 text-primary" />
+          <span><strong>Modo de teste ativo</strong> — alunos fictícios sendo exibidos para visualização.</span>
+        </Card>
+      )}
       <p className="text-sm text-muted-foreground">
         Alunos ordenados pelo score composto: <strong>aprovações no difícil × 10 + média de pontos</strong>.
       </p>
