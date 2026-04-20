@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Medal, Award, Crown, EyeOff } from "lucide-react";
+import { Trophy, Medal, Award, Crown, EyeOff, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { computeAchievements, AttemptLite } from "@/lib/achievements";
 
 interface Row {
   user_id: string;
@@ -14,6 +15,7 @@ interface Row {
   attempts: number;
   avg_score: number;
   composite_score: number;
+  attempts_data: AttemptLite[];
 }
 
 const rankIcon = (i: number) => {
@@ -35,7 +37,17 @@ export default function Ranking() {
     });
   }, []);
 
-  const myIndex = rows.findIndex((r) => r.user_id === user?.id);
+  const enriched = useMemo(
+    () =>
+      rows.map((r) => {
+        const list = Array.isArray(r.attempts_data) ? r.attempts_data : [];
+        const unlocked = computeAchievements(list).filter((a) => a.unlocked).length;
+        return { ...r, unlocked };
+      }),
+    [rows],
+  );
+  const totalAchievements = enriched.length > 0 ? computeAchievements([]).length : 10;
+  const myIndex = enriched.findIndex((r) => r.user_id === user?.id);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -69,7 +81,7 @@ export default function Ranking() {
           <p className="text-center text-muted-foreground py-12">Ninguém no ranking ainda. Faça um simulado para entrar!</p>
         ) : (
           <div className="divide-y divide-border">
-            {rows.map((r, i) => {
+            {enriched.map((r, i) => {
               const isMe = r.user_id === user?.id;
               return (
                 <div
@@ -88,9 +100,13 @@ export default function Ranking() {
                       {r.attempts} simulados · {r.hard_passed} aprovações no difícil · média {r.avg_score}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-primary">{Math.round(r.composite_score)}</p>
-                    <p className="text-xs text-muted-foreground">{r.total_score} pts totais</p>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-primary leading-tight">{Math.round(r.composite_score)}</p>
+                    <p className="text-[10px] text-muted-foreground">{r.total_score} pts</p>
+                    <Badge variant="outline" className="mt-1 gap-1 px-1.5 py-0 text-[10px]">
+                      <Sparkles className="w-2.5 h-2.5 text-primary" />
+                      {r.unlocked}/{totalAchievements}
+                    </Badge>
                   </div>
                 </div>
               );
@@ -101,7 +117,7 @@ export default function Ranking() {
 
       {myIndex >= 0 && (
         <p className="text-center text-sm text-muted-foreground">
-          Sua posição: <strong className="text-primary">#{myIndex + 1}</strong> de {rows.length}
+          Sua posição: <strong className="text-primary">#{myIndex + 1}</strong> de {enriched.length}
         </p>
       )}
     </div>
