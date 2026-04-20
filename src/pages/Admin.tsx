@@ -225,13 +225,14 @@ export default function Admin() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="font-bold mb-4">Convites ({invites.length})</h2>
+        <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Status</TableHead>
+              <TableHead>Plano</TableHead>
               <TableHead>Criado</TableHead>
-              <TableHead>Expira</TableHead>
+              <TableHead>Expira link</TableHead>
               <TableHead>Ação</TableHead>
             </TableRow>
           </TableHeader>
@@ -239,6 +240,7 @@ export default function Admin() {
             {invites.map((i) => (
               <TableRow key={i.id}>
                 <TableCell>{statusOf(i)}</TableCell>
+                <TableCell><Badge variant="outline">{planLabel(i.plan)}</Badge></TableCell>
                 <TableCell className="text-xs">{new Date(i.created_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell className="text-xs">{new Date(i.expires_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell>
@@ -251,7 +253,56 @@ export default function Admin() {
               </TableRow>
             ))}
             {invites.length === 0 && (
-              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Nenhum convite ainda.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhum convite ainda.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="font-bold mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Alunos cadastrados ({students.length})</h2>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Email</TableHead>
+              <TableHead>Plano</TableHead>
+              <TableHead>Expira</TableHead>
+              <TableHead>Renovar</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {students.map((s) => {
+              const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
+              return (
+                <TableRow key={s.id}>
+                  <TableCell className="text-xs truncate max-w-[180px]">{s.email}</TableCell>
+                  <TableCell><Badge variant="outline">{planLabel(s.plan)}</Badge></TableCell>
+                  <TableCell className="text-xs">
+                    {s.access_expires_at ? (
+                      <span className={expired ? "text-destructive font-semibold" : ""}>
+                        {new Date(s.access_expires_at).toLocaleDateString("pt-BR")}
+                        {expired && " (expirado)"}
+                      </span>
+                    ) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
+                      <SelectTrigger className="h-8 w-[130px] text-xs">
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        <SelectValue placeholder="Renovar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PLANS.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.label} · {p.days}d</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {students.length === 0 && (
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -260,15 +311,33 @@ export default function Admin() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><KeyRound className="text-primary" /> Confirmar liberação</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><KeyRound className="text-primary" /> Liberar novo acesso</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">Digite o PIN do administrador para gerar um novo link de cadastro único.</p>
+          <p className="text-sm text-muted-foreground">Escolha o plano e digite o PIN para gerar um link de cadastro único.</p>
           <div className="space-y-2">
-            <Label>PIN</Label>
+            <Label>Plano de acesso</Label>
+            <Select value={plan} onValueChange={(v) => setPlan(v as AccessPlan)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PLANS.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{p.label}</span>
+                      <span className="text-xs text-muted-foreground">{p.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>PIN do administrador</Label>
             <Input type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
           </div>
           <Button onClick={release} disabled={loading || pin.length !== 4} className="gradient-primary text-primary-foreground">
-            {loading ? "Liberando…" : "Confirmar"}
+            {loading ? "Liberando…" : `Confirmar — ${planLabel(plan)}`}
           </Button>
         </DialogContent>
       </Dialog>
