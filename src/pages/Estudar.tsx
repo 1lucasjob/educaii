@@ -58,10 +58,10 @@ export default function Estudar() {
       });
       return;
     }
-    if (!meetsMin) {
+    if (!meetsDraft) {
       toast({
         title: "Texto insuficiente",
-        description: `Escreva pelo menos ${MIN_CHARS} caracteres descrevendo o tema (atual: ${topicLength}). Isso garante simulados válidos para o ranking.`,
+        description: `Escreva pelo menos ${MIN_CHARS_DRAFT} caracteres descrevendo o tema (atual: ${topicLength}).`,
         variant: "destructive",
       });
       return;
@@ -69,6 +69,7 @@ export default function Estudar() {
     setLoadingSummary(true);
     setSummary(null);
     const cleanTitle = title.trim();
+    const isDraft = !meetsFull;
     const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle } });
     setLoadingSummary(false);
     if (error || data?.error) {
@@ -76,16 +77,19 @@ export default function Estudar() {
       return;
     }
     setSummary(data.summary);
-    setActiveTopic(cleanTitle);
+    setSummaryIsDraft(isDraft);
 
-    // Persist session (full description) and lock the topic by short title
-    if (profile) {
-      await supabase.from("study_sessions").insert({ user_id: profile.id, topic: `${cleanTitle}\n\n${topic}`, summary: data.summary });
-      await supabase.from("profiles").update({ current_topic: cleanTitle, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
-      await refreshProfile();
+    if (!isDraft) {
+      setActiveTopic(cleanTitle);
+      // Persist session (full description) and lock the topic by short title
+      if (profile) {
+        await supabase.from("study_sessions").insert({ user_id: profile.id, topic: `${cleanTitle}\n\n${topic}`, summary: data.summary });
+        await supabase.from("profiles").update({ current_topic: cleanTitle, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
+        await refreshProfile();
+      }
+      setTitle("");
+      setTopic("");
     }
-    setTitle("");
-    setTopic("");
   };
 
   const startQuiz = (difficulty: "easy" | "hard") => {
