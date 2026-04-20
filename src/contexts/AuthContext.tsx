@@ -19,6 +19,7 @@ interface Profile {
   created_at: string;
   days_30_renewals_count: number;
   terms_accepted_at: string | null;
+  expert_unlocked_until: string | null;
 }
 
 interface AuthCtx {
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = async (uid: string) => {
     const { data: p } = await supabase
       .from("profiles")
-      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking,plan,access_expires_at,chat_unlocked,created_at,days_30_renewals_count,terms_accepted_at")
+      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking,plan,access_expires_at,chat_unlocked,created_at,days_30_renewals_count,terms_accepted_at,expert_unlocked_until")
       .eq("id", uid)
       .maybeSingle();
 

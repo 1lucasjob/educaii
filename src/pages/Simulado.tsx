@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
-import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
+import { computeFreeTrial, computePlanWindows, expertActive } from "@/lib/freeTrial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
@@ -25,22 +25,24 @@ interface Question {
 export default function Simulado() {
   const [params] = useSearchParams();
   const topic = params.get("topic") ?? "";
-  const difficulty = (params.get("difficulty") as "easy" | "hard") ?? "easy";
+  const difficulty = (params.get("difficulty") as "easy" | "hard" | "expert") ?? "easy";
   const navigate = useNavigate();
   const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
-  const TIME_LIMIT = difficulty === "hard" ? 10 * 60 : 15 * 60; // seconds
-  const lockNavigation = difficulty === "hard";
+  const TIME_LIMIT =
+    difficulty === "expert" ? 20 * 60 : difficulty === "hard" ? 10 * 60 : 15 * 60;
+  const lockNavigation = difficulty === "hard" || difficulty === "expert";
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
   const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
+  const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until });
+
   const freeBlocked =
     trial.isFree &&
     ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
 
   // Plano-based gating for Hard mode (não-FREE):
-  // Liberado para days_90, premium, days_30 com 2+ renovações, ou days_60 dentro da janela de 10 dias.
   const planAllowsHard =
     profile?.plan === "days_90" ||
     profile?.plan === "premium" ||
@@ -49,7 +51,10 @@ export default function Simulado() {
   const planBlockedHard =
     !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
 
-  const blocked = freeBlocked || planBlockedHard;
+  // Expert gating: somente premium, days_90 ou liberação ADM ativa.
+  const expertBlocked = difficulty === "expert" && !userHasExpert;
+
+  const blocked = freeBlocked || planBlockedHard || expertBlocked;
 
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -68,7 +73,13 @@ export default function Simulado() {
       return;
     }
     const load = async () => {
-      const { data, error } = await supabase.functions.invoke("generate-quiz", { body: { topic, difficulty } });
+      let sourceText: string | undefined;
+      try {
+        sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
+      } catch {}
+      const { data, error } = await supabase.functions.invoke("generate-quiz", {
+        body: { topic, difficulty, sourceText },
+      });
       if (error || data?.error) {
         toast({ title: "Erro ao gerar simulado", description: data?.error ?? error?.message, variant: "destructive" });
         navigate("/app/estudar");
@@ -211,19 +222,22 @@ export default function Simulado() {
 
   if (blocked) {
     const isHard = difficulty === "hard";
+    const isExpert = difficulty === "expert";
     const renewals = profile?.days_30_renewals_count ?? 0;
-    const description = freeBlocked
-      ? (isHard
-          ? "Seus 15 dias gratuitos de Simulado Difícil acabaram. Faça upgrade para continuar treinando com o nível avançado."
-          : "Seus 30 dias do plano FREE acabaram. Faça upgrade para continuar acessando os simulados.")
-      : `O Simulado Difícil exige plano 90 DAYS, PREMIUM ou plano 30 DAYS renovado pelo menos 2 vezes (você tem ${renewals} renovação${renewals === 1 ? "" : "ões"}). Faça upgrade ou continue renovando o 30 DAYS.`;
+    const description = isExpert
+      ? "O Simulado Expert (nível acadêmico) é exclusivo dos planos PREMIUM e 90 DAYS. O administrador também pode liberar acesso temporário (24h) sob solicitação."
+      : freeBlocked
+        ? (isHard
+            ? "Seus 15 dias gratuitos de Simulado Difícil acabaram. Faça upgrade para continuar treinando com o nível avançado."
+            : "Seus 30 dias do plano FREE acabaram. Faça upgrade para continuar acessando os simulados.")
+        : `O Simulado Difícil exige plano 90 DAYS, PREMIUM ou plano 30 DAYS renovado pelo menos 2 vezes (você tem ${renewals} renovação${renewals === 1 ? "" : "ões"}). Faça upgrade ou continue renovando o 30 DAYS.`;
     return (
       <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) navigate("/app/estudar"); setUpgradeOpen(o); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-warning" />
-              {isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
+              {isExpert ? "Simulado Expert bloqueado" : isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
             </DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
@@ -244,7 +258,7 @@ export default function Simulado() {
     return (
       <div className="max-w-2xl mx-auto text-center py-20">
         <div className="inline-block w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4" />
-        <p className="text-muted-foreground">Gerando simulado {difficulty === "hard" ? "difícil" : "fácil"}…</p>
+        <p className="text-muted-foreground">Gerando simulado {difficulty === "expert" ? "expert" : difficulty === "hard" ? "difícil" : "fácil"}…</p>
       </div>
     );
   }
@@ -337,7 +351,16 @@ export default function Simulado() {
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-sm font-semibold border ${lowTime ? "bg-destructive/10 text-destructive border-destructive/40 animate-pulse" : "bg-muted border-border"}`}>
           <Clock className="w-4 h-4" /> {formatTime(timeLeft)}
         </div>
-        <Badge className="gradient-primary text-primary-foreground border-0">{difficulty === "hard" ? "DIFÍCIL" : "FÁCIL"}</Badge>
+        {difficulty === "expert" ? (
+          <Badge
+            className="border-0 text-white"
+            style={{ background: "linear-gradient(135deg, hsl(280 80% 55%), hsl(320 80% 55%))" }}
+          >
+            EXPERT
+          </Badge>
+        ) : (
+          <Badge className="gradient-primary text-primary-foreground border-0">{difficulty === "hard" ? "DIFÍCIL" : "FÁCIL"}</Badge>
+        )}
       </div>
       <Progress value={((current + 1) / questions.length) * 100} />
 

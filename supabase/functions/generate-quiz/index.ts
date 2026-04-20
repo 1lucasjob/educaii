@@ -17,8 +17,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, difficulty } = await req.json();
-    if (!topic || !["easy", "hard"].includes(difficulty)) {
+    const { topic, difficulty, sourceText } = await req.json();
+    if (!topic || !["easy", "hard", "expert"].includes(difficulty)) {
       return new Response(JSON.stringify({ error: "Parâmetros inválidos" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -28,23 +28,103 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY ausente");
 
-    const range = difficulty === "easy"
-      ? "entre 5 e 10 questões (escolha um número adequado)"
-      : "entre 5 e 10 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão";
+    const range =
+      difficulty === "easy"
+        ? "entre 5 e 10 questões (escolha um número adequado)"
+        : difficulty === "hard"
+          ? "entre 5 e 10 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão"
+          : "entre 5 e 10 questões de NÍVEL ACADÊMICO/PÓS-GRADUAÇÃO — estudo de caso longo, exigindo cálculos quando aplicável e combinação de múltiplas NRs";
 
-    const userPrompt = `Tema: ${topic}
-Dificuldade: ${difficulty === "easy" ? "FÁCIL" : "DIFÍCIL (nível concurso público / banca examinadora)"}
-Quantidade: ${range}.
-Total de pontos: exatamente 100, distribuídos entre as questões.
-${difficulty === "hard"
-  ? `As questões devem:
+    const difficultyLabel =
+      difficulty === "easy"
+        ? "FÁCIL"
+        : difficulty === "hard"
+          ? "DIFÍCIL (nível concurso público / banca examinadora)"
+          : "EXPERT (nível prova acadêmica / pós-graduação em Engenharia de Segurança do Trabalho)";
+
+    const sourceTextBlock =
+      (difficulty === "hard" || difficulty === "expert") && sourceText && typeof sourceText === "string" && sourceText.trim().length > 0
+        ? `\n\nREGRA CRÍTICA DE FONTE:\nUse EXCLUSIVAMENTE o texto base abaixo como fonte de informação. NÃO invente itens de NR fora dele. Toda questão deve ser respondível a partir do texto. Se o texto não cobrir um detalhe, NÃO o use.\n\n<<TEXTO_BASE>>\n${sourceText.trim()}\n<</TEXTO_BASE>>`
+        : "";
+
+    const expertExtra =
+      difficulty === "expert"
+        ? `\nAs questões devem:
+- Apresentar estudo de caso longo e realista (3-6 linhas) no enunciado.
+- Exigir cálculos numéricos quando o tema permitir (NR-15 limites de tolerância, NR-17 ergonomia, NR-06 cálculo de EPI, NR-12 cálculo de proteção, etc).
+- Combinar 2 ou mais NRs simultaneamente em uma mesma questão.
+- Distratores quase idênticos à correta — diferença em UMA palavra, número, condição ou exceção.
+- Nível de banca de pós-graduação / mestrado em Engenharia de Segurança.
+- Evitar perguntas conceituais simples — sempre análise de cenário.`
+        : difficulty === "hard"
+          ? `\nAs questões devem:
 - Exigir interpretação de cenários reais e julgamento técnico (estudo de caso curto no enunciado).
 - Cobrar números EXATOS de NRs (limites, prazos, períodos, distâncias, alturas, capacidades).
 - Incluir pegadinhas: troca de item da NR, exceções, responsabilidades cruzadas (empregador vs empregado vs SESMT vs CIPA).
 - Combinar 2+ NRs quando o tema permitir.
 - Distratores devem ser quase corretos — diferenças sutis em uma palavra, número ou condição.
 - Evitar perguntas conceituais simples ("o que é EPI?") — sempre exigir aplicação ou análise.`
-  : "As questões devem cobrir conceitos básicos e aplicações diretas."}`;
+          : "As questões devem cobrir conceitos básicos e aplicações diretas.";
+
+    const userPrompt = `Tema: ${topic}
+Dificuldade: ${difficultyLabel}
+Quantidade: ${range}.
+Total de pontos: exatamente 100, distribuídos entre as questões.${expertExtra}${sourceTextBlock}`;
+
+    const model =
+      difficulty === "expert"
+        ? "google/gemini-3.1-pro-preview"
+        : difficulty === "hard"
+          ? "google/gemini-3.1-pro-preview"
+          : "google/gemini-3-flash-preview";
+
+    const body: any = {
+      model,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "build_quiz",
+            description: "Retorna um simulado estruturado",
+            parameters: {
+              type: "object",
+              properties: {
+                questions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      question: { type: "string", description: "Enunciado" },
+                      options: {
+                        type: "array",
+                        items: { type: "string" },
+                        description: "Exatamente 4 alternativas",
+                      },
+                      correct_index: { type: "integer", description: "Índice 0-3 da correta" },
+                      points: { type: "integer", description: "Pontos da questão" },
+                      explanation: { type: "string", description: "Justificativa técnica curta" },
+                    },
+                    required: ["question", "options", "correct_index", "points", "explanation"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["questions"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "build_quiz" } },
+    };
+
+    if (difficulty === "expert") {
+      body.reasoning = { effort: "high" };
+    }
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -52,49 +132,7 @@ ${difficulty === "hard"
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: difficulty === "hard" ? "google/gemini-3.1-pro-preview" : "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "build_quiz",
-              description: "Retorna um simulado estruturado",
-              parameters: {
-                type: "object",
-                properties: {
-                  questions: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        question: { type: "string", description: "Enunciado" },
-                        options: {
-                          type: "array",
-                          items: { type: "string" },
-                          description: "Exatamente 4 alternativas",
-                        },
-                        correct_index: { type: "integer", description: "Índice 0-3 da correta" },
-                        points: { type: "integer", description: "Pontos da questão" },
-                        explanation: { type: "string", description: "Justificativa técnica curta" },
-                      },
-                      required: ["question", "options", "correct_index", "points", "explanation"],
-                      additionalProperties: false,
-                    },
-                  },
-                },
-                required: ["questions"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "build_quiz" } },
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!resp.ok) {

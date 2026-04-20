@@ -71,3 +71,18 @@ export function computePlanWindows(opts: {
     hardActive: hardDaysLeft > 0,
   };
 }
+
+/**
+ * Acesso ao Simulado Expert.
+ * Liberado para planos premium e days_90, ou se houver liberação ADM temporária ativa.
+ */
+export function expertActive(opts: {
+  plan: AccessPlan | null | undefined;
+  expertUnlockedUntil: string | null | undefined;
+}): boolean {
+  if (opts.plan === "premium" || opts.plan === "days_90") return true;
+  if (opts.expertUnlockedUntil) {
+    return new Date(opts.expertUnlockedUntil).getTime() > Date.now();
+  }
+  return false;
+}
