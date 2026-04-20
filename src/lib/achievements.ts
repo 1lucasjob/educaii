@@ -1,4 +1,4 @@
-import { Trophy, Flame, Star, Target, Award, Crown, Zap, BookOpen, Medal, Rocket, Timer, Sparkles, Moon, Sun, Diamond, Ghost, Infinity as InfinityIcon, Swords } from "lucide-react";
+import { Trophy, Flame, Star, Target, Award, Crown, Zap, BookOpen, Medal, Rocket, Timer, Sparkles, Moon, Sun, Diamond, Ghost, Infinity as InfinityIcon, Swords, Gem, Atom, Wand2 } from "lucide-react";
 
 export interface AttemptLite {
   topic: string;
@@ -102,6 +102,17 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
       break;
     }
   }
+
+  // ===== ULTRA RARE helpers =====
+  // Centurião: 100 simulados completados
+  const centurion = total >= 100;
+
+  // Onisciente: aprovação no difícil (80+) em 20 temas distintos
+  const omniscientTopics = hardPassedTopics; // já calculado acima como Set().size
+  // Mago do Tempo: 10 simulados difíceis com 100 pontos em menos de 4 minutos cada
+  const timeMageCount = hardAttempts.filter(
+    (a) => a.score === 100 && (a.time_spent_seconds ?? Infinity) < 240,
+  ).length;
 
   const pct = (val: number, target: number) => Math.min(100, Math.round((val / target) * 100));
 
@@ -275,6 +286,38 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
       unlocked: phoenix,
       progress: phoenix ? 100 : 0,
       hint: phoenix ? "Renasceu das cinzas" : "Caia e levante-se",
+      secret: true,
+    },
+
+    // ============ ULTRA RARE (também secretas — só admin vê bloqueadas) ============
+    {
+      id: "ultra_centurion",
+      title: "Centurião",
+      description: "Complete 100 simulados",
+      icon: Gem,
+      unlocked: centurion,
+      progress: pct(total, 100),
+      hint: `${total}/100 simulados`,
+      secret: true,
+    },
+    {
+      id: "ultra_omniscient",
+      title: "Onisciente",
+      description: "Aprovação no difícil (80+) em 20 temas distintos",
+      icon: Atom,
+      unlocked: omniscientTopics >= 20,
+      progress: pct(omniscientTopics, 20),
+      hint: `${omniscientTopics}/20 temas dominados`,
+      secret: true,
+    },
+    {
+      id: "ultra_time_mage",
+      title: "Mago do Tempo",
+      description: "10 simulados difíceis com 100 pontos em menos de 4 minutos cada",
+      icon: Wand2,
+      unlocked: timeMageCount >= 10,
+      progress: pct(timeMageCount, 10),
+      hint: `${timeMageCount}/10 perfeições relâmpago`,
       secret: true,
     },
   ];
