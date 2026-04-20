@@ -8,11 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
+import { PLANS, planLabel } from "@/lib/plans";
+import type { AccessPlan } from "@/contexts/AuthContext";
 
 interface Invite {
   id: string;
@@ -21,6 +24,16 @@ interface Invite {
   expires_at: string;
   used_at: string | null;
   created_at: string;
+  plan: AccessPlan;
+  access_expires_at: string | null;
+}
+
+interface StudentRow {
+  id: string;
+  email: string;
+  plan: AccessPlan;
+  access_expires_at: string | null;
+  last_score: number;
 }
 
 export default function Admin() {
@@ -30,8 +43,10 @@ export default function Admin() {
   const [previewTheme, setPreviewTheme] = useState<ThemeName>(getStoredTheme());
   const [slots, setSlots] = useState(0);
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [students, setStudents] = useState<StudentRow[]>([]);
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
+  const [plan, setPlan] = useState<AccessPlan>("free");
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
