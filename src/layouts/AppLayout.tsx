@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
