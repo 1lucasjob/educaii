@@ -20,6 +20,7 @@ import Ranking from "./pages/Ranking";
 import Admin from "./pages/Admin";
 import Configuracoes from "./pages/Configuracoes";
 import ChatProfessor from "./pages/ChatProfessor";
+import Planos from "./pages/Planos";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
