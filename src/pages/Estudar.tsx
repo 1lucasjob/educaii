@@ -22,6 +22,7 @@ export default function Estudar() {
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState("");
   const [summary, setSummary] = useState<string | null>(null);
+  const [summaryIsDraft, setSummaryIsDraft] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [activeTopic, setActiveTopic] = useState<string | null>(profile?.current_topic ?? null);
 
@@ -31,11 +32,13 @@ export default function Estudar() {
   const lastScore = profile?.last_score ?? 0;
 
   const MIN_CHARS = 1000;
+  const MIN_CHARS_DRAFT = 300;
   const TITLE_MIN = 5;
   const TITLE_MAX = 80;
   const topicLength = topic.trim().length;
   const titleLength = title.trim().length;
-  const meetsMin = topicLength >= MIN_CHARS;
+  const meetsDraft = topicLength >= MIN_CHARS_DRAFT;
+  const meetsFull = topicLength >= MIN_CHARS;
   const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
 
   const generate = async () => {
@@ -55,10 +58,10 @@ export default function Estudar() {
       });
       return;
     }
-    if (!meetsMin) {
+    if (!meetsDraft) {
       toast({
         title: "Texto insuficiente",
-        description: `Escreva pelo menos ${MIN_CHARS} caracteres descrevendo o tema (atual: ${topicLength}). Isso garante simulados válidos para o ranking.`,
+        description: `Escreva pelo menos ${MIN_CHARS_DRAFT} caracteres descrevendo o tema (atual: ${topicLength}).`,
         variant: "destructive",
       });
       return;
@@ -66,6 +69,7 @@ export default function Estudar() {
     setLoadingSummary(true);
     setSummary(null);
     const cleanTitle = title.trim();
+    const isDraft = !meetsFull;
     const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle } });
     setLoadingSummary(false);
     if (error || data?.error) {
@@ -73,16 +77,19 @@ export default function Estudar() {
       return;
     }
     setSummary(data.summary);
-    setActiveTopic(cleanTitle);
+    setSummaryIsDraft(isDraft);
 
-    // Persist session (full description) and lock the topic by short title
-    if (profile) {
-      await supabase.from("study_sessions").insert({ user_id: profile.id, topic: `${cleanTitle}\n\n${topic}`, summary: data.summary });
-      await supabase.from("profiles").update({ current_topic: cleanTitle, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
-      await refreshProfile();
+    if (!isDraft) {
+      setActiveTopic(cleanTitle);
+      // Persist session (full description) and lock the topic by short title
+      if (profile) {
+        await supabase.from("study_sessions").insert({ user_id: profile.id, topic: `${cleanTitle}\n\n${topic}`, summary: data.summary });
+        await supabase.from("profiles").update({ current_topic: cleanTitle, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
+        await refreshProfile();
+      }
+      setTitle("");
+      setTopic("");
     }
-    setTitle("");
-    setTopic("");
   };
 
   const startQuiz = (difficulty: "easy" | "hard") => {
@@ -168,18 +175,22 @@ export default function Estudar() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               disabled={!unlocked || loadingSummary}
-              placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). Mínimo 1000 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
+              placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). A partir de 300 caracteres gera resumo (rascunho); 1000+ salva e conta para o ranking." : "Conclua o simulado difícil para liberar."}
               className="min-h-32"
             />
-            <div className="flex items-center justify-between text-xs">
-              <span className={meetsMin ? "text-success" : "text-muted-foreground"}>
-                {topicLength}/{MIN_CHARS} caracteres {meetsMin ? "✓ válido para ranking" : "(mínimo para contar no ranking)"}
+            <div className="flex items-center justify-between text-xs gap-3">
+              <span className={meetsFull ? "text-success" : meetsDraft ? "text-warning" : "text-muted-foreground"}>
+                {meetsFull
+                  ? `${topicLength}/${MIN_CHARS} ✓ válido para ranking`
+                  : meetsDraft
+                    ? `${topicLength}/${MIN_CHARS} — modo rascunho (não salva, não pontua)`
+                    : `${topicLength}/${MIN_CHARS_DRAFT} (mínimo para gerar)`}
               </span>
               <Progress value={Math.min(100, (topicLength / MIN_CHARS) * 100)} className="w-24 h-1.5" />
             </div>
           </div>
 
-          <Button onClick={generate} disabled={!unlocked || loadingSummary} className="w-full gradient-primary text-primary-foreground shadow-glow">
+          <Button onClick={generate} disabled={!unlocked || loadingSummary || !meetsDraft || !titleValid} className="w-full gradient-primary text-primary-foreground shadow-glow">
             {loadingSummary ? "Gerando resumo…" : (<><Sparkles className="mr-2" /> Gerar Estudo</>)}
           </Button>
         </div>
@@ -188,26 +199,40 @@ export default function Estudar() {
       {summary && (
         <Card className="p-6 animate-fade-in">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain className="text-primary" /> Resumo Técnico</h3>
+          {summaryIsDraft && (
+            <Alert className="mb-4 border-warning/40 bg-warning/10">
+              <Sparkles className="w-4 h-4 text-warning" />
+              <AlertDescription className="text-sm">
+                <strong>Modo rascunho:</strong> este resumo não foi salvo no histórico e não conta para o ranking. Escreva 1000+ caracteres para salvar e desbloquear simulados que valem pontos.
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground">
             {summary}
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3 mt-6">
-            <Button onClick={() => startQuiz("easy")} variant="outline" className="border-primary/40 hover:bg-primary/10 h-14">
-              <Target className="mr-2" />
-              <div className="text-left">
-                <p className="font-bold">Simulado Fácil</p>
-                <p className="text-xs text-muted-foreground">10–25 questões · 100 pts</p>
-              </div>
-            </Button>
-            <Button onClick={() => startQuiz("hard")} className="gradient-primary text-primary-foreground h-14 shadow-glow">
-              <Zap className="mr-2" />
-              <div className="text-left">
-                <p className="font-bold">Simulado Difícil</p>
-                <p className="text-xs opacity-80">5–15 questões · libera novo tema (≥80)</p>
-              </div>
-            </Button>
-          </div>
+          {summaryIsDraft ? (
+            <p className="text-xs text-muted-foreground mt-6 text-center">
+              Para fazer simulado deste tema, escreva 1000+ caracteres e gere novamente.
+            </p>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3 mt-6">
+              <Button onClick={() => startQuiz("easy")} variant="outline" className="border-primary/40 hover:bg-primary/10 h-14">
+                <Target className="mr-2" />
+                <div className="text-left">
+                  <p className="font-bold">Simulado Fácil</p>
+                  <p className="text-xs text-muted-foreground">10–25 questões · 100 pts</p>
+                </div>
+              </Button>
+              <Button onClick={() => startQuiz("hard")} className="gradient-primary text-primary-foreground h-14 shadow-glow">
+                <Zap className="mr-2" />
+                <div className="text-left">
+                  <p className="font-bold">Simulado Difícil</p>
+                  <p className="text-xs opacity-80">5–15 questões · libera novo tema (≥80)</p>
+                </div>
+              </Button>
+            </div>
+          )}
         </Card>
       )}
     </div>
