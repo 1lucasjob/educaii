@@ -138,12 +138,19 @@ export default function Progresso() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold flex items-center gap-2">
-        <BarChart3 className="text-primary" /> Meu Progresso
+        <BarChart3 className="text-primary" />
+        {viewAsRow ? `Progresso de ${viewAsRow.display_name}` : "Meu Progresso"}
       </h1>
       {demoEnabled && (
         <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-sm">
-          <FlaskConical className="w-4 h-4 text-primary" />
-          <span><strong>Modo de teste ativo</strong> — simulados fictícios incluídos para visualização.</span>
+          <FlaskConical className="w-4 h-4 text-primary shrink-0" />
+          {viewAsRow ? (
+            <span>
+              <strong>Vendo como aluno fictício:</strong> {viewAsRow.display_name} — todos os dados abaixo são deste aluno demo.
+            </span>
+          ) : (
+            <span><strong>Modo de teste ativo</strong> — simulados fictícios incluídos para visualização.</span>
+          )}
         </Card>
       )}
 

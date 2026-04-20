@@ -112,7 +112,7 @@ function AppSidebar() {
 
 export default function AppLayout() {
   const { user, profile, isAdmin, loading, signOut } = useAuth();
-  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode();
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled, viewAsRow, setViewAsId } = useDemoMode();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando…</div>;
   if (!user) return <Navigate to="/login" replace />;
 
