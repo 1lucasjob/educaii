@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +19,7 @@ export default function Estudar() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const [title, setTitle] = useState("");
   const [topic, setTopic] = useState("");
   const [summary, setSummary] = useState<string | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
@@ -28,8 +31,12 @@ export default function Estudar() {
   const lastScore = profile?.last_score ?? 0;
 
   const MIN_CHARS = 1000;
+  const TITLE_MIN = 5;
+  const TITLE_MAX = 80;
   const topicLength = topic.trim().length;
+  const titleLength = title.trim().length;
   const meetsMin = topicLength >= MIN_CHARS;
+  const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
 
   const generate = async () => {
     if (freeExpired) {
@@ -38,6 +45,14 @@ export default function Estudar() {
     }
     if (!unlocked) {
       toast({ title: "Tema bloqueado", description: "Conclua o Simulado Difícil com 80+ pontos para liberar.", variant: "destructive" });
+      return;
+    }
+    if (!titleValid) {
+      toast({
+        title: "Título inválido",
+        description: `Informe um título entre ${TITLE_MIN} e ${TITLE_MAX} caracteres (ex: "NR-35 — Trabalho em Altura").`,
+        variant: "destructive",
+      });
       return;
     }
     if (!meetsMin) {
@@ -50,21 +65,24 @@ export default function Estudar() {
     }
     setLoadingSummary(true);
     setSummary(null);
-    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic } });
+    const cleanTitle = title.trim();
+    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle } });
     setLoadingSummary(false);
     if (error || data?.error) {
       toast({ title: "Erro ao gerar resumo", description: data?.error ?? error?.message, variant: "destructive" });
       return;
     }
     setSummary(data.summary);
-    setActiveTopic(topic);
+    setActiveTopic(cleanTitle);
 
-    // Persist session and lock the topic
+    // Persist session (full description) and lock the topic by short title
     if (profile) {
-      await supabase.from("study_sessions").insert({ user_id: profile.id, topic, summary: data.summary });
-      await supabase.from("profiles").update({ current_topic: topic, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
+      await supabase.from("study_sessions").insert({ user_id: profile.id, topic: `${cleanTitle}\n\n${topic}`, summary: data.summary });
+      await supabase.from("profiles").update({ current_topic: cleanTitle, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
       await refreshProfile();
     }
+    setTitle("");
+    setTopic("");
   };
 
   const startQuiz = (difficulty: "easy" | "hard") => {
@@ -114,7 +132,7 @@ export default function Estudar() {
               <h2 className="font-semibold">{unlocked ? "Pronto para um novo tema" : "Tema atual bloqueado"}</h2>
               <Badge variant={unlocked ? "outline" : "secondary"}>{unlocked ? "Desbloqueado" : "Bloqueado"}</Badge>
             </div>
-            {activeTopic && <p className="text-sm text-muted-foreground mt-1 truncate">Tema atual: <strong>{activeTopic}</strong></p>}
+            {activeTopic && <p className="text-sm text-muted-foreground mt-1">Tema atual: <strong>{activeTopic}</strong></p>}
             <div className="mt-3">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
                 <span>Progresso para desbloquear</span>
@@ -125,21 +143,42 @@ export default function Estudar() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Sobre qual tema quer estudar? Descreva com detalhes</label>
-          <Textarea
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            disabled={!unlocked || loadingSummary}
-            placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). Mínimo 1000 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
-            className="min-h-32"
-          />
-          <div className="flex items-center justify-between text-xs">
-            <span className={meetsMin ? "text-success" : "text-muted-foreground"}>
-              {topicLength}/{MIN_CHARS} caracteres {meetsMin ? "✓ válido para ranking" : "(mínimo para contar no ranking)"}
-            </span>
-            <Progress value={Math.min(100, (topicLength / MIN_CHARS) * 100)} className="w-24 h-1.5" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="study-title">Título do tema de estudo</Label>
+            <Input
+              id="study-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
+              disabled={!unlocked || loadingSummary}
+              placeholder="Ex: NR-35 — Trabalho em Altura"
+              maxLength={TITLE_MAX}
+            />
+            <div className="flex items-center justify-between text-xs">
+              <span className={titleValid ? "text-success" : "text-muted-foreground"}>
+                {titleLength}/{TITLE_MAX} {titleValid ? "✓" : `(mín. ${TITLE_MIN})`}
+              </span>
+            </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="study-topic">Descrição detalhada do tema</Label>
+            <Textarea
+              id="study-topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              disabled={!unlocked || loadingSummary}
+              placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). Mínimo 1000 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
+              className="min-h-32"
+            />
+            <div className="flex items-center justify-between text-xs">
+              <span className={meetsMin ? "text-success" : "text-muted-foreground"}>
+                {topicLength}/{MIN_CHARS} caracteres {meetsMin ? "✓ válido para ranking" : "(mínimo para contar no ranking)"}
+              </span>
+              <Progress value={Math.min(100, (topicLength / MIN_CHARS) * 100)} className="w-24 h-1.5" />
+            </div>
+          </div>
+
           <Button onClick={generate} disabled={!unlocked || loadingSummary} className="w-full gradient-primary text-primary-foreground shadow-glow">
             {loadingSummary ? "Gerando resumo…" : (<><Sparkles className="mr-2" /> Gerar Estudo</>)}
           </Button>

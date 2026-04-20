@@ -29,13 +29,17 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic } = await req.json();
+    const { topic, title } = await req.json();
     if (!topic || typeof topic !== "string" || topic.trim().length < 3) {
       return new Response(JSON.stringify({ error: "Tema inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const safeTitle = typeof title === "string" ? title.trim().slice(0, 200) : "";
+    const userContent = safeTitle
+      ? `Título: ${safeTitle}\n\nDescrição: ${topic}`
+      : `Tema: ${topic}`;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY ausente");
@@ -50,7 +54,7 @@ Deno.serve(async (req) => {
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Tema: ${topic}` },
+          { role: "user", content: userContent },
         ],
       }),
     });
