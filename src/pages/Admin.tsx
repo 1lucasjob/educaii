@@ -110,6 +110,9 @@ export default function Admin() {
             <Button size="sm" variant="outline" onClick={() => navigate("/app/progresso")} className="gap-1 border-primary/40">
               <Eye className="w-3.5 h-3.5 text-primary" /> Ver Meu Progresso
             </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/estudar-demo")} className="gap-1 border-primary/40">
+              <FlaskConical className="w-3.5 h-3.5 text-primary" /> Demo de Estudo
+            </Button>
           </div>
         )}
 

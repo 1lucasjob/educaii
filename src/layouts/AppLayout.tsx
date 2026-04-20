@@ -25,7 +25,10 @@ const items = [
   { title: "Ranking", url: "/app/ranking", icon: Trophy },
 ];
 
-const adminItems = [{ title: "Gestão de Cadastros", url: "/app/admin", icon: ShieldCheck }];
+const adminItems = [
+  { title: "Gestão de Cadastros", url: "/app/admin", icon: ShieldCheck },
+  { title: "Demo de Estudo", url: "/app/estudar-demo", icon: FlaskConical },
+];
 
 function AppSidebar() {
   const { state } = useSidebar();
