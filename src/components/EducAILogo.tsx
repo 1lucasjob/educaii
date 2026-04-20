@@ -1,16 +1,19 @@
 interface Props {
   className?: string;
   title?: string;
+  glow?: boolean;
 }
 
 /**
- * Logo EducA.I. — cérebro com chapéu de formatura.
- * Fundo preenchido com a cor de background do tema e contorno na cor primária (amarelo/azul/verde/laranja).
+ * Logo EducA.I. — cérebro com chapéu de formatura, estilo neon.
+ * Preenchimento usa --background do tema; traços usam --primary (amarelo/azul/verde/laranja).
  */
-export function EducAILogo({ className, title = "EducA.I." }: Props) {
+export function EducAILogo({ className, title = "EducA.I.", glow = true }: Props) {
+  const stroke = "hsl(var(--primary))";
+  const bg = "hsl(var(--background))";
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox="0 0 200 200"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       role="img"
@@ -18,38 +21,87 @@ export function EducAILogo({ className, title = "EducA.I." }: Props) {
       fill="none"
     >
       <title>{title}</title>
-      {/* Cérebro */}
-      <path
-        d="M22 26c-4 0-7 3-7 7 0 3 2 5 4 6-1 3 1 6 5 6 1 2 4 3 7 2 1 2 4 3 7 1 3 1 6-1 6-4 3 0 5-3 4-6 2-1 4-3 4-6 0-4-3-7-7-7 0-4-3-6-7-6-2-2-5-2-7 0-2-1-5-1-7 1-1-1-2 0-2 1z"
-        fill="hsl(var(--background))"
-        stroke="hsl(var(--primary))"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      {/* Linhas internas (circuitos/sulcos) */}
-      <path
-        d="M32 24v22M26 30c2 1 3 3 3 5M38 30c-2 1-3 3-3 5M24 38c2 0 3 1 4 3M40 38c-2 0-3 1-4 3"
-        stroke="hsl(var(--primary))"
-        strokeWidth="1.8"
+      <defs>
+        {glow && (
+          <filter id="educai-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.2" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        )}
+      </defs>
+
+      <g
+        filter={glow ? "url(#educai-glow)" : undefined}
+        stroke={stroke}
+        strokeWidth="3"
         strokeLinecap="round"
-        fill="none"
-      />
-      {/* Chapéu de formatura — base */}
-      <path
-        d="M14 18l18-8 18 8-18 8-18-8z"
-        fill="hsl(var(--background))"
-        stroke="hsl(var(--primary))"
-        strokeWidth="2.5"
         strokeLinejoin="round"
-      />
-      {/* Borla */}
-      <path
-        d="M50 18v8"
-        stroke="hsl(var(--primary))"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <circle cx="50" cy="28" r="2" fill="hsl(var(--primary))" />
+      >
+        {/* Chapéu de formatura — losango (mortarboard) */}
+        <path
+          d="M100 38 L168 62 L100 86 L32 62 Z"
+          fill={bg}
+        />
+        {/* Linha interna do losango (espessura) */}
+        <path d="M100 50 L154 70 L100 90 L46 70 Z" fill={bg} />
+
+        {/* Base do chapéu (faixa) */}
+        <path
+          d="M70 80 Q70 96 100 100 Q130 96 130 80"
+          fill={bg}
+        />
+        <path d="M70 80 L70 86 Q70 102 100 106 Q130 102 130 86 L130 80" fill={bg} />
+
+        {/* Borla — fio + pompom */}
+        <path d="M168 62 L168 95" />
+        <path d="M168 95 q-3 4 0 8 q3 -4 0 -8" fill={stroke} />
+        <path d="M165 102 l3 6 l3 -6" />
+
+        {/* Cérebro — silhueta principal */}
+        <path
+          d="M100 96
+             C 78 96 60 108 56 124
+             C 44 126 38 138 42 150
+             C 36 158 40 170 50 174
+             C 52 184 64 188 74 184
+             C 80 192 96 192 100 184
+             C 104 192 120 192 126 184
+             C 136 188 148 184 150 174
+             C 160 170 164 158 158 150
+             C 162 138 156 126 144 124
+             C 140 108 122 96 100 96 Z"
+          fill={bg}
+        />
+
+        {/* Sulco central */}
+        <path d="M100 100 L100 184" />
+
+        {/* Sulcos/giros — lado esquerdo */}
+        <path d="M88 110 q-10 6 -8 18 q2 8 -4 12" />
+        <path d="M76 130 q-12 2 -12 14 q0 8 6 12" />
+        <path d="M70 156 q-8 4 -6 14" />
+        <path d="M92 130 q-8 6 -6 16 q2 8 -2 14" />
+        <path d="M84 152 q-6 6 -2 16" />
+        <path d="M96 142 q-6 8 -2 18 q4 8 0 16" />
+
+        {/* Sulcos/giros — lado direito */}
+        <path d="M112 110 q10 6 8 18 q-2 8 4 12" />
+        <path d="M124 130 q12 2 12 14 q0 8 -6 12" />
+        <path d="M130 156 q8 4 6 14" />
+        <path d="M108 130 q8 6 6 16 q-2 8 2 14" />
+        <path d="M116 152 q6 6 2 16" />
+        <path d="M104 142 q6 8 2 18 q-4 8 0 16" />
+
+        {/* Cerebelo (canto inferior direito) */}
+        <path d="M132 168 q10 2 14 10 q-6 4 -10 10" />
+        <path d="M138 174 q4 0 6 4" />
+
+        {/* Tronco encefálico */}
+        <path d="M100 184 q0 8 4 14" />
+      </g>
     </svg>
   );
 }
