@@ -3,6 +3,8 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 
+export type AccessPlan = "free" | "days_30" | "days_90" | "premium";
+
 interface Profile {
   id: string;
   email: string;
@@ -11,6 +13,8 @@ interface Profile {
   current_topic_unlocked: boolean;
   last_score: number;
   show_in_ranking: boolean;
+  plan: AccessPlan;
+  access_expires_at: string | null;
 }
 
 interface AuthCtx {
