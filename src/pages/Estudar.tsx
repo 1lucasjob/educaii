@@ -143,21 +143,42 @@ export default function Estudar() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Sobre qual tema quer estudar? Descreva com detalhes</label>
-          <Textarea
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            disabled={!unlocked || loadingSummary}
-            placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). Mínimo 1000 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
-            className="min-h-32"
-          />
-          <div className="flex items-center justify-between text-xs">
-            <span className={meetsMin ? "text-success" : "text-muted-foreground"}>
-              {topicLength}/{MIN_CHARS} caracteres {meetsMin ? "✓ válido para ranking" : "(mínimo para contar no ranking)"}
-            </span>
-            <Progress value={Math.min(100, (topicLength / MIN_CHARS) * 100)} className="w-24 h-1.5" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="study-title">Título do tema de estudo</Label>
+            <Input
+              id="study-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
+              disabled={!unlocked || loadingSummary}
+              placeholder="Ex: NR-35 — Trabalho em Altura"
+              maxLength={TITLE_MAX}
+            />
+            <div className="flex items-center justify-between text-xs">
+              <span className={titleValid ? "text-success" : "text-muted-foreground"}>
+                {titleLength}/{TITLE_MAX} {titleValid ? "✓" : `(mín. ${TITLE_MIN})`}
+              </span>
+            </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="study-topic">Descrição detalhada do tema</Label>
+            <Textarea
+              id="study-topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              disabled={!unlocked || loadingSummary}
+              placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). Mínimo 1000 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
+              className="min-h-32"
+            />
+            <div className="flex items-center justify-between text-xs">
+              <span className={meetsMin ? "text-success" : "text-muted-foreground"}>
+                {topicLength}/{MIN_CHARS} caracteres {meetsMin ? "✓ válido para ranking" : "(mínimo para contar no ranking)"}
+              </span>
+              <Progress value={Math.min(100, (topicLength / MIN_CHARS) * 100)} className="w-24 h-1.5" />
+            </div>
+          </div>
+
           <Button onClick={generate} disabled={!unlocked || loadingSummary} className="w-full gradient-primary text-primary-foreground shadow-glow">
             {loadingSummary ? "Gerando resumo…" : (<><Sparkles className="mr-2" /> Gerar Estudo</>)}
           </Button>
