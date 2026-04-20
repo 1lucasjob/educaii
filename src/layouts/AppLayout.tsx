@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
+import PlanBadge from "@/components/PlanBadge";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
+  { title: "Chat com Professor", url: "/app/chat", icon: MessageCircle },
   { title: "Normas Principais", url: "/app/normas", icon: BookOpen },
   { title: "Meu Progresso", url: "/app/progresso", icon: BarChart3 },
   { title: "Ranking", url: "/app/ranking", icon: Trophy },
@@ -33,9 +35,10 @@ const adminItems = [
 
 function AppSidebar() {
   const { state } = useSidebar();
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const chatLocked = !isAdmin && !profile?.chat_unlocked;
   const cls = (path: string) =>
     location.pathname === path
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
@@ -49,9 +52,12 @@ function AppSidebar() {
             <HardHat className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
           </div>
           {!collapsed && (
-            <div>
+            <div className="min-w-0">
               <p className="font-bold leading-tight">EducA.I.</p>
-              <p className="text-xs text-muted-foreground">Academy</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-muted-foreground">Academy</p>
+                {profile && <PlanBadge plan={profile.plan} />}
+              </div>
             </div>
           )}
         </div>
@@ -60,16 +66,25 @@ function AppSidebar() {
           <SidebarGroupLabel>Aluno</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((it) => (
-                <SidebarMenuItem key={it.url}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={it.url} end className={cls(it.url)}>
-                      <it.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{it.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((it) => {
+                const isChat = it.url === "/app/chat";
+                const locked = isChat && chatLocked;
+                return (
+                  <SidebarMenuItem key={it.url}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={it.url} end className={cls(it.url)}>
+                        <it.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && (
+                          <span className="flex items-center gap-1.5 flex-1">
+                            {it.title}
+                            {locked && <Lock className="w-3 h-3 text-muted-foreground" />}
+                          </span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -144,6 +159,7 @@ export default function AppLayout() {
                 </Button>
               )}
               {isAdmin && <Badge className="gradient-primary text-primary-foreground border-0">Admin</Badge>}
+              {!isAdmin && profile && <PlanBadge plan={profile.plan} size="sm" className="hidden sm:inline-flex" />}
               <span className="text-sm hidden sm:inline truncate max-w-[180px]">{profile?.email}</span>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4" />

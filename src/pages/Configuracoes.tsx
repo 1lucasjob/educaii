@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
 import { buildRenewalMailto, daysUntil, planLabel } from "@/lib/plans";
+import PlanBadge from "@/components/PlanBadge";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -93,9 +94,10 @@ export default function Configuracoes() {
               <CreditCard className="w-4 h-4 text-primary" /> Plano de acesso
             </h2>
             <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-muted-foreground">Plano atual:</span>
                 <span className="font-semibold text-primary">{planLabel(profile?.plan ?? "free")}</span>
+                {profile && <PlanBadge plan={profile.plan} size="md" />}
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />

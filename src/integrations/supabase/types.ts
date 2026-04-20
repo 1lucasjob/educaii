@@ -32,6 +32,30 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invites: {
         Row: {
           access_expires_at: string | null
@@ -74,6 +98,7 @@ export type Database = {
       profiles: {
         Row: {
           access_expires_at: string | null
+          chat_unlocked: boolean
           created_at: string
           current_topic: string | null
           current_topic_unlocked: boolean
@@ -90,6 +115,7 @@ export type Database = {
         }
         Insert: {
           access_expires_at?: string | null
+          chat_unlocked?: boolean
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
@@ -106,6 +132,7 @@ export type Database = {
         }
         Update: {
           access_expires_at?: string | null
+          chat_unlocked?: boolean
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
