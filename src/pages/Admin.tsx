@@ -342,7 +342,7 @@ export default function Admin() {
                   </TableCell>
                   <TableCell>
                     {expertActiveNow ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-purple-400" title={new Date(s.expert_unlocked_until!).toLocaleString("pt-BR")}>
+                      <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: "hsl(280 80% 65%)" }} title={new Date(s.expert_unlocked_until!).toLocaleString("pt-BR")}>
                         <Award className="w-3 h-3" /> Ativo até{" "}
                         {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </span>
@@ -350,7 +350,8 @@ export default function Admin() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 text-xs border-purple-500/40 hover:bg-purple-500/10"
+                        className="h-8 text-xs"
+                        style={{ borderColor: "hsl(280 80% 55% / 0.4)" }}
                         onClick={() => unlockExpert(s.id, s.email)}
                       >
                         <Award className="w-3 h-3 mr-1" /> Liberar 24h
