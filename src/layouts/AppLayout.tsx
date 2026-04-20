@@ -56,7 +56,7 @@ function AppSidebar() {
               <p className="font-bold leading-tight">EducA.I.</p>
               <div className="flex items-center gap-1.5">
                 <p className="text-xs text-muted-foreground">Academy</p>
-                {profile && <PlanBadge plan={profile.plan} />}
+                {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} />}
               </div>
             </div>
           )}
@@ -158,8 +158,7 @@ export default function AppLayout() {
                   <span className="hidden sm:inline text-xs">Modo teste</span>
                 </Button>
               )}
-              {isAdmin && <Badge className="gradient-primary text-primary-foreground border-0">Admin</Badge>}
-              {!isAdmin && profile && <PlanBadge plan={profile.plan} size="sm" className="hidden sm:inline-flex" />}
+              {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} size="sm" className="hidden sm:inline-flex" />}
               <span className="text-sm hidden sm:inline truncate max-w-[180px]">{profile?.email}</span>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4" />

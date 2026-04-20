@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Mail, Clock } from "lucide-react";
 
 export default function RenewalBanner() {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   if (!profile) return null;
-  if (!shouldShowRenewal(profile.plan, profile.access_expires_at)) return null;
+  if (!shouldShowRenewal(profile.plan, profile.access_expires_at, isAdmin)) return null;
 
   const days = daysUntil(profile.access_expires_at) ?? 0;
   const href = buildRenewalMailto({
