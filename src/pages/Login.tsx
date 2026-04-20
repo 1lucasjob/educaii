@@ -52,6 +52,12 @@ export default function Login() {
         </div>
 
         <Card className="p-6 shadow-glow animate-scale-in">
+          {expired && (
+            <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 flex gap-2 text-sm">
+              <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+              <p>Seu acesso expirou. Solicite renovação ao administrador.</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
