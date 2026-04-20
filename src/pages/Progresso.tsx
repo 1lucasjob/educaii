@@ -42,7 +42,7 @@ const formatDuration = (s: number) => {
 };
 
 export default function Progresso() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { enabled: demoEnabled, fakeAttempts, viewAsRow } = useDemoMode();
   const [realAttempts, setRealAttempts] = useState<Attempt[]>([]);
 

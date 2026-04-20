@@ -45,7 +45,7 @@ const cutoffFor = (p: Period): number | null => {
 };
 
 export default function Ranking() {
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const { enabled: demoEnabled, fakeLeaderboard } = useDemoMode();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
