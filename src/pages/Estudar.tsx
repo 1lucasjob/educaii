@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Brain, Sparkles, Target, Zap } from "lucide-react";
+import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { computeFreeTrial } from "@/lib/freeTrial";
+import { computeFreeTrial, expertActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Estudar() {
@@ -33,13 +33,16 @@ export default function Estudar() {
 
   const MIN_CHARS_EASY = 500;
   const MIN_CHARS_HARD = 1501;
+  const MIN_CHARS_EXPERT = 5000;
   const TITLE_MIN = 5;
   const TITLE_MAX = 80;
   const topicLength = topic.trim().length;
   const titleLength = title.trim().length;
   const meetsEasy = topicLength >= MIN_CHARS_EASY;
   const meetsHard = topicLength >= MIN_CHARS_HARD;
+  const meetsExpert = topicLength >= MIN_CHARS_EXPERT;
   const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
+  const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until });
 
   const generate = async () => {
     if (freeExpired) {
@@ -80,6 +83,10 @@ export default function Estudar() {
     setHardUnlocked(isHard);
 
     setActiveTopic(cleanTitle);
+    // Persistir corpo do tema para uso pelo Simulado (Hard/Expert ancorado no texto)
+    try {
+      localStorage.setItem(`study_body:${cleanTitle}`, topic);
+    } catch {}
     if (profile) {
       await supabase.from("study_sessions").insert({ user_id: profile.id, topic: `${cleanTitle}\n\n${topic}`, summary: data.summary });
       await supabase.from("profiles").update({ current_topic: cleanTitle, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
@@ -89,7 +96,7 @@ export default function Estudar() {
     setTopic("");
   };
 
-  const startQuiz = (difficulty: "easy" | "hard") => {
+  const startQuiz = (difficulty: "easy" | "hard" | "expert") => {
     if (!activeTopic) return;
     navigate(`/app/simulado?topic=${encodeURIComponent(activeTopic)}&difficulty=${difficulty}`);
   };
@@ -171,18 +178,20 @@ export default function Estudar() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               disabled={!unlocked || loadingSummary}
-              placeholder={unlocked ? "Descreva o tema que quer estudar (NR, contexto, riscos, medidas…). 500+ caracteres libera Simulado Fácil; 1501+ libera também o Simulado Difícil." : "Conclua o simulado difícil para liberar."}
+              placeholder={unlocked ? "Descreva o tema que quer estudar (NR, contexto, riscos, medidas…). 500+ libera Fácil; 1501+ libera Difícil; 5000+ libera Expert (Premium / 90 DAYS ou liberação ADM)." : "Conclua o simulado difícil para liberar."}
               className="min-h-32"
             />
             <div className="flex items-center justify-between text-xs gap-3">
-              <span className={meetsHard ? "text-success" : meetsEasy ? "text-primary" : "text-muted-foreground"}>
-                {meetsHard
-                  ? `${topicLength}/${MIN_CHARS_HARD} ✓ libera Fácil + Difícil`
-                  : meetsEasy
-                    ? `${topicLength}/${MIN_CHARS_HARD} ✓ libera Simulado Fácil`
-                    : `${topicLength}/${MIN_CHARS_EASY} (mínimo para gerar)`}
+              <span className={meetsExpert ? "text-purple-400" : meetsHard ? "text-success" : meetsEasy ? "text-primary" : "text-muted-foreground"}>
+                {meetsExpert
+                  ? `${topicLength}/${MIN_CHARS_EXPERT} ✓ libera Fácil + Difícil + Expert`
+                  : meetsHard
+                    ? `${topicLength}/${MIN_CHARS_EXPERT} ✓ libera Fácil + Difícil`
+                    : meetsEasy
+                      ? `${topicLength}/${MIN_CHARS_HARD} ✓ libera Simulado Fácil`
+                      : `${topicLength}/${MIN_CHARS_EASY} (mínimo para gerar)`}
               </span>
-              <Progress value={Math.min(100, (topicLength / MIN_CHARS_HARD) * 100)} className="w-24 h-1.5" />
+              <Progress value={Math.min(100, (topicLength / MIN_CHARS_EXPERT) * 100)} className="w-24 h-1.5" />
             </div>
           </div>
 
@@ -199,7 +208,7 @@ export default function Estudar() {
             {summary}
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3 mt-6">
+          <div className={`grid ${hardUnlocked && userHasExpertAccess ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-3 mt-6`}>
             <Button onClick={() => startQuiz("easy")} variant="outline" className="border-primary/40 hover:bg-primary/10 h-14">
               <Target className="mr-2" />
               <div className="text-left">
@@ -212,7 +221,7 @@ export default function Estudar() {
                 <Zap className="mr-2" />
                 <div className="text-left">
                   <p className="font-bold">Simulado Difícil</p>
-                  <p className="text-xs opacity-80">5–10 questões · libera novo tema (≥80)</p>
+                  <p className="text-xs opacity-80">Baseado no texto · libera tema (≥80)</p>
                 </div>
               </Button>
             ) : (
@@ -220,7 +229,21 @@ export default function Estudar() {
                 <Lock className="mr-2" />
                 <div className="text-left">
                   <p className="font-bold">Simulado Difícil</p>
-                  <p className="text-xs text-muted-foreground">Escreva 1501+ caracteres para liberar</p>
+                  <p className="text-xs text-muted-foreground">Escreva 1501+ caracteres</p>
+                </div>
+              </Button>
+            )}
+            {hardUnlocked && userHasExpertAccess && (
+              <Button
+                onClick={() => startQuiz("expert")}
+                className="h-14 text-white shadow-glow border-0"
+                style={{ background: "linear-gradient(135deg, hsl(280 80% 55%), hsl(320 80% 55%))" }}
+                title="Simulado Expert — nível acadêmico"
+              >
+                <Award className="mr-2" />
+                <div className="text-left">
+                  <p className="font-bold">Simulado Expert</p>
+                  <p className="text-xs opacity-80">Nível acadêmico · 20 min</p>
                 </div>
               </Button>
             )}
