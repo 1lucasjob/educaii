@@ -1,41 +1,21 @@
 
 
-## Plano: Página de Planos com preços promocionais
+## Plano: Reordenar seções do resumo - Normas no final
 
-### Nova rota `/app/planos`
+### Alteração no SYSTEM_PROMPT
 
-Criar `src/pages/Planos.tsx` com 3 cards lado a lado (responsivo: 1 coluna mobile, 3 colunas desktop), cada um usando o `PlanBadge` já existente no topo.
+Atualizar `supabase/functions/generate-summary/index.ts` para mover a seção **"Normas Regulamentadoras aplicáveis ao caso"** para o final do resumo, junto com as **"Observações do Professor"**.
 
-**Conteúdo de cada card:**
+**Nova estrutura obrigatória:**
 
-| Plano | Preço | Duração | Destaque |
-|---|---|---|---|
-| 30 DAYS (prata) | R$ 10,00 | 30 dias renováveis | — |
-| 90 DAYS (dourado) | R$ 25,00 | 90 dias renováveis + Chat com Professor Saraiva | "Mais escolhido" |
-| PREMIUM (roxo) | R$ 100,00 | 366 dias renováveis + Chat liberado | "Melhor custo-benefício" |
+1. **Visão geral do tema apresentado**
+2. **Conceitos-chave presentes no texto**
+3. **Aplicação prática no contexto descrito**
+4. **Riscos e medidas de controle pertinentes**
+5. **Pontos críticos para prova/concurso**
+6. **Normas Regulamentadoras aplicáveis ao caso** — movida para o final antes das observações
+7. **🎓 Observações do Professor** — permanece no final
 
-**Elementos visuais:**
-- Banner no topo: *"🎉 Preços promocionais por tempo limitado"* (Alert amarelo/destaque).
-- Cada card mostra: badge do plano, preço grande riscado opcional + preço promo, lista de benefícios com `Check` icons, botão **"Quero este plano"** que abre `mailto:` (reaproveitando padrão de `buildRenewalMailto` em `src/lib/plans.ts`) com assunto "Quero contratar o plano X".
-- Card do plano atual do aluno ganha borda destacada e label "Seu plano atual" (esconde botão).
-- Para admin: aviso "Você possui acesso vitalício de administrador" no topo, sem CTA.
-
-### Integração na navegação
-
-- **Sidebar (`src/layouts/AppLayout.tsx`)**: novo item no grupo "Aluno" — *"Planos"* com ícone `Sparkles`, antes de "Configurações" não, manter no grupo Aluno após "Ranking".
-- **Configurações (`src/pages/Configuracoes.tsx`)**: o botão "Renovar agora" existente ganha um link adicional discreto *"Ver todos os planos"* que leva para `/app/planos`.
-- **RenewalBanner**: adicionar link *"Ver planos"* ao lado do CTA atual.
-
-### Arquivos
-
-- **Novo:** `src/pages/Planos.tsx`
-- **Editar:** `src/App.tsx` (registrar rota `/app/planos`)
-- **Editar:** `src/layouts/AppLayout.tsx` (item no menu)
-- **Editar:** `src/lib/plans.ts` (exportar helper `buildPurchaseMailto({plan, userEmail})` reutilizando o padrão do mailto de renovação, com assunto "Quero contratar")
-- **Editar:** `src/pages/Configuracoes.tsx` e `src/components/RenewalBanner.tsx` (link "Ver planos")
-
-### Observações
-
-- Sem mudanças de banco/edge functions — é página informativa + CTA por email para o admin processar manualmente (mesmo fluxo da renovação atual).
-- Preços ficam centralizados em uma constante no topo de `Planos.tsx` para facilitar ajuste futuro.
+**Arquivo a editar:**
+- `supabase/functions/generate-summary/index.ts` — atualizar as linhas 15-26 do SYSTEM_PROMPT para refletir a nova ordem das seções.
 
