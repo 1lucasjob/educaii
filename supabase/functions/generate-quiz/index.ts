@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY ausente");
 
     const range = difficulty === "easy"
-      ? "entre 10 e 25 questões (escolha um número adequado)"
-      : "entre 8 e 15 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão";
+      ? "entre 5 e 10 questões (escolha um número adequado)"
+      : "entre 5 e 10 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão";
 
     const userPrompt = `Tema: ${topic}
 Dificuldade: ${difficulty === "easy" ? "FÁCIL" : "DIFÍCIL (nível concurso público / banca examinadora)"}
