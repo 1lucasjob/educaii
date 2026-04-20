@@ -39,18 +39,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = async (uid: string) => {
     const { data: p } = await supabase
       .from("profiles")
-      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking")
+      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking,plan,access_expires_at")
       .eq("id", uid)
       .maybeSingle();
-    if (p) {
-      setProfile(p as Profile);
-      applyTheme((p.theme as ThemeName) || getStoredTheme());
-    }
+
     const { data: roles } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", uid);
-    setIsAdmin(!!roles?.some((r) => r.role === "admin"));
+    const admin = !!roles?.some((r) => r.role === "admin");
+    setIsAdmin(admin);
+
+    if (p) {
+      if (!admin && p.access_expires_at && new Date(p.access_expires_at) < new Date()) {
+        await supabase.auth.signOut();
+        setProfile(null);
+        setUser(null);
+        setSession(null);
+        if (typeof window !== "undefined") window.location.href = "/login?expired=1";
+        return;
+      }
+      setProfile(p as Profile);
+      applyTheme((p.theme as ThemeName) || getStoredTheme());
+    }
   };
 
   useEffect(() => {
