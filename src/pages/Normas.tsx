@@ -57,6 +57,10 @@ const NRS_RAW = [
   { id: "NR-38", title: "Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos", body: "Aplica-se a coleta, transporte, triagem, tratamento e destinação final de resíduos sólidos urbanos. Exige PGR específico, EPIs adequados (luvas, botas, uniformes refletivos), imunização, controle de riscos biológicos e ergonômicos e capacitação dos trabalhadores." },
 ];
 
+const NRS = NR_ORDER
+  .map((id) => NRS_RAW.find((n) => n.id === id))
+  .filter((n): n is (typeof NRS_RAW)[number] => Boolean(n));
+
 export default function Normas() {
   const [search, setSearch] = useState("");
   const filtered = NRS.filter((n) => `${n.id} ${n.title}`.toLowerCase().includes(search.toLowerCase()));
