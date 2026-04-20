@@ -174,6 +174,45 @@ export default function Ranking() {
           <strong className="text-primary">#{myIndex + 1}</strong> de {ranked.length}
         </p>
       )}
+
+      <Dialog open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          {(() => {
+            const sel = ranked.find((r) => r.user_id === selectedId);
+            if (!sel) return null;
+            const cutoff = cutoffFor(period);
+            const list = (rows.find((r) => r.user_id === selectedId)?.attempts_data ?? []).filter(
+              (a) => cutoff === null || +new Date(a.created_at) >= cutoff,
+            );
+            const ach = computeAchievements(list);
+            const unlockedCount = ach.filter((a) => a.unlocked).length;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-primary" />
+                    {sel.display_name}
+                    {sel.user_id === user?.id && <Badge variant="outline" className="text-xs">Você</Badge>}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {PERIOD_LABEL[period]} · {sel.attempts} simulados · {sel.hard_passed} aprovações no difícil ·
+                    média {sel.avg_score} · score {Math.round(sel.composite_score)}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center justify-between mb-3 mt-2">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" /> Conquistas
+                  </h3>
+                  <span className="text-sm text-muted-foreground">
+                    {unlockedCount}/{ach.length} desbloqueadas
+                  </span>
+                </div>
+                <AchievementsGrid items={ach} />
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
