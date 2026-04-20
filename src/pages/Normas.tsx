@@ -4,7 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, HardHat, Search } from "lucide-react";
 
-const NRS = [
+// Ordem por relevância: principais/transversais primeiro, específicas por setor depois, revogadas no fim.
+const NR_ORDER = [
+  // Núcleo essencial (mais cobradas em provas e mais aplicadas no dia a dia)
+  "NR-01","NR-06","NR-05","NR-04","NR-07","NR-09","NR-17","NR-35","NR-10","NR-12",
+  "NR-15","NR-16","NR-33","NR-18","NR-23","NR-26","NR-08","NR-11","NR-13","NR-24",
+  // Específicas por atividade / setor
+  "NR-20","NR-32","NR-34","NR-31","NR-22","NR-29","NR-30","NR-36","NR-37","NR-38",
+  "NR-14","NR-19","NR-21","NR-25","NR-28","NR-03",
+  // Revogadas (referência histórica)
+  "NR-02","NR-27",
+];
+
+const NRS_RAW = [
   { id: "NR-01", title: "Disposições Gerais e Gerenciamento de Riscos Ocupacionais", body: "Estabelece diretrizes gerais de SST, define responsabilidades do empregador/empregado e institui o GRO (Gerenciamento de Riscos Ocupacionais) e o PGR (Programa de Gerenciamento de Riscos)." },
   { id: "NR-02", title: "Inspeção Prévia (revogada — referência histórica)", body: "Originalmente exigia inspeção prévia para início de funcionamento de estabelecimentos. Revogada em 2019; hoje a verificação ocorre via PGR e PCMSO." },
   { id: "NR-03", title: "Embargo e Interdição", body: "Define os procedimentos de embargo de obra e interdição de equipamento, setor ou estabelecimento que apresente grave e iminente risco aos trabalhadores." },
