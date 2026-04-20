@@ -190,7 +190,7 @@ export default function Progresso() {
             {unlockedCount}/{achievements.length} desbloqueadas
           </span>
         </div>
-        <AchievementsGrid items={achievements} />
+        <AchievementsGrid items={achievements} revealSecrets={isAdmin} />
       </Card>
 
       <Card className="p-6">
