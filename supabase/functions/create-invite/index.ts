@@ -31,14 +31,13 @@ Deno.serve(async (req) => {
     const userClient = createClient(SUPABASE_URL, ANON, {
       global: { headers: { Authorization: authHeader } },
     });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: cErr } = await userClient.auth.getClaims(token);
-    if (cErr || !claims?.claims) {
+    const { data: userData, error: cErr } = await userClient.auth.getUser();
+    if (cErr || !userData?.user) {
       return new Response(JSON.stringify({ error: "Sessão inválida" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claims.claims.sub;
+    const userId = userData.user.id;
 
     const body = await req.json();
     const { pin, plan } = body as { pin: string; plan?: Plan };
