@@ -4,7 +4,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `Você é um professor rigoroso de SEGURANÇA DO TRABALHO. Crie questões de múltipla escolha técnicas e didáticas em português brasileiro. Cada questão deve ter 4 alternativas (A, B, C, D) com apenas uma correta. Distribua os pontos de forma equilibrada totalizando exatamente 100 pontos.`;
+const SYSTEM_PROMPT = `Você é um EXAMINADOR SÊNIOR de concursos públicos e provas técnicas de SEGURANÇA DO TRABALHO (Engenharia/Técnico). Crie questões de múltipla escolha em português brasileiro com rigor técnico de banca examinadora (FCC, CESPE/Cebraspe, FGV).
+
+REGRAS OBRIGATÓRIAS:
+- 4 alternativas (A, B, C, D), apenas UMA correta.
+- As 3 alternativas incorretas devem ser DISTRATORES PLAUSÍVEIS — erros sutis, troca de números/itens de NR, inversões conceituais, exceções mal aplicadas. NUNCA respostas obviamente erradas.
+- Cite NRs com itens/subitens reais (ex: "NR-35, item 35.4.5") quando aplicável.
+- Pontos somam exatamente 100, distribuídos de forma equilibrada.
+- Justificativa técnica curta citando a base normativa.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -23,13 +30,21 @@ Deno.serve(async (req) => {
 
     const range = difficulty === "easy"
       ? "entre 10 e 25 questões (escolha um número adequado)"
-      : "entre 5 e 15 questões mais profundas e analíticas";
+      : "entre 8 e 15 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão";
 
     const userPrompt = `Tema: ${topic}
-Dificuldade: ${difficulty === "easy" ? "FÁCIL" : "DIFÍCIL"}
+Dificuldade: ${difficulty === "easy" ? "FÁCIL" : "DIFÍCIL (nível concurso público / banca examinadora)"}
 Quantidade: ${range}.
 Total de pontos: exatamente 100, distribuídos entre as questões.
-${difficulty === "hard" ? "As questões devem ser mais técnicas, exigir interpretação e conhecimento aprofundado das NRs." : "As questões devem cobrir conceitos básicos e aplicações diretas."}`;
+${difficulty === "hard"
+  ? `As questões devem:
+- Exigir interpretação de cenários reais e julgamento técnico (estudo de caso curto no enunciado).
+- Cobrar números EXATOS de NRs (limites, prazos, períodos, distâncias, alturas, capacidades).
+- Incluir pegadinhas: troca de item da NR, exceções, responsabilidades cruzadas (empregador vs empregado vs SESMT vs CIPA).
+- Combinar 2+ NRs quando o tema permitir.
+- Distratores devem ser quase corretos — diferenças sutis em uma palavra, número ou condição.
+- Evitar perguntas conceituais simples ("o que é EPI?") — sempre exigir aplicação ou análise.`
+  : "As questões devem cobrir conceitos básicos e aplicações diretas."}`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -38,7 +53,7 @@ ${difficulty === "hard" ? "As questões devem ser mais técnicas, exigir interpr
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: difficulty === "hard" ? "google/gemini-3.1-pro-preview" : "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },

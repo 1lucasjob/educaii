@@ -141,6 +141,7 @@ export type Database = {
           created_at: string
           current_topic: string | null
           current_topic_unlocked: boolean
+          days_30_renewals_count: number
           email: string
           id: string
           last_score: number
@@ -158,6 +159,7 @@ export type Database = {
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
+          days_30_renewals_count?: number
           email: string
           id: string
           last_score?: number
@@ -175,6 +177,7 @@ export type Database = {
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
+          days_30_renewals_count?: number
           email?: string
           id?: string
           last_score?: number
