@@ -1,63 +1,44 @@
 
 
-## Plano: Termos de Uso + aviso no Chat + formatação melhor das respostas do Professor
+## Plano: Adicionar todas as Normas Regulamentadoras
 
-### 1. Termos de Uso (aceite obrigatório)
+### Objetivo
+Expandir a página `/app/normas` para incluir **todas as 38 NRs** vigentes no Brasil (NR-01 a NR-38), mantendo as que já existem e adicionando as faltantes com título oficial e descrição clara.
 
-**Página nova `/termos`** (`src/pages/Termos.tsx`) — leitura pública, conteúdo completo dos termos. Inclui regras como:
+### Mudança única
 
-- **Reembolso por indisponibilidade**: se o app ficar fora do ar ou deixar de funcionar de forma definitiva, o aluno recebe de volta o valor proporcional aos meses restantes do plano, em até **20 dias corridos** após a confirmação.
-- **Conteúdo gerado por IA**: respostas são apoio ao estudo, não substituem o texto oficial das NRs nem orientação profissional. O aluno deve sempre conferir a norma vigente.
-- **Uso individual**: conta é pessoal e intransferível; compartilhamento de login pode causar suspensão sem reembolso.
-- **Conduta**: proibido ofensa, spam, scraping, engenharia reversa ou tentar burlar limites de plano.
-- **Limites de uso justo**: chat e geração de resumos/simulados têm limites razoáveis para evitar abuso.
-- **Manutenções programadas**: paradas curtas para manutenção/atualização não geram reembolso.
-- **Privacidade**: dados tratados conforme LGPD; e-mail só usado para login, comunicação do serviço e cobrança.
-- **Cancelamento**: aluno pode pedir cancelamento por e-mail; valor já consumido não é devolvido, exceto na regra de indisponibilidade acima.
-- **Alterações**: termos podem ser atualizados; mudanças relevantes pedem novo aceite.
-- **Foro / contato**: e-mail oficial de suporte e foro da comarca do responsável pelo app.
+**Editar `src/pages/Normas.tsx`** — expandir o array `NRS` para conter todas as normas:
 
-**Aceite no cadastro** (`src/pages/Cadastro.tsx`):
-- Checkbox obrigatório "Li e aceito os [Termos de Uso](/termos)" antes de habilitar o botão de cadastrar.
-- Sem aceite ⇒ botão desabilitado + toast explicativo.
+- **Já existem** (manter como estão): NR-01, NR-02, NR-03, NR-04, NR-05, NR-06, NR-07, NR-08, NR-09, NR-10, NR-11, NR-12, NR-13, NR-14, NR-15, NR-20, NR-35.
+- **Adicionar**:
+  - NR-16 — Atividades e Operações Perigosas (adicional 30%)
+  - NR-17 — Ergonomia
+  - NR-18 — Segurança e Saúde no Trabalho na Indústria da Construção
+  - NR-19 — Explosivos
+  - NR-21 — Trabalho a Céu Aberto
+  - NR-22 — Segurança e Saúde Ocupacional na Mineração
+  - NR-23 — Proteção Contra Incêndios
+  - NR-24 — Condições Sanitárias e de Conforto nos Locais de Trabalho
+  - NR-25 — Resíduos Industriais
+  - NR-26 — Sinalização de Segurança
+  - NR-27 — Registro Profissional do TST (revogada — referência histórica)
+  - NR-28 — Fiscalização e Penalidades
+  - NR-29 — Trabalho Portuário
+  - NR-30 — Trabalho Aquaviário
+  - NR-31 — Segurança e Saúde no Trabalho na Agricultura, Pecuária, Silvicultura, Exploração Florestal e Aquicultura
+  - NR-32 — Segurança e Saúde no Trabalho em Serviços de Saúde
+  - NR-33 — Segurança e Saúde nos Trabalhos em Espaços Confinados
+  - NR-34 — Condições e Meio Ambiente de Trabalho na Indústria da Construção, Reparação e Desmonte Naval
+  - NR-36 — Segurança e Saúde no Trabalho em Empresas de Abate e Processamento de Carnes e Derivados
+  - NR-37 — Segurança e Saúde em Plataformas de Petróleo
+  - NR-38 — Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos
 
-**Aceite para usuários já existentes**:
-- Migração SQL: adicionar `terms_accepted_at timestamptz` na tabela `profiles`.
-- Componente `TermsGate` em `AppLayout`: se `profile.terms_accepted_at` é null, abre `Dialog` modal bloqueante com resumo + link para os termos completos + botão "Aceito". Ao aceitar, grava `terms_accepted_at = now()`.
-- Link permanente para `/termos` no rodapé do sidebar.
+Cada item segue o formato existente `{ id, title, body }` com descrição de 2-4 frases cobrindo escopo, principais exigências e aplicação.
 
-### 2. Aviso no Chat com Professor
+### Sobre o acesso ADMIN
 
-Em `src/pages/ChatProfessor.tsx`, logo abaixo do alerta amarelo de "3 dias", adicionar um novo `Alert` informativo (azul/info) com ícone `Wrench`:
-
-> "O Chat está em atualização para ficar mais rápido e preciso. Algumas respostas podem demorar mais que o normal — obrigado pela paciência!"
-
-Mostrado sempre que o chat está desbloqueado.
-
-### 3. Respostas do Professor Saraiva mais organizadas + destaques amarelos
-
-**Edge function `supabase/functions/chat-professor/index.ts`** — atualizar o `SYSTEM_PROMPT` para impor formatação clara:
-
-- Sempre usar títulos `##` para seções e `###` para subseções.
-- **Linha em branco entre cada parágrafo, lista e título** (sem texto colado).
-- Listas com `-` curtas (máx ~2 linhas por item).
-- Usar **negrito** apenas em termos-chave, números de NR, valores e conceitos importantes — não em frases inteiras.
-- Estrutura sugerida: `## Resposta direta` → `## Detalhes` → `## Exemplo prático` → `### 🎓 Observação do Professor`.
-- Proibido emendar 3+ frases num parágrafo só; quebrar em parágrafos curtos.
-
-**Renderização no front (`ChatProfessor.tsx`)**:
-- Manter `ReactMarkdown`, mas customizar componentes:
-  - `strong`: classe `text-yellow-400 font-semibold` (destaques amarelos pedidos).
-  - `h2`: `text-base font-bold mt-4 mb-2 text-primary`.
-  - `h3`: `text-sm font-semibold mt-3 mb-1.5`.
-  - `p`: `my-2 leading-relaxed`.
-  - `ul` / `ol`: `my-2 space-y-1.5 pl-5`.
-  - `li`: `leading-relaxed`.
-- Aumentar respiro do balão do assistente: `space-y-2` no container, `prose-p:my-2 prose-headings:mt-3 prose-headings:mb-2 prose-li:my-1`.
+O acesso de admin já é isento de qualquer gating de plano em todo o app (verificado em `AuthContext`, `AppLayout`, `Simulado`, `ChatProfessor`, etc.). Nenhuma alteração necessária — admins já visualizam tudo sem restrição.
 
 ### Arquivos
-
-- **Novo**: `src/pages/Termos.tsx`, `src/components/TermsGate.tsx`
-- **Editar**: `src/App.tsx` (rota `/termos`), `src/pages/Cadastro.tsx` (checkbox), `src/layouts/AppLayout.tsx` (montar `TermsGate` + link no sidebar), `src/pages/ChatProfessor.tsx` (alerta + componentes do markdown), `supabase/functions/chat-professor/index.ts` (prompt)
-- **Migração**: adicionar coluna `terms_accepted_at` em `profiles`
+- **Editar**: `src/pages/Normas.tsx` (apenas o array `NRS`; UI/busca/tabs continuam iguais e já são responsivas).
 
