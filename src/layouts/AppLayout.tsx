@@ -66,16 +66,25 @@ function AppSidebar() {
           <SidebarGroupLabel>Aluno</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((it) => (
-                <SidebarMenuItem key={it.url}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={it.url} end className={cls(it.url)}>
-                      <it.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{it.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((it) => {
+                const isChat = it.url === "/app/chat";
+                const locked = isChat && chatLocked;
+                return (
+                  <SidebarMenuItem key={it.url}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={it.url} end className={cls(it.url)}>
+                        <it.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && (
+                          <span className="flex items-center gap-1.5 flex-1">
+                            {it.title}
+                            {locked && <Lock className="w-3 h-3 text-muted-foreground" />}
+                          </span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
