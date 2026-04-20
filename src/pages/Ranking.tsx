@@ -9,6 +9,8 @@ import { Trophy, Medal, Award, Crown, EyeOff, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { computeAchievements, AttemptLite } from "@/lib/achievements";
 import { AchievementsGrid } from "@/components/AchievementsGrid";
+import { useDemoMode } from "@/contexts/DemoModeContext";
+import { FlaskConical } from "lucide-react";
 
 interface Row {
   user_id: string;
