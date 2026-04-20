@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Trophy, TrendingUp, Target, Award, Clock, ShieldCheck, ShieldOff, FlaskConical } from "lucide-react";
+import { BarChart3, Trophy, TrendingUp, Target, Award, Clock, ShieldCheck, ShieldOff, FlaskConical, Sparkles } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { AchievementsGrid } from "@/components/AchievementsGrid";
 import { useDemoMode } from "@/contexts/DemoModeContext";
@@ -85,7 +85,11 @@ export default function Progresso() {
   const totalTime = attempts.reduce((s, a) => s + (a.time_spent_seconds ?? 0), 0);
   const avgTime = total ? Math.round(totalTime / total) : 0;
   const achievements = useMemo(() => computeAchievements(attempts), [attempts]);
+  const normalAchievements = useMemo(() => achievements.filter((a) => !a.secret), [achievements]);
+  const secretAchievements = useMemo(() => achievements.filter((a) => !!a.secret), [achievements]);
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
+  const unlockedSecretCount = secretAchievements.filter((a) => a.unlocked).length;
+  const showSecretSection = isAdmin || unlockedSecretCount > 0;
 
   const evolutionData = useMemo(
     () =>
@@ -190,8 +194,30 @@ export default function Progresso() {
             {unlockedCount}/{achievements.length} desbloqueadas
           </span>
         </div>
-        <AchievementsGrid items={achievements} revealSecrets={isAdmin} />
+        <AchievementsGrid items={normalAchievements} revealSecrets={isAdmin} />
       </Card>
+
+      {showSecretSection && (
+        <Card className="p-6 border-primary/40 bg-gradient-to-br from-primary/5 to-transparent">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="font-bold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> Conquistas Secretas
+              {isAdmin && (
+                <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
+                  Visível só para admin
+                </Badge>
+              )}
+            </h2>
+            <span className="text-sm text-muted-foreground">
+              {unlockedSecretCount}/{secretAchievements.length} reveladas
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Conquistas raras e desafiadoras — algumas exigem maestria, velocidade ou persistência fora do comum.
+          </p>
+          <AchievementsGrid items={secretAchievements} revealSecrets={isAdmin} />
+        </Card>
+      )}
 
       <Card className="p-6">
         <h2 className="font-bold mb-1 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Evolução das pontuações</h2>
