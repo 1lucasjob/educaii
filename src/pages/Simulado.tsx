@@ -9,6 +9,19 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
+import confetti from "canvas-confetti";
+
+const fireConfetti = () => {
+  const defaults = { startVelocity: 35, spread: 360, ticks: 70, zIndex: 9999, scalar: 1.1 };
+  const colors = ["hsl(var(--primary))", "#fbbf24", "#34d399", "#60a5fa", "#f472b6"];
+  // Burst from both sides
+  confetti({ ...defaults, particleCount: 80, origin: { x: 0.2, y: 0.6 }, colors });
+  confetti({ ...defaults, particleCount: 80, origin: { x: 0.8, y: 0.6 }, colors });
+  // Center burst slightly delayed
+  setTimeout(() => {
+    confetti({ ...defaults, particleCount: 120, origin: { x: 0.5, y: 0.5 }, colors });
+  }, 200);
+};
 
 interface Question {
   question: string;
@@ -124,14 +137,16 @@ export default function Simulado() {
       const newlyUnlocked = computeAchievements(allAttempts)
         .filter((a) => a.unlocked && !prevUnlocked.has(a.id));
 
+      if (newlyUnlocked.length > 0) fireConfetti();
       newlyUnlocked.forEach((ach, i) => {
         setTimeout(() => {
+          if (i > 0) fireConfetti();
           toast({
             title: "🏆 Conquista desbloqueada!",
             description: `${ach.title} — ${ach.description}`,
             className: "animate-scale-in border-primary bg-gradient-to-br from-primary/10 to-background",
           });
-        }, i * 600);
+        }, i * 800);
       });
     }
   };
