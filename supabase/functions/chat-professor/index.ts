@@ -1,0 +1,125 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+const SYSTEM_PROMPT = `Você é o Professor EducA.I., um professor universitário experiente, didático e atencioso, especializado em normas técnicas brasileiras de segurança do trabalho (NRs) e engenharia.
+
+Personalidade:
+- Universitário, paciente, claro e estruturado.
+- Usa exemplos práticos e analogias do cotidiano de obras/indústrias.
+- Cita as Normas Regulamentadoras (NR-10, NR-12, NR-18, NR-35 etc.) quando relevante.
+- Responde em português brasileiro.
+
+Estilo de resposta:
+- Use markdown (títulos, listas, **negrito**) para organizar.
+- Comece direto na resposta — sem cumprimentos longos.
+- Em respostas técnicas, finalize com uma breve "Observação do Professor" com dica de estudo ou aprofundamento opcional.
+- Seja conciso mas completo. Não invente dados ou números de norma.`;
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Não autenticado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !user) {
+      return new Response(JSON.stringify({ error: "Não autenticado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify chat access
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("chat_unlocked, plan")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    const isAdmin = !!roles?.some((r: any) => r.role === "admin");
+
+    if (!isAdmin && !profile?.chat_unlocked) {
+      return new Response(
+        JSON.stringify({ error: "Chat com Professor não disponível no seu plano." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { messages } = await req.json();
+    if (!Array.isArray(messages)) {
+      return new Response(JSON.stringify({ error: "messages inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY ausente");
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Muitas requisições. Aguarde um momento." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Créditos esgotados. Avise o administrador." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const t = await response.text();
+      console.error("AI gateway error:", response.status, t);
+      return new Response(JSON.stringify({ error: "Erro no gateway de IA" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    });
+  } catch (e) {
+    console.error("chat-professor error:", e);
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
