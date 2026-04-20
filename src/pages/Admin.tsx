@@ -50,29 +50,41 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
-    const [{ data: s }, { data: i }] = await Promise.all([
+    const [{ data: s }, { data: i }, { data: st }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score").order("access_expires_at", { ascending: true }),
     ]);
     setSlots(s?.count ?? 0);
     setInvites((i as Invite[]) ?? []);
+    setStudents((st as StudentRow[]) ?? []);
   };
 
   useEffect(() => { load(); }, []);
 
   const release = async () => {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("create-invite", { body: { pin } });
+    const { data, error } = await supabase.functions.invoke("create-invite", { body: { pin, plan } });
     setLoading(false);
     if (error || data?.error) {
       toast({ title: "Erro", description: data?.error ?? error?.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Acesso liberado!", description: "Link copiado para a área de transferência." });
+    toast({ title: "Acesso liberado!", description: `Plano ${planLabel(plan)} · link copiado.` });
     const link = `${window.location.origin}/cadastro?token=${data.token}`;
     navigator.clipboard.writeText(link).catch(() => {});
     setOpen(false);
     setPin("");
+    load();
+  };
+
+  const renew = async (userId: string, newPlan: AccessPlan) => {
+    const { error } = await supabase.rpc("admin_renew_user", { _user_id: userId, _plan: newPlan });
+    if (error) {
+      toast({ title: "Erro ao renovar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Acesso renovado!", description: `Plano ${planLabel(newPlan)} aplicado.` });
     load();
   };
 
