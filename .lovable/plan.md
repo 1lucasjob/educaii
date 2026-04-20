@@ -1,21 +1,38 @@
 
 
-## Plano: Reordenar seções do resumo - Normas no final
+## Plano: Adicionar campo de título do tema de estudo
 
-### Alteração no SYSTEM_PROMPT
+### Objetivo
+Separar o **título curto** do tema (ex: "NR-35 Trabalho em Altura") do **descritivo longo** (mínimo 1000 caracteres) na página `/app/estudar`. Hoje o textarea acumula as duas funções, o que dificulta identificar o tema atual e exibe textos truncados feios em "Tema atual: …".
 
-Atualizar `supabase/functions/generate-summary/index.ts` para mover a seção **"Normas Regulamentadoras aplicáveis ao caso"** para o final do resumo, junto com as **"Observações do Professor"**.
+### Mudanças em `src/pages/Estudar.tsx`
 
-**Nova estrutura obrigatória:**
+1. **Novo estado `title`** (string), além do já existente `topic` (descrição longa).
+2. **Novo `<Input>` "Título do tema"** acima do `<Textarea>`:
+   - Label: "Título do tema de estudo"
+   - Placeholder: "Ex: NR-35 — Trabalho em Altura"
+   - Obrigatório, mínimo 5 e máximo 80 caracteres
+   - Desabilitado quando `!unlocked || loadingSummary`
+3. **Textarea atual** vira "Descrição detalhada do tema" (mantém regra dos 1000 caracteres).
+4. **Validação no `generate()`**:
+   - Bloqueia se título vazio/curto com toast explicativo
+   - Envia `{ title, topic }` para a edge function `generate-summary` (campo extra opcional, não quebra)
+   - Persiste `current_topic = title` no profile (curto e legível) e mantém a descrição completa em `study_sessions.topic` para histórico
+5. **Exibição "Tema atual"**: passa a usar o título curto, sem truncamento feio.
+6. **Reset**: ao gerar novo resumo com sucesso, limpa título e descrição.
 
-1. **Visão geral do tema apresentado**
-2. **Conceitos-chave presentes no texto**
-3. **Aplicação prática no contexto descrito**
-4. **Riscos e medidas de controle pertinentes**
-5. **Pontos críticos para prova/concurso**
-6. **Normas Regulamentadoras aplicáveis ao caso** — movida para o final antes das observações
-7. **🎓 Observações do Professor** — permanece no final
+### Mudanças em `supabase/functions/generate-summary/index.ts`
 
-**Arquivo a editar:**
-- `supabase/functions/generate-summary/index.ts` — atualizar as linhas 15-26 do SYSTEM_PROMPT para refletir a nova ordem das seções.
+- Aceitar `title` opcional no body. Se presente, incluir no prompt do usuário como cabeçalho ("Título: …\n\nDescrição: …") para guiar melhor o modelo. Mantém compatibilidade com chamadas antigas que mandam só `topic`.
+
+### Sem mudanças de banco
+
+- Reutiliza `profiles.current_topic` (já existe) para guardar o título curto.
+- `study_sessions.topic` continua armazenando a descrição longa (histórico/auditoria).
+- Sem migrações.
+
+### Arquivos a editar
+
+- `src/pages/Estudar.tsx` — novo Input + lógica de validação/persistência
+- `supabase/functions/generate-summary/index.ts` — aceitar campo `title` opcional no prompt
 
