@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ShieldCheck } from "lucide-react";
-import logo from "@/assets/educai-logo.png";
+import { EducAILogo } from "@/components/EducAILogo";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -32,7 +32,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
-          <img src={logo} alt="EducA.I. Academy" width={512} height={512} className="w-20 h-20 mx-auto mb-4 drop-shadow-[0_0_24px_hsl(var(--primary)/0.5)]" />
+          <EducAILogo className="w-20 h-20 mx-auto mb-4 drop-shadow-[0_0_24px_hsl(var(--primary)/0.5)]" />
           <h1 className="text-3xl font-bold tracking-tight">EducA.I. Academy</h1>
           <p className="text-muted-foreground mt-2">Estudo focado em Segurança do Trabalho</p>
         </div>

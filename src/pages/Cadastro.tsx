@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { sha256 } from "@/lib/crypto";
 import { KeyRound } from "lucide-react";
-import logo from "@/assets/educai-logo.png";
+import { EducAILogo } from "@/components/EducAILogo";
 
 export default function Cadastro() {
   const [params] = useSearchParams();
@@ -100,7 +100,7 @@ export default function Cadastro() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md">
         <div className="text-center mb-6 animate-fade-in">
-          <img src={logo} alt="EducA.I. Academy" width={512} height={512} className="w-16 h-16 mx-auto mb-3 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+          <EducAILogo className="w-16 h-16 mx-auto mb-3 drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
           <h1 className="text-2xl font-bold">Criar conta</h1>
           <p className="text-muted-foreground text-sm">Preencha os dados do seu acesso</p>
         </div>
