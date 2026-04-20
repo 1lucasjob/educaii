@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import PlanBadge from "@/components/PlanBadge";
 import { buildPurchaseMailto } from "@/lib/plans";
-import { Check, Sparkles, Mail, ShieldCheck, Pencil, Save, X, Loader2 } from "lucide-react";
+import { Check, Sparkles, Mail, ShieldCheck, Pencil, Save, X, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PlanSetting {
@@ -20,6 +21,7 @@ interface PlanSetting {
   duration_label: string;
   highlight: string | null;
   benefits: string[];
+  locked: boolean;
 }
 
 const PLAN_ORDER: AccessPlan[] = ["days_30", "days_90", "premium"];
