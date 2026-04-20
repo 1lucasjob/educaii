@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
+import RenewalBanner from "@/components/RenewalBanner";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
@@ -162,7 +163,8 @@ export default function AppLayout() {
               </Button>
             </div>
           )}
-          <main className="flex-1 p-4 md:p-8 animate-fade-in">
+          <main className="flex-1 p-4 md:p-8 animate-fade-in space-y-4">
+            <RenewalBanner />
             <Outlet />
           </main>
         </div>
