@@ -39,17 +39,18 @@ export default function Planos() {
     setLoading(true);
     const { data, error } = await supabase
       .from("plan_settings")
-      .select("plan,price,old_price,duration_label,highlight,benefits");
+      .select("plan,price,old_price,duration_label,highlight,benefits,locked");
     if (error) {
       toast({ title: "Erro ao carregar planos", description: error.message, variant: "destructive" });
     } else if (data) {
-      const normalized: PlanSetting[] = data.map((d) => ({
+      const normalized: PlanSetting[] = data.map((d: any) => ({
         plan: d.plan as AccessPlan,
         price: d.price,
         old_price: d.old_price,
         duration_label: d.duration_label,
         highlight: d.highlight,
         benefits: Array.isArray(d.benefits) ? (d.benefits as string[]) : [],
+        locked: !!d.locked,
       }));
       normalized.sort((a, b) => PLAN_ORDER.indexOf(a.plan) - PLAN_ORDER.indexOf(b.plan));
       setPlans(normalized);
@@ -82,6 +83,7 @@ export default function Planos() {
         duration_label: draft.duration_label.trim(),
         highlight: draft.highlight?.trim() || null,
         benefits: draft.benefits.map((b) => b.trim()).filter(Boolean),
+        locked: draft.locked,
       })
       .eq("plan", draft.plan);
     setSaving(false);
