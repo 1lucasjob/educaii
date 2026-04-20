@@ -4,9 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Trophy, Medal, Award, Crown, EyeOff, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { computeAchievements, AttemptLite } from "@/lib/achievements";
+import { AchievementsGrid } from "@/components/AchievementsGrid";
 
 interface Row {
   user_id: string;
@@ -45,6 +47,7 @@ export default function Ranking() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.rpc("get_leaderboard").then(({ data }) => {
@@ -133,9 +136,10 @@ export default function Ranking() {
             {ranked.map((r, i) => {
               const isMe = r.user_id === user?.id;
               return (
-                <div
+                <button
                   key={r.user_id}
-                  className={`flex items-center gap-3 px-4 py-3 ${
+                  onClick={() => setSelectedId(r.user_id)}
+                  className={`w-full text-left flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60 ${
                     isMe ? "bg-primary/10 border-l-4 border-primary" : i < 3 ? "bg-muted/40" : ""
                   }`}
                 >
@@ -157,7 +161,7 @@ export default function Ranking() {
                       {r.unlocked}/{totalAchievements}
                     </Badge>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
