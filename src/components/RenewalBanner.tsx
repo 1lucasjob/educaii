@@ -1,7 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { buildRenewalMailto, daysUntil, planLabel, shouldShowRenewal } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
-import { Mail, Clock } from "lucide-react";
+import { Mail, Clock, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function RenewalBanner() {
   const { profile, isAdmin } = useAuth();
@@ -28,11 +29,18 @@ export default function RenewalBanner() {
           </p>
         </div>
       </div>
-      <Button asChild size="sm" className="gradient-primary text-primary-foreground shadow-glow">
-        <a href={href}>
-          <Mail className="w-4 h-4 mr-1.5" /> Solicitar renovação
-        </a>
-      </Button>
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button asChild size="sm" variant="outline">
+          <Link to="/app/planos">
+            <Sparkles className="w-4 h-4 mr-1.5" /> Ver planos
+          </Link>
+        </Button>
+        <Button asChild size="sm" className="gradient-primary text-primary-foreground shadow-glow">
+          <a href={href}>
+            <Mail className="w-4 h-4 mr-1.5" /> Solicitar renovação
+          </a>
+        </Button>
+      </div>
     </div>
   );
 }
