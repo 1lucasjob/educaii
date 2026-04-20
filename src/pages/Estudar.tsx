@@ -47,6 +47,14 @@ export default function Estudar() {
       toast({ title: "Tema bloqueado", description: "Conclua o Simulado Difícil com 80+ pontos para liberar.", variant: "destructive" });
       return;
     }
+    if (!titleValid) {
+      toast({
+        title: "Título inválido",
+        description: `Informe um título entre ${TITLE_MIN} e ${TITLE_MAX} caracteres (ex: "NR-35 — Trabalho em Altura").`,
+        variant: "destructive",
+      });
+      return;
+    }
     if (!meetsMin) {
       toast({
         title: "Texto insuficiente",
@@ -57,21 +65,24 @@ export default function Estudar() {
     }
     setLoadingSummary(true);
     setSummary(null);
-    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic } });
+    const cleanTitle = title.trim();
+    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle } });
     setLoadingSummary(false);
     if (error || data?.error) {
       toast({ title: "Erro ao gerar resumo", description: data?.error ?? error?.message, variant: "destructive" });
       return;
     }
     setSummary(data.summary);
-    setActiveTopic(topic);
+    setActiveTopic(cleanTitle);
 
-    // Persist session and lock the topic
+    // Persist session (full description) and lock the topic by short title
     if (profile) {
-      await supabase.from("study_sessions").insert({ user_id: profile.id, topic, summary: data.summary });
-      await supabase.from("profiles").update({ current_topic: topic, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
+      await supabase.from("study_sessions").insert({ user_id: profile.id, topic: `${cleanTitle}\n\n${topic}`, summary: data.summary });
+      await supabase.from("profiles").update({ current_topic: cleanTitle, current_topic_unlocked: false, last_score: 0 }).eq("id", profile.id);
       await refreshProfile();
     }
+    setTitle("");
+    setTopic("");
   };
 
   const startQuiz = (difficulty: "easy" | "hard") => {
