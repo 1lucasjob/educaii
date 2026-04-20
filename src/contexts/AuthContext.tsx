@@ -16,6 +16,7 @@ interface Profile {
   plan: AccessPlan;
   access_expires_at: string | null;
   chat_unlocked: boolean;
+  created_at: string;
 }
 
 interface AuthCtx {
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = async (uid: string) => {
     const { data: p } = await supabase
       .from("profiles")
-      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking,plan,access_expires_at,chat_unlocked")
+      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking,plan,access_expires_at,chat_unlocked,created_at")
       .eq("id", uid)
       .maybeSingle();
 

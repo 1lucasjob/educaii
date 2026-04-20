@@ -8,7 +8,9 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Unlock, Brain, Sparkles, Target, Zap } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { computeFreeTrial } from "@/lib/freeTrial";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Estudar() {
   const { profile, refreshProfile } = useAuth();
@@ -20,7 +22,9 @@ export default function Estudar() {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [activeTopic, setActiveTopic] = useState<string | null>(profile?.current_topic ?? null);
 
-  const unlocked = profile?.current_topic_unlocked ?? true;
+  const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
+  const freeExpired = trial.isFree && !trial.freeBaseActive;
+  const unlocked = (profile?.current_topic_unlocked ?? true) && !freeExpired;
   const lastScore = profile?.last_score ?? 0;
 
   const MIN_CHARS = 500;
@@ -28,6 +32,10 @@ export default function Estudar() {
   const meetsMin = topicLength >= MIN_CHARS;
 
   const generate = async () => {
+    if (freeExpired) {
+      toast({ title: "Acesso FREE encerrado", description: "Faça upgrade para continuar gerando resumos.", variant: "destructive" });
+      return;
+    }
     if (!unlocked) {
       toast({ title: "Tema bloqueado", description: "Conclua o Simulado Difícil com 80+ pontos para liberar.", variant: "destructive" });
       return;
@@ -72,6 +80,29 @@ export default function Estudar() {
         </h1>
         <p className="text-muted-foreground mt-1">Tema único por vez — desbloqueado ao dominar o difícil ≥ 80 pts.</p>
       </div>
+
+      {trial.isFree && trial.freeBaseActive && (
+        <Alert className="border-primary/40 bg-primary/5">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <AlertDescription className="text-sm">
+            Plano <strong>FREE</strong> ativo · Resumos e Simulado Fácil por mais{" "}
+            <strong>{trial.baseDaysLeft} dia(s)</strong>
+            {trial.freeChatActive && <> · Chat e Simulado Difícil por mais <strong>{trial.chatDaysLeft} dia(s)</strong></>}
+            {" · "}<Link to="/app/planos" className="text-primary underline underline-offset-2">Ver planos</Link>
+          </AlertDescription>
+        </Alert>
+      )}
+      {freeExpired && (
+        <Alert className="border-destructive/40 bg-destructive/10">
+          <Lock className="w-4 h-4 text-destructive" />
+          <AlertDescription className="text-sm">
+            Seu período gratuito de 30 dias acabou.{" "}
+            <Link to="/app/planos" className="text-primary underline underline-offset-2 font-medium">
+              Faça upgrade para continuar estudando
+            </Link>.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card className="p-6 shadow-glow">
         <div className="flex items-start gap-4 mb-4">

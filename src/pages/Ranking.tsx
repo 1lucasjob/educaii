@@ -101,6 +101,20 @@ export default function Ranking() {
       <h1 className="text-3xl font-bold flex items-center gap-2">
         <Trophy className="text-primary" /> Ranking
       </h1>
+      {profile?.plan === "free" && !isAdmin && (
+        <Card className="p-4 border-warning/40 bg-warning/5 flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium">O plano FREE não participa do ranking</p>
+            <p className="text-muted-foreground">
+              Faça upgrade para competir.{" "}
+              <Link to="/app/planos" className="text-primary underline underline-offset-2">
+                Ver planos
+              </Link>
+            </p>
+          </div>
+        </Card>
+      )}
       {demoEnabled && (
         <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-sm">
           <FlaskConical className="w-4 h-4 text-primary" />

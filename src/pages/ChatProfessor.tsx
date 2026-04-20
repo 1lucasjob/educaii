@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { GraduationCap, Send, Lock, Mail, Trash2, Loader2, Bookmark, BookmarkCheck, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { buildRenewalMailto, planLabel } from "@/lib/plans";
+import { computeFreeTrial } from "@/lib/freeTrial";
 import ReactMarkdown from "react-markdown";
 
 type Msg = {
@@ -29,7 +30,8 @@ export default function ChatProfessor() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const unlocked = isAdmin || !!profile?.chat_unlocked;
+  const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
+  const unlocked = isAdmin || !!profile?.chat_unlocked || trial.freeChatActive;
 
   useEffect(() => {
     if (!unlocked || !profile) {
@@ -69,6 +71,7 @@ export default function ChatProfessor() {
           expiresAt: profile.access_expires_at,
         })
       : "#";
+    const isFreeExpired = trial.isFree && !trial.freeChatActive;
     return (
       <div className="max-w-2xl mx-auto">
         <Card className="p-8 text-center">
@@ -80,8 +83,9 @@ export default function ChatProfessor() {
             Seu plano atual é <strong className="text-foreground">{planName}</strong>.
           </p>
           <p className="text-sm text-muted-foreground mb-6">
-            O Chat com Professor Saraiva está disponível para alunos do plano <strong>90 DAYS</strong>,{" "}
-            <strong>PREMIUM</strong> ou <strong>30 DAYS</strong> a partir da primeira renovação.
+            {isFreeExpired
+              ? "Seus 15 dias gratuitos de chat acabaram. Faça upgrade para continuar conversando com o Professor Saraiva."
+              : "O Chat com Professor Saraiva está disponível para alunos do plano 90 DAYS, PREMIUM ou 30 DAYS a partir da primeira renovação."}
           </p>
           <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-glow">
             <a href={mailto}>
