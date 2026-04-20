@@ -17,6 +17,7 @@ export interface Achievement {
   progress: number; // 0-100
   hint: string;
   secret?: boolean;
+  ultra?: boolean;
 }
 
 export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
