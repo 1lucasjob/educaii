@@ -19,6 +19,7 @@ export default function Estudar() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const [title, setTitle] = useState("");
   const [topic, setTopic] = useState("");
   const [summary, setSummary] = useState<string | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
@@ -30,8 +31,12 @@ export default function Estudar() {
   const lastScore = profile?.last_score ?? 0;
 
   const MIN_CHARS = 1000;
+  const TITLE_MIN = 5;
+  const TITLE_MAX = 80;
   const topicLength = topic.trim().length;
+  const titleLength = title.trim().length;
   const meetsMin = topicLength >= MIN_CHARS;
+  const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
 
   const generate = async () => {
     if (freeExpired) {
