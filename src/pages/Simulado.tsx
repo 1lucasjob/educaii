@@ -324,6 +324,12 @@ export default function Simulado() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
+      {topic && (
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Tema</p>
+          <h1 className="text-lg font-bold text-foreground">{topic.length > 80 ? topic.slice(0, 80) + "…" : topic}</h1>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Badge variant="outline">Questão {current + 1} de {questions.length}</Badge>
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-sm font-semibold border ${lowTime ? "bg-destructive/10 text-destructive border-destructive/40 animate-pulse" : "bg-muted border-border"}`}>
