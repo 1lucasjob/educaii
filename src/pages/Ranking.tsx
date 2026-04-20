@@ -4,9 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Trophy, Medal, Award, Crown, EyeOff, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { computeAchievements, AttemptLite } from "@/lib/achievements";
+import { AchievementsGrid } from "@/components/AchievementsGrid";
 
 interface Row {
   user_id: string;
@@ -45,6 +47,7 @@ export default function Ranking() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.rpc("get_leaderboard").then(({ data }) => {
@@ -133,9 +136,10 @@ export default function Ranking() {
             {ranked.map((r, i) => {
               const isMe = r.user_id === user?.id;
               return (
-                <div
+                <button
                   key={r.user_id}
-                  className={`flex items-center gap-3 px-4 py-3 ${
+                  onClick={() => setSelectedId(r.user_id)}
+                  className={`w-full text-left flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60 ${
                     isMe ? "bg-primary/10 border-l-4 border-primary" : i < 3 ? "bg-muted/40" : ""
                   }`}
                 >
@@ -157,7 +161,7 @@ export default function Ranking() {
                       {r.unlocked}/{totalAchievements}
                     </Badge>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -170,6 +174,45 @@ export default function Ranking() {
           <strong className="text-primary">#{myIndex + 1}</strong> de {ranked.length}
         </p>
       )}
+
+      <Dialog open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          {(() => {
+            const sel = ranked.find((r) => r.user_id === selectedId);
+            if (!sel) return null;
+            const cutoff = cutoffFor(period);
+            const list = (rows.find((r) => r.user_id === selectedId)?.attempts_data ?? []).filter(
+              (a) => cutoff === null || +new Date(a.created_at) >= cutoff,
+            );
+            const ach = computeAchievements(list);
+            const unlockedCount = ach.filter((a) => a.unlocked).length;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-primary" />
+                    {sel.display_name}
+                    {sel.user_id === user?.id && <Badge variant="outline" className="text-xs">Você</Badge>}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {PERIOD_LABEL[period]} · {sel.attempts} simulados · {sel.hard_passed} aprovações no difícil ·
+                    média {sel.avg_score} · score {Math.round(sel.composite_score)}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center justify-between mb-3 mt-2">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" /> Conquistas
+                  </h3>
+                  <span className="text-sm text-muted-foreground">
+                    {unlockedCount}/{ach.length} desbloqueadas
+                  </span>
+                </div>
+                <AchievementsGrid items={ach} />
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
