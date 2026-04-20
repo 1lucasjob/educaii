@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -101,6 +101,17 @@ export default function Admin() {
             <Switch id="demo-switch" checked={demoEnabled} onCheckedChange={setDemoEnabled} />
           </div>
         </div>
+
+        {demoEnabled && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/ranking")} className="gap-1 border-primary/40">
+              <Trophy className="w-3.5 h-3.5 text-primary" /> Ver Ranking demo
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/progresso")} className="gap-1 border-primary/40">
+              <Eye className="w-3.5 h-3.5 text-primary" /> Ver Meu Progresso
+            </Button>
+          </div>
+        )}
 
         <div className="mt-5">
           <p className="text-sm font-medium flex items-center gap-2 mb-2">
