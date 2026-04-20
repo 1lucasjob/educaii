@@ -1,46 +1,58 @@
 
 
-## Plano: Reduzir mínimo para 300 caracteres (sem ranking nem salvamento)
+## Plano: Novos limites de caracteres e quantidade de questões
 
-### Objetivo
-Permitir gerar resumos de estudo a partir de **300 caracteres**, mas textos com menos de **1000 caracteres** não contam para o ranking e **não são salvos** (nem em `study_sessions`, nem atualizam `profiles.current_topic`).
+### Novo comportamento por caracteres
 
-### Comportamento
-
-| Caracteres | Gera resumo? | Salva sessão? | Trava tema (bloqueia novos)? | Conta no ranking? |
+| Caracteres | Gera resumo? | Salva sessão? | Simulado Fácil? | Simulado Difícil? |
 |---|---|---|---|---|
-| < 300 | Não | — | — | — |
-| 300–999 | Sim (modo "rascunho") | **Não** | **Não** | **Não** |
-| ≥ 1000 | Sim (modo completo) | Sim | Sim | Sim |
+| < 500 | Não | — | — | — |
+| 500–1500 | Sim | Sim | ✅ Liberado | ❌ Bloqueado |
+| 1501+ | Sim | Sim | ✅ Liberado | ✅ Liberado |
 
-Como o tema não fica travado em modo rascunho, o aluno pode gerar quantos resumos curtos quiser sem precisar fazer simulado difícil para liberar.
+Removido o "modo rascunho" — agora todo resumo gerado é salvo. O que muda é qual simulado fica disponível.
 
 ### Mudanças em `src/pages/Estudar.tsx`
 
-1. Adicionar constante `MIN_CHARS_DRAFT = 300` (manter `MIN_CHARS = 1000` como limite "completo").
-2. Substituir `meetsMin` por dois flags:
-   - `meetsDraft = topicLength >= 300`
-   - `meetsFull = topicLength >= 1000`
-3. Botão "Gerar Estudo" habilitado quando `meetsDraft && titleValid`.
+1. Substituir constantes:
+   - `MIN_CHARS_EASY = 500` (mínimo para gerar e liberar Fácil)
+   - `MIN_CHARS_HARD = 1501` (libera Difícil)
+   - Remover `MIN_CHARS_DRAFT` e `MIN_CHARS`.
+2. Flags:
+   - `meetsEasy = topicLength >= 500`
+   - `meetsHard = topicLength >= 1501`
+3. Botão "Gerar Estudo" habilitado quando `meetsEasy && titleValid`.
 4. Em `generate()`:
-   - Bloqueia se `!meetsDraft` (toast: "Mínimo 300 caracteres").
-   - Após receber o resumo: se `meetsFull`, segue fluxo atual (insert em `study_sessions`, update `profiles` travando o tema). Se só `meetsDraft`, **pula** o `insert` e o `update` — apenas exibe `summary` na tela e mostra um aviso.
-5. Exibir um `Alert` discreto acima do resumo quando for rascunho:
-   > "Modo rascunho: este resumo não foi salvo no histórico e não conta para o ranking. Escreva 1000+ caracteres para salvar e desbloquear simulados que valem pontos."
-6. Atualizar o contador embaixo do textarea para mostrar 3 estados:
-   - `< 300`: cinza, "X/300 (mínimo para gerar)"
-   - `300–999`: amarelo, "X/1000 — modo rascunho (não salva, não pontua)"
-   - `≥ 1000`: verde, "X/1000 ✓ válido para ranking"
-7. Barra de progresso passa a ser sobre 1000 (igual hoje), mas com cor variando (cinza/amarelo/verde) conforme o estado.
-8. Atualizar o `placeholder` do textarea para mencionar os dois patamares.
-9. No card de resumo (modo rascunho), **ocultar** os botões "Simulado Fácil/Difícil", já que não temos `activeTopic` persistido — substituir por uma nota: "Para fazer simulado deste tema, escreva 1000+ caracteres e gere novamente."
+   - Bloqueia se `!meetsEasy` (toast: "Mínimo 500 caracteres").
+   - Sempre salva em `study_sessions` e atualiza `profiles.current_topic` (trava o tema até concluir simulado difícil ≥80, igual hoje).
+   - Guardar `hardUnlocked = meetsHard` em estado para controlar o botão na tela de resumo.
+5. Card de resumo:
+   - Sempre mostra o botão **Simulado Fácil**.
+   - Botão **Simulado Difícil** aparece habilitado só se `hardUnlocked`; caso contrário aparece desabilitado com tooltip/legenda: "Escreva 1501+ caracteres para liberar o Simulado Difícil".
+6. Contador embaixo do textarea com 3 estados:
+   - `< 500`: cinza, "X/500 (mínimo para gerar)"
+   - `500–1500`: azul, "X/1501 ✓ libera Simulado Fácil"
+   - `≥ 1501`: verde, "X/1501 ✓ libera Fácil + Difícil"
+7. Barra de progresso passa a ser sobre 1501.
+8. Atualizar `placeholder` do textarea mencionando os dois patamares.
+9. Remover toda lógica e UI de `summaryIsDraft` / alerta de rascunho.
+
+### Mudanças em `supabase/functions/generate-quiz/index.ts`
+
+Atualizar a faixa de quantidade de questões para **5 a 10** em ambos os modos:
+
+- `easy`: `"entre 5 e 10 questões"` (era 10–25).
+- `hard`: `"entre 5 e 10 questões de NÍVEL EXAMINADOR..."` (era 8–15).
+
+Pontuação total continua = 100, distribuída entre as questões (lógica de normalização já existente cobre isso).
 
 ### Sem mudanças
 
 - Banco de dados: nenhuma migração.
 - Edge function `generate-summary`: continua igual.
-- Páginas Simulado, Ranking, Progresso: nada muda (rascunhos simplesmente não chegam lá).
+- `src/pages/Simulado.tsx`: nada muda — aceita qualquer quantidade que vier do edge function.
+- Ranking, Progresso, gating de plano, admin: sem alteração.
 
-### Arquivo
-- **Editar**: `src/pages/Estudar.tsx`
+### Arquivos
+- **Editar**: `src/pages/Estudar.tsx`, `supabase/functions/generate-quiz/index.ts`
 
