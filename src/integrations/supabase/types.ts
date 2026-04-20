@@ -203,6 +203,7 @@ export type Database = {
         Args: never
         Returns: {
           attempts: number
+          attempts_data: Json
           avg_score: number
           composite_score: number
           display_name: string
