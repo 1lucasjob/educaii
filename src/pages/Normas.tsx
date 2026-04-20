@@ -1,20 +1,47 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, HardHat, Search } from "lucide-react";
+import {
+  BookOpen,
+  HardHat,
+  Search,
+  Users,
+  Stethoscope,
+  Activity,
+  Zap,
+  Cog,
+  FlaskConical,
+  Armchair,
+  MoveUp,
+  FileText,
+  type LucideIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Ordem por relevância: principais/transversais primeiro, específicas por setor depois, revogadas no fim.
 const NR_ORDER = [
-  // Núcleo essencial (mais cobradas em provas e mais aplicadas no dia a dia)
   "NR-01","NR-06","NR-05","NR-04","NR-07","NR-09","NR-17","NR-35","NR-10","NR-12",
   "NR-15","NR-16","NR-33","NR-18","NR-23","NR-26","NR-08","NR-11","NR-13","NR-24",
-  // Específicas por atividade / setor
   "NR-20","NR-32","NR-34","NR-31","NR-22","NR-29","NR-30","NR-36","NR-37","NR-38",
   "NR-14","NR-19","NR-21","NR-25","NR-28","NR-03",
-  // Revogadas (referência histórica)
   "NR-02","NR-27",
 ];
+
+const MAIN_NRS = ["NR-01","NR-05","NR-06","NR-07","NR-09","NR-10","NR-12","NR-15","NR-17","NR-35"];
+const REVOKED = new Set(["NR-02","NR-27"]);
+
+const NR_ICONS: Record<string, LucideIcon> = {
+  "NR-01": BookOpen,
+  "NR-05": Users,
+  "NR-06": HardHat,
+  "NR-07": Stethoscope,
+  "NR-09": Activity,
+  "NR-10": Zap,
+  "NR-12": Cog,
+  "NR-15": FlaskConical,
+  "NR-17": Armchair,
+  "NR-35": MoveUp,
+};
+const getIcon = (id: string): LucideIcon => NR_ICONS[id] ?? FileText;
 
 const NRS_RAW = [
   { id: "NR-01", title: "Disposições Gerais e Gerenciamento de Riscos Ocupacionais", body: "Estabelece diretrizes gerais de SST, define responsabilidades do empregador/empregado e institui o GRO (Gerenciamento de Riscos Ocupacionais) e o PGR (Programa de Gerenciamento de Riscos)." },
@@ -57,64 +84,130 @@ const NRS_RAW = [
   { id: "NR-38", title: "Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos", body: "Aplica-se a coleta, transporte, triagem, tratamento e destinação final de resíduos sólidos urbanos. Exige PGR específico, EPIs adequados (luvas, botas, uniformes refletivos), imunização, controle de riscos biológicos e ergonômicos e capacitação dos trabalhadores." },
 ];
 
-const NRS = NR_ORDER
-  .map((id) => NRS_RAW.find((n) => n.id === id))
-  .filter((n): n is (typeof NRS_RAW)[number] => Boolean(n));
+const NRS_BY_ID = new Map(NRS_RAW.map((n) => [n.id, n]));
+const ORDERED = NR_ORDER.map((id) => NRS_BY_ID.get(id)!).filter(Boolean);
 
 export default function Normas() {
   const [search, setSearch] = useState("");
-  const filtered = NRS.filter((n) => `${n.id} ${n.title}`.toLowerCase().includes(search.toLowerCase()));
+  const [active, setActive] = useState<string>("NR-01");
+
+  const searching = search.trim().length > 0;
+  const filtered = useMemo(
+    () =>
+      ORDERED.filter((n) =>
+        `${n.id} ${n.title}`.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [search],
+  );
+
+  const mainList = MAIN_NRS.map((id) => NRS_BY_ID.get(id)!).filter(Boolean);
+  const otherList = ORDERED.filter((n) => !MAIN_NRS.includes(n.id));
+
+  const activeNR = NRS_BY_ID.get(active) ?? ORDERED[0];
+  const ActiveIcon = getIcon(activeNR.id);
+
+  const renderChip = (id: string, withIcon = false) => {
+    const Icon = getIcon(id);
+    const isActive = id === active;
+    const isRevoked = REVOKED.has(id);
+    return (
+      <button
+        key={id}
+        onClick={() => setActive(id)}
+        className={cn(
+          "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-all",
+          "hover:border-primary hover:text-primary",
+          isActive
+            ? "gradient-primary text-primary-foreground border-transparent shadow-md"
+            : "bg-card text-foreground border-border",
+          isRevoked && !isActive && "opacity-60",
+        )}
+      >
+        {withIcon && <Icon className="w-5 h-5" />}
+        <span>{id}</span>
+      </button>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2"><BookOpen className="text-primary" /> Normas Principais</h1>
-        <p className="text-muted-foreground mt-1">Biblioteca completa: NR-01 a NR-38 (vigentes e revogadas com referência histórica).</p>
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <BookOpen className="text-primary" /> Normas Principais
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Biblioteca completa: NR-01 a NR-38 (vigentes e revogadas com referência histórica).
+        </p>
       </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar NR…" className="pl-9" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar NR…"
+          className="pl-9"
+        />
       </div>
 
-      <Tabs defaultValue={filtered[0]?.id ?? "NR-01"} orientation="vertical" className="flex flex-col md:flex-row gap-4">
-        <TabsList className="grid grid-cols-4 sm:grid-cols-6 md:flex md:flex-col h-auto bg-card p-2 md:w-40 gap-1 md:max-h-[70vh] md:overflow-y-auto">
-          {filtered.map((n) => (
-            <TabsTrigger
-              key={n.id}
-              value={n.id}
-              className="md:w-full md:justify-start px-2 py-1.5 text-xs data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground"
-            >
-              <HardHat className="w-3 h-3 mr-1 shrink-0 hidden md:inline" />
-              {n.id}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <div className="flex-1">
-          {filtered.map((n) => (
-            <TabsContent key={n.id} value={n.id} className="mt-0">
-              <Card className="p-6">
-                <h2 className="text-xl font-bold mb-2">{n.id} — {n.title}</h2>
-                <p className="text-muted-foreground leading-relaxed">{n.body}</p>
-                <div className="mt-6 grid sm:grid-cols-3 gap-3 text-sm">
-                  <div className="p-3 rounded-md bg-muted">
-                    <p className="font-semibold text-primary">Aplicação</p>
-                    <p className="text-muted-foreground">Aplica-se a empresas privadas, públicas e órgãos públicos da administração direta e indireta.</p>
-                  </div>
-                  <div className="p-3 rounded-md bg-muted">
-                    <p className="font-semibold text-primary">Responsabilidade</p>
-                    <p className="text-muted-foreground">Cabe ao empregador cumprir e fazer cumprir; ao empregado, observar as orientações.</p>
-                  </div>
-                  <div className="p-3 rounded-md bg-muted">
-                    <p className="font-semibold text-primary">Penalidades</p>
-                    <p className="text-muted-foreground">Multas administrativas conforme infração e responsabilização civil/criminal em casos graves.</p>
-                  </div>
-                </div>
-              </Card>
-            </TabsContent>
-          ))}
+      {searching ? (
+        <div className="flex flex-wrap gap-2">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma NR encontrada.</p>
+          ) : (
+            filtered.map((n) => renderChip(n.id, MAIN_NRS.includes(n.id)))
+          )}
         </div>
-      </Tabs>
+      ) : (
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+              Principais
+            </p>
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+              {mainList.map((n) => renderChip(n.id, true))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+              Demais NRs
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {otherList.map((n) => renderChip(n.id, false))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Card className="p-6">
+        <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
+          <ActiveIcon className="w-7 h-7 text-primary shrink-0" />
+          <span>
+            {activeNR.id} — {activeNR.title}
+          </span>
+        </h2>
+        <p className="text-muted-foreground leading-relaxed">{activeNR.body}</p>
+        <div className="mt-6 grid sm:grid-cols-3 gap-3 text-sm">
+          <div className="p-3 rounded-md bg-muted">
+            <p className="font-semibold text-primary">Aplicação</p>
+            <p className="text-muted-foreground">
+              Aplica-se a empresas privadas, públicas e órgãos públicos da administração direta e indireta.
+            </p>
+          </div>
+          <div className="p-3 rounded-md bg-muted">
+            <p className="font-semibold text-primary">Responsabilidade</p>
+            <p className="text-muted-foreground">
+              Cabe ao empregador cumprir e fazer cumprir; ao empregado, observar as orientações.
+            </p>
+          </div>
+          <div className="p-3 rounded-md bg-muted">
+            <p className="font-semibold text-primary">Penalidades</p>
+            <p className="text-muted-foreground">
+              Multas administrativas conforme infração e responsabilização civil/criminal em casos graves.
+            </p>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
