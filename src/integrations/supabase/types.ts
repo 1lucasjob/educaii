@@ -146,6 +146,7 @@ export type Database = {
           current_topic_unlocked: boolean
           days_30_renewals_count: number
           email: string
+          expert_unlocked_until: string | null
           id: string
           last_score: number
           plan: Database["public"]["Enums"]["access_plan"]
@@ -165,6 +166,7 @@ export type Database = {
           current_topic_unlocked?: boolean
           days_30_renewals_count?: number
           email: string
+          expert_unlocked_until?: string | null
           id: string
           last_score?: number
           plan?: Database["public"]["Enums"]["access_plan"]
@@ -184,6 +186,7 @@ export type Database = {
           current_topic_unlocked?: boolean
           days_30_renewals_count?: number
           email?: string
+          expert_unlocked_until?: string | null
           id?: string
           last_score?: number
           plan?: Database["public"]["Enums"]["access_plan"]
@@ -329,6 +332,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_unlock_expert: { Args: { _user_id: string }; Returns: undefined }
       admin_unlock_study: { Args: { _user_id: string }; Returns: undefined }
       get_leaderboard: {
         Args: never
