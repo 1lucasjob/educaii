@@ -38,6 +38,17 @@ export default function Simulado() {
     trial.isFree &&
     ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
 
+  // Plano-based gating for Hard mode (não-FREE):
+  // Liberado para days_90, premium, ou days_30 com 2+ renovações.
+  const planAllowsHard =
+    profile?.plan === "days_90" ||
+    profile?.plan === "premium" ||
+    (profile?.plan === "days_30" && (profile?.days_30_renewals_count ?? 0) >= 2);
+  const planBlockedHard =
+    !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
+
+  const blocked = freeBlocked || planBlockedHard;
+
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
@@ -46,10 +57,10 @@ export default function Simulado() {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
-  const [upgradeOpen, setUpgradeOpen] = useState(freeBlocked);
+  const [upgradeOpen, setUpgradeOpen] = useState(blocked);
 
   useEffect(() => {
-    if (freeBlocked) {
+    if (blocked) {
       setUpgradeOpen(true);
       setLoading(false);
       return;
@@ -196,8 +207,14 @@ export default function Simulado() {
     }
   };
 
-  if (freeBlocked) {
+  if (blocked) {
     const isHard = difficulty === "hard";
+    const renewals = profile?.days_30_renewals_count ?? 0;
+    const description = freeBlocked
+      ? (isHard
+          ? "Seus 15 dias gratuitos de Simulado Difícil acabaram. Faça upgrade para continuar treinando com o nível avançado."
+          : "Seus 30 dias do plano FREE acabaram. Faça upgrade para continuar acessando os simulados.")
+      : `O Simulado Difícil exige plano 90 DAYS, PREMIUM ou plano 30 DAYS renovado pelo menos 2 vezes (você tem ${renewals} renovação${renewals === 1 ? "" : "ões"}). Faça upgrade ou continue renovando o 30 DAYS.`;
     return (
       <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) navigate("/app/estudar"); setUpgradeOpen(o); }}>
         <DialogContent>
@@ -206,11 +223,7 @@ export default function Simulado() {
               <Lock className="w-5 h-5 text-warning" />
               {isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
             </DialogTitle>
-            <DialogDescription>
-              {isHard
-                ? "Seus 15 dias gratuitos de Simulado Difícil acabaram. Faça upgrade para continuar treinando com o nível avançado."
-                : "Seus 30 dias do plano FREE acabaram. Faça upgrade para continuar acessando os simulados."}
-            </DialogDescription>
+            <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" onClick={() => navigate("/app/estudar")}>
