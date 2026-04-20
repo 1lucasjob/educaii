@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Trophy, TrendingUp, Target, Award, Clock } from "lucide-react";
+import { BarChart3, Trophy, TrendingUp, Target, Award, Clock, ShieldCheck, ShieldOff } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { AchievementsGrid } from "@/components/AchievementsGrid";
 import {
@@ -29,6 +29,7 @@ interface Attempt {
   score: number;
   created_at: string;
   time_spent_seconds: number;
+  counts_for_ranking: boolean;
 }
 
 const formatDuration = (s: number) => {
@@ -47,7 +48,7 @@ export default function Progresso() {
     if (!user) return;
     supabase
       .from("quiz_attempts")
-      .select("id,topic,difficulty,score,created_at,time_spent_seconds")
+      .select("id,topic,difficulty,score,created_at,time_spent_seconds,counts_for_ranking")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
       .then(({ data }) => setAttempts((data as Attempt[]) ?? []));
@@ -220,25 +221,46 @@ export default function Progresso() {
       <Card className="p-6">
         <h2 className="font-bold mb-4">Histórico</h2>
         <div className="space-y-2">
-          {reversed.map((a) => (
-            <div key={a.id} className="flex items-center justify-between p-3 rounded-md bg-muted">
-              <div className="min-w-0">
-                <p className="font-medium truncate">{a.topic}</p>
-                <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-                  <span>{new Date(a.created_at).toLocaleString("pt-BR")}</span>
-                  <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDuration(a.time_spent_seconds ?? 0)}</span>
-                </p>
+          {reversed.map((a) => {
+            const counts = a.counts_for_ranking !== false && (a.time_spent_seconds ?? 0) >= 120;
+            const reason =
+              (a.time_spent_seconds ?? 0) < 120
+                ? "Tempo abaixo de 2 min"
+                : a.counts_for_ranking === false
+                ? "Limite diário ou regra anti-burla"
+                : "";
+            return (
+              <div key={a.id} className="flex items-center justify-between p-3 rounded-md bg-muted">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{a.topic}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                    <span>{new Date(a.created_at).toLocaleString("pt-BR")}</span>
+                    <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDuration(a.time_spent_seconds ?? 0)}</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    title={counts ? "Conta no ranking" : reason}
+                    className={
+                      counts
+                        ? "gap-1 border-success/40 text-success bg-success/10"
+                        : "gap-1 border-muted-foreground/30 text-muted-foreground"
+                    }
+                  >
+                    {counts ? <ShieldCheck className="w-3 h-3" /> : <ShieldOff className="w-3 h-3" />}
+                    <span className="hidden sm:inline">{counts ? "Ranking" : "Sem ranking"}</span>
+                  </Badge>
+                  <Badge variant={a.difficulty === "hard" ? "default" : "outline"} className={a.difficulty === "hard" ? "gradient-primary text-primary-foreground border-0" : ""}>
+                    {a.difficulty === "hard" ? "Difícil" : "Fácil"}
+                  </Badge>
+                  <span className="font-bold flex items-center gap-1">
+                    <Trophy className="w-4 h-4 text-primary" /> {a.score}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={a.difficulty === "hard" ? "default" : "outline"} className={a.difficulty === "hard" ? "gradient-primary text-primary-foreground border-0" : ""}>
-                  {a.difficulty === "hard" ? "Difícil" : "Fácil"}
-                </Badge>
-                <span className="font-bold flex items-center gap-1">
-                  <Trophy className="w-4 h-4 text-primary" /> {a.score}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {attempts.length === 0 && <p className="text-center text-muted-foreground py-6">Nenhum simulado ainda.</p>}
         </div>
       </Card>
