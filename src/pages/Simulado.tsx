@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award } from "lucide-react";
+import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
 
@@ -219,7 +219,20 @@ export default function Simulado() {
                 <RotateCcw className="mr-2 w-4 h-4" /> Tentar novamente
               </Button>
             )}
+            {difficulty === "easy" && (
+              <Button
+                onClick={() => navigate(`/app/simulado?topic=${encodeURIComponent(topic)}&difficulty=hard`)}
+                className="gradient-primary text-primary-foreground shadow-glow"
+              >
+                <Zap className="mr-2 w-4 h-4" /> Encarar Simulado Difícil
+              </Button>
+            )}
           </div>
+          {difficulty === "easy" && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Pronto para o desafio? O simulado difícil libera novo tema com 80+ pts.
+            </p>
+          )}
         </Card>
 
         <Card className="p-6">
