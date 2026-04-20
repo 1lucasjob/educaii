@@ -112,7 +112,7 @@ function AppSidebar() {
 
 export default function AppLayout() {
   const { user, profile, isAdmin, loading, signOut } = useAuth();
-  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode();
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled, viewAsRow, setViewAsId } = useDemoMode();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando…</div>;
   if (!user) return <Navigate to="/login" replace />;
 
@@ -146,6 +146,19 @@ export default function AppLayout() {
               </Button>
             </div>
           </header>
+          {isAdmin && viewAsRow && (
+            <div className="bg-primary/15 border-b border-primary/30 px-4 py-2 flex items-center justify-between gap-3 text-sm">
+              <div className="flex items-center gap-2 min-w-0">
+                <FlaskConical className="w-4 h-4 text-primary shrink-0" />
+                <span className="truncate">
+                  Vendo o app como <strong>{viewAsRow.display_name}</strong> (aluno fictício)
+                </span>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => setViewAsId(null)} className="h-7 text-xs">
+                Sair
+              </Button>
+            </div>
+          )}
           <main className="flex-1 p-4 md:p-8 animate-fade-in">
             <Outlet />
           </main>

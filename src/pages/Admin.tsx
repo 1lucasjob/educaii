@@ -9,9 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
+import { useNavigate } from "react-router-dom";
 
 interface Invite {
   id: string;
@@ -24,7 +25,8 @@ interface Invite {
 
 export default function Admin() {
   const { toast } = useToast();
-  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode();
+  const navigate = useNavigate();
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled, fakeLeaderboard, viewAsId, setViewAsId } = useDemoMode();
   const [previewTheme, setPreviewTheme] = useState<ThemeName>(getStoredTheme());
   const [slots, setSlots] = useState(0);
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -126,6 +128,49 @@ export default function Admin() {
             A troca aplica o tema imediatamente em todo o app (até você sair ou escolher outro em Configurações).
           </p>
         </div>
+
+        {demoEnabled && (
+          <div className="mt-6 pt-5 border-t border-border">
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <Eye className="w-4 h-4 text-primary" /> Ver o app como aluno
+              </p>
+              {viewAsId && (
+                <Button size="sm" variant="ghost" onClick={() => setViewAsId(null)} className="h-7 gap-1 text-xs">
+                  <EyeOff className="w-3 h-3" /> Sair da simulação
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Escolha um aluno fictício para abrir <strong>Meu Progresso</strong> com os dados dele (histórico, gráficos e conquistas).
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+              {fakeLeaderboard.map((s) => {
+                const active = viewAsId === s.user_id;
+                return (
+                  <button
+                    key={s.user_id}
+                    onClick={() => {
+                      setViewAsId(s.user_id);
+                      navigate("/app/progresso");
+                    }}
+                    className={`text-left p-3 rounded-md border transition-colors ${
+                      active ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium truncate">{s.display_name}</p>
+                      {active && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Atual</Badge>}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {s.attempts} simulados · {s.hard_passed} aprovações · média {s.avg_score}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card className="p-8 shadow-glow text-center">

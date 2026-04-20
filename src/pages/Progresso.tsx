@@ -43,7 +43,7 @@ const formatDuration = (s: number) => {
 
 export default function Progresso() {
   const { user } = useAuth();
-  const { enabled: demoEnabled, fakeAttempts } = useDemoMode();
+  const { enabled: demoEnabled, fakeAttempts, viewAsRow } = useDemoMode();
   const [realAttempts, setRealAttempts] = useState<Attempt[]>([]);
 
   useEffect(() => {
@@ -56,15 +56,27 @@ export default function Progresso() {
       .then(({ data }) => setRealAttempts((data as Attempt[]) ?? []));
   }, [user]);
 
-  const attempts = useMemo<Attempt[]>(
-    () =>
-      demoEnabled
-        ? [...realAttempts, ...(fakeAttempts as Attempt[])].sort(
-            (a, b) => +new Date(a.created_at) - +new Date(b.created_at),
-          )
-        : realAttempts,
-    [demoEnabled, realAttempts, fakeAttempts],
-  );
+  const attempts = useMemo<Attempt[]>(() => {
+    if (demoEnabled && viewAsRow) {
+      return viewAsRow.attempts_data
+        .map((a, i) => ({
+          id: `view-${i}`,
+          topic: a.topic,
+          difficulty: a.difficulty,
+          score: a.score,
+          created_at: a.created_at,
+          time_spent_seconds: a.time_spent_seconds ?? 0,
+          counts_for_ranking: (a.time_spent_seconds ?? 0) >= 120,
+        }))
+        .sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+    }
+    if (demoEnabled) {
+      return [...realAttempts, ...(fakeAttempts as Attempt[])].sort(
+        (a, b) => +new Date(a.created_at) - +new Date(b.created_at),
+      );
+    }
+    return realAttempts;
+  }, [demoEnabled, realAttempts, fakeAttempts, viewAsRow]);
 
   const total = attempts.length;
   const avg = total ? Math.round(attempts.reduce((s, a) => s + a.score, 0) / total) : 0;
@@ -126,12 +138,19 @@ export default function Progresso() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold flex items-center gap-2">
-        <BarChart3 className="text-primary" /> Meu Progresso
+        <BarChart3 className="text-primary" />
+        {viewAsRow ? `Progresso de ${viewAsRow.display_name}` : "Meu Progresso"}
       </h1>
       {demoEnabled && (
         <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-sm">
-          <FlaskConical className="w-4 h-4 text-primary" />
-          <span><strong>Modo de teste ativo</strong> — simulados fictícios incluídos para visualização.</span>
+          <FlaskConical className="w-4 h-4 text-primary shrink-0" />
+          {viewAsRow ? (
+            <span>
+              <strong>Vendo como aluno fictício:</strong> {viewAsRow.display_name} — todos os dados abaixo são deste aluno demo.
+            </span>
+          ) : (
+            <span><strong>Modo de teste ativo</strong> — simulados fictícios incluídos para visualização.</span>
+          )}
         </Card>
       )}
 

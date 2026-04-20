@@ -27,6 +27,9 @@ interface DemoCtx {
   setEnabled: (v: boolean) => void;
   fakeLeaderboard: DemoLeaderboardRow[];
   fakeAttempts: DemoAttempt[];
+  viewAsId: string | null;
+  setViewAsId: (id: string | null) => void;
+  viewAsRow: DemoLeaderboardRow | null;
 }
 
 const DemoContext = createContext<DemoCtx | undefined>(undefined);
@@ -113,6 +116,7 @@ function buildFakeAttempts(seed = 7): DemoAttempt[] {
 }
 
 const STORAGE_KEY = "admin_demo_mode";
+const VIEW_AS_KEY = "admin_demo_view_as";
 
 export function DemoModeProvider({ children }: { children: ReactNode }) {
   const [enabled, setEnabledState] = useState<boolean>(() => {
@@ -120,6 +124,13 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
       return sessionStorage.getItem(STORAGE_KEY) === "1";
     } catch {
       return false;
+    }
+  });
+  const [viewAsId, setViewAsIdState] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem(VIEW_AS_KEY) || null;
+    } catch {
+      return null;
     }
   });
 
@@ -130,18 +141,35 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     setEnabledState(v);
     try {
       sessionStorage.setItem(STORAGE_KEY, v ? "1" : "0");
+      if (!v) {
+        sessionStorage.removeItem(VIEW_AS_KEY);
+        setViewAsIdState(null);
+      }
     } catch {
       /* ignore */
     }
   };
 
-  // Auto-disable if user closes tab — sessionStorage handles it
+  const setViewAsId = (id: string | null) => {
+    setViewAsIdState(id);
+    try {
+      if (id) sessionStorage.setItem(VIEW_AS_KEY, id);
+      else sessionStorage.removeItem(VIEW_AS_KEY);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const viewAsRow = viewAsId ? fakeLeaderboard.find((r) => r.user_id === viewAsId) ?? null : null;
+
   useEffect(() => {
     return () => {};
   }, []);
 
   return (
-    <DemoContext.Provider value={{ enabled, setEnabled, fakeLeaderboard, fakeAttempts }}>
+    <DemoContext.Provider
+      value={{ enabled, setEnabled, fakeLeaderboard, fakeAttempts, viewAsId, setViewAsId, viewAsRow }}
+    >
       {children}
     </DemoContext.Provider>
   );
