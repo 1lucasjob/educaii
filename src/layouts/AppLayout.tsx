@@ -59,12 +59,14 @@ function AppSidebar() {
             <HardHat className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
           </div>
           {!collapsed && (
-            <div className="min-w-0">
-              <p className="font-bold leading-tight">EDUCA.I</p>
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs text-muted-foreground">Academy</p>
-                {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} />}
-              </div>
+            <div className="min-w-0 flex flex-col">
+              <p className="font-bold leading-tight text-base">EDUCA.I</p>
+              <p className="text-xs text-muted-foreground leading-tight">Academy</p>
+              {profile && (
+                <div className="mt-1">
+                  <PlanBadge plan={profile.plan} isAdmin={isAdmin} />
+                </div>
+              )}
             </div>
           )}
         </div>
