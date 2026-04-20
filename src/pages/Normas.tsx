@@ -20,6 +20,8 @@ const NRS = [
   { id: "NR-13", title: "Caldeiras, Vasos de Pressão, Tubulações e Tanques Metálicos de Armazenamento", body: "Estabelece classes (A/B/C), inspeções periódicas (interna/externa), prontuário, PMTA (Pressão Máxima de Trabalho Admissível) e operadores habilitados." },
   { id: "NR-14", title: "Fornos", body: "Define requisitos construtivos, operacionais e de segurança para fornos industriais, incluindo proteção contra calor radiante e gases." },
   { id: "NR-15", title: "Atividades e Operações Insalubres", body: "Define agentes insalubres (físicos, químicos, biológicos), limites de tolerância e adicionais de insalubridade (10%, 20% ou 40% sobre o mínimo)." },
+  { id: "NR-20", title: "Segurança e Saúde no Trabalho com Inflamáveis e Combustíveis", body: "Estabelece requisitos mínimos para a gestão da segurança e saúde no trabalho contra os fatores de risco de acidentes provenientes das atividades de extração, produção, armazenamento, transferência, manuseio e manipulação de inflamáveis e líquidos combustíveis. Classifica instalações (Classe I, II ou III), exige Plano de Prevenção e Proteção contra Incêndios, análise de riscos, projeto da instalação e capacitação específica (básico, intermediário, avançado I e II e especial) com cargas horárias e periodicidades definidas." },
+  { id: "NR-35", title: "Trabalho em Altura", body: "Aplica-se a toda atividade executada acima de 2,00 m do nível inferior onde haja risco de queda. Exige análise de risco (AR) e Permissão de Trabalho (PT) quando aplicável, sistemas de proteção contra quedas (coletivos preferencialmente, e individuais — cinturão tipo paraquedista com talabarte e trava-quedas), ancoragem confiável, capacitação inicial de 8 horas e reciclagem bienal (ou em caso de mudança de função, retorno após afastamento >90 dias, mudança nos procedimentos ou acidente grave). Inclui requisitos para resgate, planejamento, organização e execução do trabalho em altura." },
 ];
 
 export default function Normas() {
@@ -30,7 +32,7 @@ export default function Normas() {
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2"><BookOpen className="text-primary" /> Normas Principais</h1>
-        <p className="text-muted-foreground mt-1">Biblioteca rápida das NR-01 a NR-15.</p>
+        <p className="text-muted-foreground mt-1">Biblioteca rápida das NR-01 a NR-15, NR-20 e NR-35.</p>
       </div>
 
       <div className="relative">
