@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
 import { buildRenewalMailto, daysUntil, planLabel } from "@/lib/plans";
+import PlanBadge from "@/components/PlanBadge";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
