@@ -10,7 +10,13 @@ const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crow
   },
   days_30: {
     label: "30 DAYS",
-    // Silver/prateado
+    // Cobre
+    cls: "bg-gradient-to-r from-orange-300 to-amber-600 text-amber-950 border-amber-700 dark:from-orange-400 dark:to-amber-700 dark:text-amber-50 dark:border-amber-700",
+    Icon: Clock,
+  },
+  days_60: {
+    label: "60 DAYS",
+    // Prateado
     cls: "bg-gradient-to-r from-zinc-200 to-zinc-400 text-zinc-800 border-zinc-400 dark:from-zinc-300 dark:to-zinc-500 dark:text-zinc-900 dark:border-zinc-400",
     Icon: Clock,
   },

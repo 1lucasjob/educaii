@@ -24,7 +24,7 @@ interface PlanSetting {
   locked: boolean;
 }
 
-const PLAN_ORDER: AccessPlan[] = ["days_30", "days_90", "premium"];
+const PLAN_ORDER: AccessPlan[] = ["days_30", "days_60", "days_90", "premium"];
 
 export default function Planos() {
   const { profile, isAdmin } = useAuth();
@@ -130,7 +130,7 @@ export default function Planos() {
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {plans.map((p) => {
             const isCurrent = !isAdmin && profile?.plan === p.plan;
             const mailto = profile ? buildPurchaseMailto({ userEmail: profile.email, plan: p.plan }) : "#";

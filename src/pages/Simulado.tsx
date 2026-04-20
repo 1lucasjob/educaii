@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
-import { computeFreeTrial } from "@/lib/freeTrial";
+import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
@@ -34,16 +34,18 @@ export default function Simulado() {
   const lockNavigation = difficulty === "hard";
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
+  const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
   const freeBlocked =
     trial.isFree &&
     ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
 
   // Plano-based gating for Hard mode (não-FREE):
-  // Liberado para days_90, premium, ou days_30 com 2+ renovações.
+  // Liberado para days_90, premium, days_30 com 2+ renovações, ou days_60 dentro da janela de 10 dias.
   const planAllowsHard =
     profile?.plan === "days_90" ||
     profile?.plan === "premium" ||
-    (profile?.plan === "days_30" && (profile?.days_30_renewals_count ?? 0) >= 2);
+    (profile?.plan === "days_30" && (profile?.days_30_renewals_count ?? 0) >= 2) ||
+    (profile?.plan === "days_60" && planWindow.hardActive);
   const planBlockedHard =
     !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
 
