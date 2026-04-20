@@ -62,6 +62,7 @@ export default function Cadastro() {
           reserve_code_hash: reserveHash,
           secret_question: secretQuestion,
           secret_answer_hash: answerHash,
+          invite_token: token,
         },
       },
     });
