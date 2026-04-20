@@ -211,7 +211,7 @@ export default function Normas() {
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma NR encontrada.</p>
           ) : (
-            filtered.map((n) => renderChip(n.id, MAIN_NRS.includes(n.id)))
+            filtered.map((n) => renderChip(n.id, true))
           )}
         </div>
       ) : (
