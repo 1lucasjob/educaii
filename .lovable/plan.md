@@ -1,64 +1,65 @@
 
 
-## Plano: Simulado Difícil baseado no texto + novo Simulado Expert
+## Plano: Reorganizar Normas em layout horizontal compacto + ícones temáticos
 
-### 1. Simulado Difícil — usar APENAS o texto enviado
+### Objetivo
+- Remover a barra lateral com rolagem.
+- Destacar 10 NRs principais (NR-01, 05, 06, 07, 09, 10, 12, 15, 17, 35) em uma faixa horizontal de acesso direto.
+- Demais NRs ficam acessíveis num segundo nível, sem competir visualmente.
+- Cada NR aberta exibe um ícone temático ao lado do título.
 
-Hoje o `generate-quiz` recebe só o `topic` (que no fluxo atual é o **título** quando vem do botão). Precisa também receber o **corpo do texto** para que o difícil seja 100% ancorado nele.
+### 1. Nova estrutura visual (`src/pages/Normas.tsx`)
 
-- **`src/pages/Estudar.tsx`**: ao salvar a sessão, gravar `topic` no formato `"<título>\n\n<corpo>"` (já é feito) e ao chamar `startQuiz`, passar via state/URL o conteúdo. Vamos persistir o último `topic_body` no `localStorage` por `activeTopic` (chave `study_body:<title>`) para o Simulado recuperar sem inflar a URL.
-- **`src/pages/Simulado.tsx`**: ao montar, ler `localStorage.getItem("study_body:<topic>")` e passar como `sourceText` no `invoke("generate-quiz", { body: { topic, difficulty, sourceText } })`.
-- **`supabase/functions/generate-quiz/index.ts`**: aceitar `sourceText` opcional. Quando `difficulty === "hard"` ou `"expert"` E `sourceText` presente, adicionar regra obrigatória no prompt: *"Use EXCLUSIVAMENTE o texto base abaixo como fonte. Não invente itens de NR fora dele. Toda questão deve ser respondível a partir do texto."* e injetar o texto delimitado por `<<TEXTO_BASE>> ... <</TEXTO_BASE>>`.
+**Topo — busca** (mantida).
 
-### 2. Novo nível: Simulado Expert (acadêmico)
+**Faixa horizontal de NRs principais** (substitui a `TabsList` vertical):
+- Grid responsivo: `grid-cols-5` no mobile (2 linhas de 5) e `md:grid-cols-10` no desktop (1 linha) — sem scroll.
+- Cada item é um botão-cartão pequeno com:
+  - Ícone temático (topo)
+  - Código da NR (ex.: "NR-35")
+  - Sem título completo aqui (mantém compacto)
+- Estado ativo: gradiente primário + texto branco.
 
-Terceiro nível além de easy/hard. Exige **5000+ caracteres** no texto descritivo e gating por plano.
+**Demais NRs** (não-principais):
+- Linha abaixo, em `flex flex-wrap gap-2` com botões pequenos tipo "chip" mostrando só o código (ex.: `NR-08`, `NR-11`...). Inclui as revogadas no fim com estilo esmaecido (`opacity-60`).
+- Sem necessidade de scroll na maioria das telas; quebra naturalmente em linhas.
 
-#### Edge function
-- Adicionar `"expert"` aos valores válidos em `generate-quiz`.
-- Modelo: `google/gemini-3.1-pro-preview` com `reasoning: { effort: "high" }`.
-- Prompt: estilo prova acadêmica/pós-graduação — questões longas com estudo de caso, exigem cálculos quando aplicável, múltiplas NRs combinadas, distratores quase idênticos. Mesma quantidade (5–10) e total 100 pts.
-- Igualmente vinculado ao `sourceText`.
+**Painel de conteúdo** (abaixo das duas faixas):
+- Card único que renderiza a NR selecionada (estado controlado via `useState` em vez de `Tabs` do Radix, para simplificar o layout horizontal duplo).
+- Mostra: ícone grande temático + `NR-XX — Título` + corpo + os 3 mini-cards (Aplicação / Responsabilidade / Penalidades) já existentes.
 
-#### Frontend Estudar (`src/pages/Estudar.tsx`)
-- Nova constante `MIN_CHARS_EXPERT = 5000`. Adicionar terceiro card de simulado quando `topicLength >= 5000` E o usuário tiver acesso (ver gating abaixo).
-- Texto de ajuda do textarea atualizado: "500+ libera Fácil; 1501+ libera Difícil; 5000+ libera Expert (Premium / 90 DAYS)".
-- Layout dos botões passa a `sm:grid-cols-3` quando expert disponível.
+### 2. Ícones temáticos por NR
 
-#### Frontend Simulado (`src/pages/Simulado.tsx`)
-- Tipo `difficulty` aceita `"expert"`.
-- `TIME_LIMIT` para expert: 20 min. `lockNavigation = true` (igual hard).
-- Gating expert:
-  - Liberado para: `plan === "premium"`, `plan === "days_90"`, ou se houver **liberação ADM temporária ativa** (`expert_unlocked_until > now()`).
-  - Bloqueado: dialog igual ao do hard, com mensagem específica.
-- Cor/badge: nova badge "EXPERT" gradiente roxo/rosa.
+Mapa `NR_ICONS: Record<string, LucideIcon>` usando `lucide-react`:
 
-### 3. Liberação ADM temporária (1 dia) por aluno
+| NR | Ícone | Razão |
+|---|---|---|
+| NR-01 | `BookOpen` | Disposições gerais / GRO |
+| NR-05 | `Users` | CIPA (comissão) |
+| NR-06 | `HardHat` | EPI |
+| NR-07 | `Stethoscope` | PCMSO (saúde) |
+| NR-09 | `Activity` | Agentes físicos/químicos |
+| NR-10 | `Zap` | Eletricidade |
+| NR-12 | `Cog` | Máquinas e equipamentos |
+| NR-15 | `FlaskConical` | Insalubridade |
+| NR-17 | `Armchair` | Ergonomia |
+| NR-35 | `MoveUp` | Trabalho em altura |
+| Outras | `FileText` (default) | — |
 
-#### Banco (migração)
-- Adicionar coluna `expert_unlocked_until timestamptz NULL` em `public.profiles`.
-- Nova RPC `admin_unlock_expert(_user_id uuid)`:
-  - SECURITY DEFINER, valida `has_role(auth.uid(), 'admin')`.
-  - `UPDATE profiles SET expert_unlocked_until = now() + interval '1 day' WHERE id = _user_id`.
-  - Insere registro em `study_unlock_logs` com `action = 'expert_unlock_24h'`.
+Uso: ícone aparece (a) no botão da faixa principal (tamanho ~20px) e (b) ao lado do título no painel aberto (tamanho ~28px, cor primária).
 
-#### AuthContext
-- `src/contexts/AuthContext.tsx`: incluir `expert_unlocked_until` no `Profile` e no `select`.
+### 3. Constantes
 
-#### Admin (`src/pages/Admin.tsx`)
-- Nova coluna na tabela de alunos: botão **"Liberar Expert 24h"** chamando `supabase.rpc("admin_unlock_expert", { _user_id })`.
-- Mostrar status quando `expert_unlocked_until > now()` ("Expert ativo até HH:mm de DD/MM").
-- Atualizar `interface StudentRow` e o `select` em `load()`.
-
-#### Helper de gating
-- `src/lib/freeTrial.ts`: adicionar função `expertActive({ plan, expertUnlockedUntil })` retornando boolean (`plan in ['premium','days_90']` OR `expertUnlockedUntil > now`).
+- `MAIN_NRS = ["NR-01","NR-05","NR-06","NR-07","NR-09","NR-10","NR-12","NR-15","NR-17","NR-35"]`
+- A lista existente `NR_ORDER` é reaproveitada para gerar o conjunto "outras" (filtrando as principais).
+- Estado: `const [active, setActive] = useState<string>("NR-01")`.
+- Filtro de busca: quando há texto, mostra todas as correspondências em uma única faixa horizontal e oculta a divisão principais/outras.
 
 ### 4. Sem mudanças
-- Banco: nenhuma alteração além da nova coluna + RPC.
-- Ranking, Progresso, Chat: sem alterações.
-- Plano `days_60`: NÃO inclui expert.
+- `NRS_RAW` permanece igual (mesmo conteúdo).
+- Nenhuma outra página é afetada.
+- Sem mudanças em backend/banco.
 
 ### Arquivos
-- **Nova migração**: coluna `expert_unlocked_until` + RPC `admin_unlock_expert`.
-- **Editar**: `supabase/functions/generate-quiz/index.ts`, `src/pages/Estudar.tsx`, `src/pages/Simulado.tsx`, `src/pages/Admin.tsx`, `src/contexts/AuthContext.tsx`, `src/lib/freeTrial.ts`.
+- **Editar**: `src/pages/Normas.tsx` (substituir `Tabs` por estado próprio + grid horizontal + mapa de ícones).
 
