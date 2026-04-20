@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -46,20 +46,23 @@ export default function Admin() {
   const [slots, setSlots] = useState(0);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
+  const [unlockLogs, setUnlockLogs] = useState<Array<{ id: string; created_at: string; admin_email: string | null; student_email: string; previous_topic: string | null }>>([]);
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [plan, setPlan] = useState<AccessPlan>("free");
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
-    const [{ data: s }, { data: i }, { data: st }] = await Promise.all([
+    const [{ data: s }, { data: i }, { data: st }, { data: logs }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked").order("access_expires_at", { ascending: true }),
+      supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
     ]);
     setSlots(s?.count ?? 0);
     setInvites((i as Invite[]) ?? []);
     setStudents((st as StudentRow[]) ?? []);
+    setUnlockLogs((logs as any) ?? []);
   };
 
   useEffect(() => { load(); }, []);
@@ -92,15 +95,12 @@ export default function Admin() {
 
   const unlockStudy = async (userId: string, email: string) => {
     if (!confirm(`Liberar próximo tópico de estudo para ${email}? O aluno poderá escolher um novo tema mesmo sem ter atingido 80 pontos.`)) return;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ current_topic_unlocked: true })
-      .eq("id", userId);
+    const { error } = await supabase.rpc("admin_unlock_study", { _user_id: userId });
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Estudo liberado!", description: `${email} pode escolher novo tópico.` });
+    toast({ title: "Estudo liberado!", description: `${email} pode escolher novo tópico. Ação registrada no histórico.` });
     load();
   };
 
@@ -337,6 +337,37 @@ export default function Admin() {
             })}
             {students.length === 0 && (
               <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="font-bold mb-4 flex items-center gap-2">
+          <History className="w-4 h-4 text-primary" /> Histórico de liberações de estudo ({unlockLogs.length})
+        </h2>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data</TableHead>
+              <TableHead>Admin</TableHead>
+              <TableHead>Aluno</TableHead>
+              <TableHead>Tópico anterior</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {unlockLogs.map((l) => (
+              <TableRow key={l.id}>
+                <TableCell className="text-xs">
+                  {new Date(l.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                </TableCell>
+                <TableCell className="text-xs truncate max-w-[160px]">{l.admin_email ?? "—"}</TableCell>
+                <TableCell className="text-xs truncate max-w-[180px]">{l.student_email}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{l.previous_topic ?? "—"}</TableCell>
+              </TableRow>
+            ))}
+            {unlockLogs.length === 0 && (
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Nenhuma liberação manual ainda.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>

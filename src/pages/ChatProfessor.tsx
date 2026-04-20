@@ -4,12 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { GraduationCap, Send, Lock, Mail, Trash2, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { GraduationCap, Send, Lock, Mail, Trash2, Loader2, Bookmark, BookmarkCheck, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { buildRenewalMailto, planLabel } from "@/lib/plans";
 import ReactMarkdown from "react-markdown";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = {
+  id?: string;
+  role: "user" | "assistant";
+  content: string;
+  pinned?: boolean;
+  expires_at?: string;
+};
+
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 export default function ChatProfessor() {
   const { profile, isAdmin } = useAuth();
@@ -28,9 +37,17 @@ export default function ChatProfessor() {
       return;
     }
     (async () => {
+      // Cleanup expired non-pinned messages on read
+      await supabase
+        .from("chat_messages")
+        .delete()
+        .eq("user_id", profile.id)
+        .eq("pinned", false)
+        .lt("expires_at", new Date().toISOString());
+
       const { data } = await supabase
         .from("chat_messages")
-        .select("role,content")
+        .select("id,role,content,pinned,expires_at")
         .eq("user_id", profile.id)
         .order("created_at", { ascending: true })
         .limit(100);
@@ -58,12 +75,12 @@ export default function ChatProfessor() {
           <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
             <Lock className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Chat com Professor bloqueado</h1>
+          <h1 className="text-2xl font-bold mb-2">Chat com Professor Saraiva bloqueado</h1>
           <p className="text-muted-foreground mb-1">
             Seu plano atual é <strong className="text-foreground">{planName}</strong>.
           </p>
           <p className="text-sm text-muted-foreground mb-6">
-            O Chat com Professor está disponível para alunos do plano <strong>90 DAYS</strong>,{" "}
+            O Chat com Professor Saraiva está disponível para alunos do plano <strong>90 DAYS</strong>,{" "}
             <strong>PREMIUM</strong> ou <strong>30 DAYS</strong> a partir da primeira renovação.
           </p>
           <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-glow">
@@ -103,7 +120,7 @@ export default function ChatProfessor() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token ?? ""}`,
           },
-          body: JSON.stringify({ messages: newHistory }),
+          body: JSON.stringify({ messages: newHistory.map(({ role, content }) => ({ role, content })) }),
         }
       );
 
@@ -155,11 +172,24 @@ export default function ChatProfessor() {
       }
 
       if (assistantText) {
-        await supabase.from("chat_messages").insert({
-          user_id: profile.id,
-          role: "assistant",
-          content: assistantText,
-        });
+        const { data: inserted } = await supabase
+          .from("chat_messages")
+          .insert({
+            user_id: profile.id,
+            role: "assistant",
+            content: assistantText,
+          })
+          .select("id,expires_at")
+          .single();
+        if (inserted) {
+          setMessages((prev) =>
+            prev.map((m, idx) =>
+              idx === prev.length - 1
+                ? { ...m, id: inserted.id, expires_at: inserted.expires_at }
+                : m
+            )
+          );
+        }
       }
     } catch (e) {
       console.error(e);
@@ -169,18 +199,35 @@ export default function ChatProfessor() {
     }
   };
 
+  const pinMessage = async (msg: Msg, idx: number) => {
+    if (!msg.id || !profile) return;
+    const newExpiry = new Date(Date.now() + THREE_DAYS_MS).toISOString();
+    const { error } = await supabase
+      .from("chat_messages")
+      .update({ pinned: true, expires_at: newExpiry })
+      .eq("id", msg.id);
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+      return;
+    }
+    setMessages((prev) =>
+      prev.map((m, i) => (i === idx ? { ...m, pinned: true, expires_at: newExpiry } : m))
+    );
+    toast({ title: "Salva por +3 dias!", description: "A mensagem ficará disponível por mais 3 dias." });
+  };
+
   const clearChat = async () => {
     if (!profile) return;
-    if (!confirm("Limpar todo o histórico do chat?")) return;
+    if (!confirm("Limpar todo o histórico do chat (incluindo mensagens salvas)?")) return;
     await supabase.from("chat_messages").delete().eq("user_id", profile.id);
     setMessages([]);
   };
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-10rem)]">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <GraduationCap className="text-primary" /> Chat com Professor
+          <GraduationCap className="text-primary" /> Chat com Professor Saraiva
         </h1>
         {messages.length > 0 && (
           <Button size="sm" variant="ghost" onClick={clearChat}>
@@ -188,6 +235,14 @@ export default function ChatProfessor() {
           </Button>
         )}
       </div>
+
+      <Alert className="mb-3 border-amber-500/40 bg-amber-500/10">
+        <Clock className="h-4 w-4 text-amber-500" />
+        <AlertDescription className="text-xs">
+          As conversas são apagadas automaticamente após <strong>3 dias</strong>. Use{" "}
+          <strong>"Salvar +3 dias"</strong> nas respostas que quiser manter por mais tempo.
+        </AlertDescription>
+      </Alert>
 
       <Card className="flex-1 flex flex-col overflow-hidden">
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -198,7 +253,7 @@ export default function ChatProfessor() {
           ) : messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">
               <GraduationCap className="w-12 h-12 mx-auto mb-3 text-primary/60" />
-              <p className="font-medium">Olá, aluno!</p>
+              <p className="font-medium">Olá, aluno! Sou o Professor Saraiva.</p>
               <p className="text-sm">
                 Pergunte qualquer dúvida sobre as Normas Regulamentadoras, segurança do trabalho,
                 engenharia ou conceitos que você está estudando.
@@ -207,20 +262,40 @@ export default function ChatProfessor() {
           ) : (
             messages.map((m, i) => (
               <div
-                key={i}
+                key={m.id ?? i}
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[85%] rounded-lg px-4 py-2.5 ${
                     m.role === "user"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
+                      : `bg-muted text-foreground ${m.pinned ? "border-2 border-amber-500/60" : ""}`
                   }`}
                 >
                   {m.role === "assistant" ? (
-                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2">
-                      <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
-                    </div>
+                    <>
+                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2">
+                        <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
+                      </div>
+                      {m.id && m.content && (
+                        <div className="flex justify-end mt-2 pt-2 border-t border-border/50">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs gap-1"
+                            onClick={() => pinMessage(m, i)}
+                            disabled={m.pinned && !!m.expires_at && new Date(m.expires_at).getTime() - Date.now() > THREE_DAYS_MS - 60_000}
+                          >
+                            {m.pinned ? (
+                              <BookmarkCheck className="w-3.5 h-3.5 text-amber-500" />
+                            ) : (
+                              <Bookmark className="w-3.5 h-3.5" />
+                            )}
+                            {m.pinned ? "Salva (+3 dias)" : "Salvar +3 dias"}
+                          </Button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className="whitespace-pre-wrap text-sm">{m.content}</p>
                   )}
@@ -247,7 +322,7 @@ export default function ChatProfessor() {
                 send();
               }
             }}
-            placeholder="Pergunte ao professor… (Enter envia, Shift+Enter quebra linha)"
+            placeholder="Pergunte ao Professor Saraiva… (Enter envia, Shift+Enter quebra linha)"
             rows={2}
             className="resize-none"
             disabled={isStreaming}
