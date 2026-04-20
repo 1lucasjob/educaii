@@ -30,11 +30,11 @@ export function buildRenewalMailto(opts: {
   plan: AccessPlan;
   expiresAt: string | null;
 }): string {
-  const subject = `Renovação de acesso EducA.I. — ${planLabel(opts.plan)}`;
+  const subject = `Renovação de acesso EDUCA.I — ${planLabel(opts.plan)}`;
   const body = [
     `Olá,`,
     ``,
-    `Gostaria de renovar meu acesso ao EducA.I.`,
+    `Gostaria de renovar meu acesso ao EDUCA.I`,
     ``,
     `Email da conta: ${opts.userEmail}`,
     `Plano atual: ${planLabel(opts.plan)}`,
@@ -49,11 +49,11 @@ export function buildPurchaseMailto(opts: {
   userEmail: string;
   plan: AccessPlan;
 }): string {
-  const subject = `Quero contratar o plano ${planLabel(opts.plan)} — EducA.I.`;
+  const subject = `Quero contratar o plano ${planLabel(opts.plan)} — EDUCA.I`;
   const body = [
     `Olá,`,
     ``,
-    `Tenho interesse em contratar o plano ${planLabel(opts.plan)} do EducA.I.`,
+    `Tenho interesse em contratar o plano ${planLabel(opts.plan)} do EDUCA.I`,
     ``,
     `Email da conta: ${opts.userEmail}`,
     `Plano desejado: ${planLabel(opts.plan)}`,
