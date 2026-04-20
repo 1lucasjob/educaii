@@ -1,59 +1,49 @@
 
 
-## Plano: Auditoria de liberações + Professor Saraiva com retenção de 3 dias
+## Plano: Badge ADMIN + visibilidade de planos para o admin
 
-### 1. Histórico de liberações manuais (auditoria)
+### 1. Novo badge ADMIN (dourado com bordas roxas)
 
-**Nova tabela `study_unlock_logs`:**
-- `id`, `created_at`, `admin_id` (uuid), `student_id` (uuid), `student_email` (text), `previous_topic` (text), `action` (text: 'unlock' | 'save')
-- RLS: apenas admin pode SELECT/INSERT.
+Atualizar `src/components/PlanBadge.tsx` para aceitar um modo especial `"admin"`:
+- Fundo: gradiente dourado (`from-amber-300 to-amber-500`)
+- Borda: roxa grossa (`border-2 border-purple-600`)
+- Texto: roxo escuro (`text-purple-900`)
+- Ícone: `Crown` (lucide)
+- Label: **ADMIN**
 
-**Função RPC `admin_unlock_study(_user_id uuid)`** (SECURITY DEFINER):
-- Verifica `has_role(auth.uid(), 'admin')`.
-- Atualiza `profiles.current_topic_unlocked = true` para qualquer aluno (já é possível via RLS, mas centralizamos para logar).
-- Insere registro em `study_unlock_logs` com `admin_id = auth.uid()`.
+Como `AccessPlan` é um tipo fechado (`free | days_30 | days_90 | premium`), vou estender o componente com uma prop separada `isAdmin?: boolean` que, quando `true`, ignora o `plan` e renderiza o badge ADMIN. Isso evita mexer no enum do banco.
 
-**UI no Admin (`src/pages/Admin.tsx`):**
-- O botão "Liberar estudo" já existe na linha de cada aluno — trocar para chamar a RPC `admin_unlock_study` (em vez do update direto). Isso garante log automático para qualquer aluno.
-- Nova aba/seção "Histórico de liberações" com tabela: Data | Admin | Aluno (email) | Tópico anterior.
+### 2. Admin vitalício (sem renovação)
 
-### 2. Chat com Professor Saraiva + retenção de 3 dias
+**Lógica visual** (frontend apenas — não precisa migration):
+- Em `src/lib/plans.ts`, ajustar `shouldShowRenewal(plan, expiresAt, isAdmin?)` para retornar `false` quando `isAdmin === true`.
+- Em `src/components/RenewalBanner.tsx` e `src/pages/Configuracoes.tsx`: passar `isAdmin` do `useAuth()` e ocultar banner/CTA de renovação para admin.
+- Em `src/pages/Configuracoes.tsx`: no card do plano, se `isAdmin`, mostrar "Acesso vitalício de administrador" em vez de data de expiração.
 
-**Renomear persona** (`supabase/functions/chat-professor/index.ts`):
-- System prompt passa a apresentar-se como **"Professor Saraiva"**, professor universitário experiente em NRs e engenharia. Mantém o estilo atual.
+### 3. Badges visíveis para o admin em cada cadastro
 
-**Retenção de 3 dias:**
-- Adicionar coluna `pinned` (boolean, default false) em `chat_messages`.
-- Job de limpeza: como não temos cron, fazemos limpeza **on-read** dentro do `ChatProfessor.tsx` ao carregar histórico:
-  ```ts
-  await supabase.from('chat_messages')
-    .delete()
-    .eq('user_id', profile.id)
-    .eq('pinned', false)
-    .lt('created_at', new Date(Date.now() - 3*24*60*60*1000).toISOString());
-  ```
-- Carregar apenas mensagens não expiradas + as fixadas (`pinned = true`).
+Em `src/pages/Admin.tsx`, na tabela "Alunos cadastrados":
+- Substituir o `<Badge variant="outline">{planLabel(s.plan)}</Badge>` atual pelo `<PlanBadge plan={s.plan} size="sm" />` (badges coloridos reais: branco/prata/dourado/roxo).
+- Para cada linha, verificar se o aluno é admin (via consulta extra à `user_roles`) e mostrar o badge ADMIN no lugar.
 
-**UI do chat (`src/pages/ChatProfessor.tsx`):**
-- Trocar título para "Chat com Professor Saraiva" (header + saudação).
-- Aviso visível no topo do card (Alert amarelo): *"As mensagens são apagadas automaticamente após 3 dias. Use 'Salvar por mais 3 dias' nas respostas que quiser manter."*
-- Botão **"Salvar por +3 dias"** (ícone Bookmark) abaixo de cada mensagem do assistente:
-  - Atualiza `pinned = true` e estende a "vida" daquela mensagem por mais 3 dias (na prática: setar `created_at = now()` ou adicionar coluna `expires_at`. Vou usar **`expires_at timestamptz`** para clareza — default `now() + interval '3 days'`; ao salvar, `expires_at = now() + interval '3 days'` novamente; pinned vira indicador visual).
-  - Visualmente o card da mensagem ganha borda dourada + ícone de bookmark preenchido.
+**Detecção de admin na lista:** carregar uma vez `select user_id from user_roles where role = 'admin'` e cruzar com a lista de profiles. Marcar `isAdmin: boolean` em cada `StudentRow`.
+
+### 4. Sidebar e topbar do próprio admin
+
+Em `src/layouts/AppLayout.tsx`:
+- Onde hoje aparece `<PlanBadge plan={profile.plan} />` na sidebar e na topbar, trocar para `<PlanBadge plan={profile.plan} isAdmin={isAdmin} />` para que o admin veja seu próprio badge dourado/roxo.
 
 ### Arquivos a alterar
 
-- **Migration nova** (schema):
-  - `CREATE TABLE study_unlock_logs` + RLS (admin-only).
-  - `ALTER TABLE chat_messages ADD COLUMN expires_at timestamptz NOT NULL DEFAULT now() + interval '3 days', ADD COLUMN pinned boolean NOT NULL DEFAULT false;`
-  - `CREATE FUNCTION admin_unlock_study(_user_id uuid)`.
-- `src/pages/Admin.tsx` — trocar handler de "Liberar estudo" para RPC; adicionar seção "Histórico de liberações".
-- `src/pages/ChatProfessor.tsx` — título "Professor Saraiva", aviso de retenção, botão salvar, query com filtro de expiração + limpeza on-read.
-- `supabase/functions/chat-professor/index.ts` — atualizar SYSTEM_PROMPT para Professor Saraiva.
+- `src/components/PlanBadge.tsx` — adicionar prop `isAdmin` e estilo ADMIN.
+- `src/lib/plans.ts` — `shouldShowRenewal` aceita `isAdmin` e retorna false para admin.
+- `src/components/RenewalBanner.tsx` — não exibir para admin.
+- `src/pages/Configuracoes.tsx` — card do plano mostra "vitalício" para admin; sem CTA de renovação.
+- `src/pages/Admin.tsx` — listar `user_roles` admins, render `PlanBadge` colorido por linha (com flag admin).
+- `src/layouts/AppLayout.tsx` — passar `isAdmin` ao `PlanBadge` da sidebar/topbar.
 
-### Notas técnicas
+### Observações
 
-- O update de `current_topic_unlocked` continuará funcionando para o próprio admin via RLS, mas centralizar via RPC garante auditoria de **toda** liberação.
-- A limpeza on-read é suficiente porque o histórico só é consultado quando o usuário abre o chat — não há acúmulo silencioso problemático para o tamanho esperado.
-- Mensagens "salvas" renovam por +3 dias a cada clique (não são permanentes), mantendo a regra de retenção curta.
+- Não há mudança de schema. Admin já é identificado via `user_roles` + `has_role()`.
+- O badge ADMIN substitui o badge de plano apenas visualmente; o `plan` real do admin no banco continua existindo (provavelmente `premium`), mas não é exibido nem cobrado por renovação.
 
