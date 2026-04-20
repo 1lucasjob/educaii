@@ -42,7 +42,7 @@ const formatDuration = (s: number) => {
 };
 
 export default function Progresso() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { enabled: demoEnabled, fakeAttempts, viewAsRow } = useDemoMode();
   const [realAttempts, setRealAttempts] = useState<Attempt[]>([]);
 
@@ -190,7 +190,7 @@ export default function Progresso() {
             {unlockedCount}/{achievements.length} desbloqueadas
           </span>
         </div>
-        <AchievementsGrid items={achievements} />
+        <AchievementsGrid items={achievements} revealSecrets={isAdmin} />
       </Card>
 
       <Card className="p-6">

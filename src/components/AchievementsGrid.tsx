@@ -2,41 +2,78 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Achievement } from "@/lib/achievements";
 import { cn } from "@/lib/utils";
-import { Lock } from "lucide-react";
+import { Lock, HelpCircle, Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-export function AchievementsGrid({ items }: { items: Achievement[] }) {
+interface Props {
+  items: Achievement[];
+  /** When true, locked secret achievements are revealed (admin view). */
+  revealSecrets?: boolean;
+}
+
+export function AchievementsGrid({ items, revealSecrets = false }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {items.map((a) => {
         const Icon = a.icon;
+        const isHiddenSecret = !!a.secret && !a.unlocked && !revealSecrets;
+        const showSecretBadge = !!a.secret && (a.unlocked || revealSecrets);
+
         return (
           <Card
             key={a.id}
             className={cn(
-              "p-4 flex flex-col items-center text-center gap-2 transition-all",
+              "p-4 flex flex-col items-center text-center gap-2 transition-all relative",
               a.unlocked
                 ? "border-primary/40 bg-primary/5 shadow-sm hover:shadow-md"
                 : "opacity-70 hover:opacity-100",
+              a.secret && a.unlocked && "ring-1 ring-primary/40",
+              isHiddenSecret && "border-dashed",
             )}
           >
+            {showSecretBadge && (
+              <Badge
+                variant="outline"
+                className="absolute top-1 right-1 px-1.5 py-0 text-[9px] gap-1 border-primary/40 text-primary"
+                title="Conquista secreta"
+              >
+                <Eye className="w-2.5 h-2.5" /> Secreta
+              </Badge>
+            )}
+            {a.secret && !a.unlocked && revealSecrets && (
+              <Badge
+                variant="outline"
+                className="absolute top-1 left-1 px-1.5 py-0 text-[9px] border-warning/40 text-warning"
+                title="Visível só para admin"
+              >
+                Admin
+              </Badge>
+            )}
+
             <div
               className={cn(
                 "w-12 h-12 rounded-full flex items-center justify-center relative",
                 a.unlocked ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground",
               )}
             >
-              <Icon className="w-6 h-6" />
+              {isHiddenSecret ? <HelpCircle className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
               {!a.unlocked && (
                 <div className="absolute -bottom-1 -right-1 bg-background border rounded-full p-0.5">
                   <Lock className="w-3 h-3 text-muted-foreground" />
                 </div>
               )}
             </div>
-            <p className="font-semibold text-sm leading-tight">{a.title}</p>
-            <p className="text-[11px] text-muted-foreground leading-tight">{a.description}</p>
+            <p className="font-semibold text-sm leading-tight">
+              {isHiddenSecret ? "Conquista secreta" : a.title}
+            </p>
+            <p className="text-[11px] text-muted-foreground leading-tight">
+              {isHiddenSecret ? "Continue jogando para descobrir…" : a.description}
+            </p>
             <div className="w-full mt-auto space-y-1">
-              <Progress value={a.progress} className="h-1.5" />
-              <p className="text-[10px] text-muted-foreground">{a.hint}</p>
+              <Progress value={isHiddenSecret ? 0 : a.progress} className="h-1.5" />
+              <p className="text-[10px] text-muted-foreground">
+                {isHiddenSecret ? "???" : a.hint}
+              </p>
             </div>
           </Card>
         );
