@@ -114,6 +114,28 @@ export default function Simulado() {
         computeAchievements((prevAttempts as any) ?? []).filter((a) => a.unlocked).map((a) => a.id),
       );
 
+      // Anti-cheat: only count for ranking if took at least 120s
+      // and fewer than 3 valid attempts of the same topic today
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const todayValidSameTopic = (prevAttempts ?? []).filter(
+        (a: any) =>
+          a.topic?.toLowerCase().trim() === topic.toLowerCase().trim() &&
+          (a.time_spent_seconds ?? 0) >= 120 &&
+          new Date(a.created_at) >= startOfDay,
+      ).length;
+      const countsForRanking = timeSpent >= 120 && todayValidSameTopic < 3;
+
+      if (!countsForRanking) {
+        toast({
+          title: "Simulado não conta no ranking",
+          description:
+            timeSpent < 120
+              ? "Tempo mínimo de 2 minutos não atingido."
+              : "Limite de 3 tentativas válidas por tema/dia atingido.",
+        });
+      }
+
       await supabase.from("quiz_attempts").insert({
         user_id: profile.id,
         topic,
@@ -123,6 +145,7 @@ export default function Simulado() {
         questions: questions as any,
         answers: answers as any,
         time_spent_seconds: timeSpent,
+        counts_for_ranking: countsForRanking,
       });
 
       const updates: { last_score: number; current_topic_unlocked?: boolean } = { last_score: total };
