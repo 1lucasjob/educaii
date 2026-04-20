@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette } from "lucide-react";
+import { useDemoMode } from "@/contexts/DemoModeContext";
+import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 
 interface Invite {
   id: string;
@@ -21,6 +24,8 @@ interface Invite {
 
 export default function Admin() {
   const { toast } = useToast();
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode();
+  const [previewTheme, setPreviewTheme] = useState<ThemeName>(getStoredTheme());
   const [slots, setSlots] = useState(0);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [open, setOpen] = useState(false);
