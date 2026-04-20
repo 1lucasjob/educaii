@@ -175,18 +175,22 @@ export default function Estudar() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               disabled={!unlocked || loadingSummary}
-              placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). Mínimo 1000 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
+              placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). A partir de 300 caracteres gera resumo (rascunho); 1000+ salva e conta para o ranking." : "Conclua o simulado difícil para liberar."}
               className="min-h-32"
             />
-            <div className="flex items-center justify-between text-xs">
-              <span className={meetsMin ? "text-success" : "text-muted-foreground"}>
-                {topicLength}/{MIN_CHARS} caracteres {meetsMin ? "✓ válido para ranking" : "(mínimo para contar no ranking)"}
+            <div className="flex items-center justify-between text-xs gap-3">
+              <span className={meetsFull ? "text-success" : meetsDraft ? "text-warning" : "text-muted-foreground"}>
+                {meetsFull
+                  ? `${topicLength}/${MIN_CHARS} ✓ válido para ranking`
+                  : meetsDraft
+                    ? `${topicLength}/${MIN_CHARS} — modo rascunho (não salva, não pontua)`
+                    : `${topicLength}/${MIN_CHARS_DRAFT} (mínimo para gerar)`}
               </span>
               <Progress value={Math.min(100, (topicLength / MIN_CHARS) * 100)} className="w-24 h-1.5" />
             </div>
           </div>
 
-          <Button onClick={generate} disabled={!unlocked || loadingSummary} className="w-full gradient-primary text-primary-foreground shadow-glow">
+          <Button onClick={generate} disabled={!unlocked || loadingSummary || !meetsDraft || !titleValid} className="w-full gradient-primary text-primary-foreground shadow-glow">
             {loadingSummary ? "Gerando resumo…" : (<><Sparkles className="mr-2" /> Gerar Estudo</>)}
           </Button>
         </div>
