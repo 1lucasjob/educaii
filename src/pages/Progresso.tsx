@@ -29,6 +29,7 @@ interface Attempt {
   score: number;
   created_at: string;
   time_spent_seconds: number;
+  counts_for_ranking: boolean;
 }
 
 const formatDuration = (s: number) => {
@@ -47,7 +48,7 @@ export default function Progresso() {
     if (!user) return;
     supabase
       .from("quiz_attempts")
-      .select("id,topic,difficulty,score,created_at,time_spent_seconds")
+      .select("id,topic,difficulty,score,created_at,time_spent_seconds,counts_for_ranking")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
       .then(({ data }) => setAttempts((data as Attempt[]) ?? []));
