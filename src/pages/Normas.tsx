@@ -207,7 +207,7 @@ export default function Normas() {
       </div>
 
       {searching ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma NR encontrada.</p>
           ) : (
@@ -228,8 +228,8 @@ export default function Normas() {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
               Demais NRs
             </p>
-            <div className="flex flex-wrap gap-2">
-              {otherList.map((n) => renderChip(n.id, false))}
+            <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+              {otherList.map((n) => renderChip(n.id, true))}
             </div>
           </div>
         </div>
