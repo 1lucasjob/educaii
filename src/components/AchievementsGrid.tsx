@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Achievement } from "@/lib/achievements";
 import { cn } from "@/lib/utils";
-import { Lock, HelpCircle, Eye } from "lucide-react";
+import { Lock, HelpCircle, Eye, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Props {
@@ -27,18 +27,29 @@ export function AchievementsGrid({ items, revealSecrets = false }: Props) {
               a.unlocked
                 ? "border-primary/40 bg-primary/5 shadow-sm hover:shadow-md"
                 : "opacity-70 hover:opacity-100",
-              a.secret && a.unlocked && "ring-1 ring-primary/40",
+              a.secret && a.unlocked && !a.ultra && "ring-1 ring-primary/40",
+              a.ultra && a.unlocked && "ring-2 ring-purple-500/60 shadow-[0_0_20px_-5px_rgba(168,85,247,0.5)]",
               isHiddenSecret && "border-dashed",
             )}
           >
             {showSecretBadge && (
-              <Badge
-                variant="outline"
-                className="absolute top-1 right-1 px-1.5 py-0 text-[9px] gap-1 border-primary/40 text-primary"
-                title="Conquista secreta"
-              >
-                <Eye className="w-2.5 h-2.5" /> Secreta
-              </Badge>
+              a.ultra ? (
+                <Badge
+                  variant="outline"
+                  className="absolute top-1 right-1 px-1.5 py-0 text-[9px] gap-1 border-purple-500/50 text-purple-500 dark:text-purple-400 bg-purple-500/10"
+                  title="Conquista ultra rara"
+                >
+                  <Sparkles className="w-2.5 h-2.5" /> Ultra rara
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="absolute top-1 right-1 px-1.5 py-0 text-[9px] gap-1 border-primary/40 text-primary"
+                  title="Conquista secreta"
+                >
+                  <Eye className="w-2.5 h-2.5" /> Secreta
+                </Badge>
+              )
             )}
             {a.secret && !a.unlocked && revealSecrets && (
               <Badge
