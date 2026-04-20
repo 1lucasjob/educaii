@@ -150,6 +150,7 @@ export type Database = {
           secret_answer_hash: string | null
           secret_question: string | null
           show_in_ranking: boolean
+          terms_accepted_at: string | null
           theme: string
           updated_at: string
         }
@@ -168,6 +169,7 @@ export type Database = {
           secret_answer_hash?: string | null
           secret_question?: string | null
           show_in_ranking?: boolean
+          terms_accepted_at?: string | null
           theme?: string
           updated_at?: string
         }
@@ -186,6 +188,7 @@ export type Database = {
           secret_answer_hash?: string | null
           secret_question?: string | null
           show_in_ranking?: boolean
+          terms_accepted_at?: string | null
           theme?: string
           updated_at?: string
         }
