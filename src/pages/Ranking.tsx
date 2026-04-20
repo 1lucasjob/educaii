@@ -17,9 +17,9 @@ interface Row {
 }
 
 const rankIcon = (i: number) => {
-  if (i === 0) return <Crown className="w-5 h-5 text-yellow-400" />;
-  if (i === 1) return <Medal className="w-5 h-5 text-slate-300" />;
-  if (i === 2) return <Award className="w-5 h-5 text-amber-600" />;
+  if (i === 0) return <Crown className="w-5 h-5 text-primary" />;
+  if (i === 1) return <Medal className="w-5 h-5 text-foreground/70" />;
+  if (i === 2) return <Award className="w-5 h-5 text-primary/60" />;
   return <span className="w-5 inline-block text-center text-xs text-muted-foreground font-mono">{i + 1}</span>;
 };
 
