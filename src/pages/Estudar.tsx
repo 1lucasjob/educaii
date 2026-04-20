@@ -132,7 +132,7 @@ export default function Estudar() {
               <h2 className="font-semibold">{unlocked ? "Pronto para um novo tema" : "Tema atual bloqueado"}</h2>
               <Badge variant={unlocked ? "outline" : "secondary"}>{unlocked ? "Desbloqueado" : "Bloqueado"}</Badge>
             </div>
-            {activeTopic && <p className="text-sm text-muted-foreground mt-1 truncate">Tema atual: <strong>{activeTopic}</strong></p>}
+            {activeTopic && <p className="text-sm text-muted-foreground mt-1">Tema atual: <strong>{activeTopic}</strong></p>}
             <div className="mt-3">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
                 <span>Progresso para desbloquear</span>
