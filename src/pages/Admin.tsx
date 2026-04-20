@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette } from "lucide-react";
+import { useDemoMode } from "@/contexts/DemoModeContext";
+import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 
 interface Invite {
   id: string;
@@ -21,6 +24,8 @@ interface Invite {
 
 export default function Admin() {
   const { toast } = useToast();
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode();
+  const [previewTheme, setPreviewTheme] = useState<ThemeName>(getStoredTheme());
   const [slots, setSlots] = useState(0);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [open, setOpen] = useState(false);
@@ -72,6 +77,56 @@ export default function Admin() {
         <h1 className="text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary" /> Gestão de Cadastros</h1>
         <p className="text-muted-foreground mt-1">Libere acessos individuais protegidos por PIN.</p>
       </div>
+
+      <Card className="p-6 border-primary/30 bg-primary/5">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+              <FlaskConical className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-bold flex items-center gap-2">
+                Modo de teste
+                {demoEnabled && <Badge className="gradient-primary text-primary-foreground border-0">Ativo</Badge>}
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-xl">
+                Visualize Ranking e Meu Progresso com dados fictícios e pré-visualize temas — visível apenas para você. Nenhum dado é salvo no banco.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="demo-switch" className="text-sm">Ativar dados fake</Label>
+            <Switch id="demo-switch" checked={demoEnabled} onCheckedChange={setDemoEnabled} />
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <p className="text-sm font-medium flex items-center gap-2 mb-2">
+            <Palette className="w-4 h-4 text-primary" /> Pré-visualizar tema
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => {
+                  setPreviewTheme(t.id);
+                  applyTheme(t.id);
+                }}
+                className={`text-left p-3 rounded-md border transition-colors ${
+                  previewTheme === t.id ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"
+                }`}
+              >
+                <p className="text-lg">{t.emoji}</p>
+                <p className="text-sm font-medium">{t.label}</p>
+                <p className="text-[11px] text-muted-foreground">{t.description}</p>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            A troca aplica o tema imediatamente em todo o app (até você sair ou escolher outro em Configurações).
+          </p>
+        </div>
+      </Card>
 
       <Card className="p-8 shadow-glow text-center">
         <p className="text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>

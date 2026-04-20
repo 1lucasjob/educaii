@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, HardHat, Trophy } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, HardHat, Trophy, FlaskConical } from "lucide-react";
+import { useDemoMode } from "@/contexts/DemoModeContext";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
@@ -111,6 +112,7 @@ function AppSidebar() {
 
 export default function AppLayout() {
   const { user, profile, isAdmin, loading, signOut } = useAuth();
+  const { enabled: demoEnabled, setEnabled: setDemoEnabled } = useDemoMode();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando…</div>;
   if (!user) return <Navigate to="/login" replace />;
 
@@ -125,6 +127,18 @@ export default function AppLayout() {
               <span className="text-sm text-muted-foreground hidden sm:inline">SegTrabalho Academy</span>
             </div>
             <div className="flex items-center gap-3">
+              {isAdmin && demoEnabled && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDemoEnabled(false)}
+                  className="border-primary/50 text-primary gap-1 h-7 px-2"
+                  title="Desativar modo de teste"
+                >
+                  <FlaskConical className="w-3 h-3" />
+                  <span className="hidden sm:inline text-xs">Modo teste</span>
+                </Button>
+              )}
               {isAdmin && <Badge className="gradient-primary text-primary-foreground border-0">Admin</Badge>}
               <span className="text-sm hidden sm:inline truncate max-w-[180px]">{profile?.email}</span>
               <Button variant="ghost" size="sm" onClick={signOut}>
