@@ -32,7 +32,7 @@ export default function Ranking() {
 
   useEffect(() => {
     supabase.rpc("get_leaderboard").then(({ data }) => {
-      setRows((data as Row[]) ?? []);
+      setRows((data as unknown as Row[]) ?? []);
       setLoading(false);
     });
   }, []);
