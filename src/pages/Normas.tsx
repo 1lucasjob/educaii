@@ -4,7 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, HardHat, Search } from "lucide-react";
 
-const NRS = [
+// Ordem por relevância: principais/transversais primeiro, específicas por setor depois, revogadas no fim.
+const NR_ORDER = [
+  // Núcleo essencial (mais cobradas em provas e mais aplicadas no dia a dia)
+  "NR-01","NR-06","NR-05","NR-04","NR-07","NR-09","NR-17","NR-35","NR-10","NR-12",
+  "NR-15","NR-16","NR-33","NR-18","NR-23","NR-26","NR-08","NR-11","NR-13","NR-24",
+  // Específicas por atividade / setor
+  "NR-20","NR-32","NR-34","NR-31","NR-22","NR-29","NR-30","NR-36","NR-37","NR-38",
+  "NR-14","NR-19","NR-21","NR-25","NR-28","NR-03",
+  // Revogadas (referência histórica)
+  "NR-02","NR-27",
+];
+
+const NRS_RAW = [
   { id: "NR-01", title: "Disposições Gerais e Gerenciamento de Riscos Ocupacionais", body: "Estabelece diretrizes gerais de SST, define responsabilidades do empregador/empregado e institui o GRO (Gerenciamento de Riscos Ocupacionais) e o PGR (Programa de Gerenciamento de Riscos)." },
   { id: "NR-02", title: "Inspeção Prévia (revogada — referência histórica)", body: "Originalmente exigia inspeção prévia para início de funcionamento de estabelecimentos. Revogada em 2019; hoje a verificação ocorre via PGR e PCMSO." },
   { id: "NR-03", title: "Embargo e Interdição", body: "Define os procedimentos de embargo de obra e interdição de equipamento, setor ou estabelecimento que apresente grave e iminente risco aos trabalhadores." },
@@ -45,6 +57,10 @@ const NRS = [
   { id: "NR-38", title: "Segurança e Saúde no Trabalho nas Atividades de Limpeza Urbana e Manejo de Resíduos Sólidos", body: "Aplica-se a coleta, transporte, triagem, tratamento e destinação final de resíduos sólidos urbanos. Exige PGR específico, EPIs adequados (luvas, botas, uniformes refletivos), imunização, controle de riscos biológicos e ergonômicos e capacitação dos trabalhadores." },
 ];
 
+const NRS = NR_ORDER
+  .map((id) => NRS_RAW.find((n) => n.id === id))
+  .filter((n): n is (typeof NRS_RAW)[number] => Boolean(n));
+
 export default function Normas() {
   const [search, setSearch] = useState("");
   const filtered = NRS.filter((n) => `${n.id} ${n.title}`.toLowerCase().includes(search.toLowerCase()));
@@ -62,10 +78,14 @@ export default function Normas() {
       </div>
 
       <Tabs defaultValue={filtered[0]?.id ?? "NR-01"} orientation="vertical" className="flex flex-col md:flex-row gap-4">
-        <TabsList className="md:flex-col h-auto bg-card p-2 md:w-56 flex-wrap md:flex-nowrap overflow-x-auto md:overflow-visible">
+        <TabsList className="grid grid-cols-4 sm:grid-cols-6 md:flex md:flex-col h-auto bg-card p-2 md:w-40 gap-1 md:max-h-[70vh] md:overflow-y-auto">
           {filtered.map((n) => (
-            <TabsTrigger key={n.id} value={n.id} className="md:w-full md:justify-start data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground">
-              <HardHat className="w-3.5 h-3.5 mr-2 shrink-0" />
+            <TabsTrigger
+              key={n.id}
+              value={n.id}
+              className="md:w-full md:justify-start px-2 py-1.5 text-xs data-[state=active]:gradient-primary data-[state=active]:text-primary-foreground"
+            >
+              <HardHat className="w-3 h-3 mr-1 shrink-0 hidden md:inline" />
               {n.id}
             </TabsTrigger>
           ))}
