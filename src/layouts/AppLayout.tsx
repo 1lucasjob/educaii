@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
-import logo from "@/assets/educai-logo.png";
+import { EducAILogo } from "@/components/EducAILogo";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
@@ -45,7 +45,7 @@ function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className="p-4 flex items-center gap-2 border-b border-sidebar-border">
-          <img src={logo} alt="EducA.I." width={512} height={512} className="w-9 h-9 shrink-0" loading="lazy" />
+          <EducAILogo className="w-9 h-9 shrink-0" />
           {!collapsed && (
             <div>
               <p className="font-bold leading-tight">EducA.I.</p>
