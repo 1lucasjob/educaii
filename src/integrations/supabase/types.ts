@@ -36,21 +36,27 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          expires_at: string
           id: string
+          pinned: boolean
           role: string
           user_id: string
         }
         Insert: {
           content: string
           created_at?: string
+          expires_at?: string
           id?: string
+          pinned?: boolean
           role: string
           user_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          expires_at?: string
           id?: string
+          pinned?: boolean
           role?: string
           user_id?: string
         }
@@ -215,6 +221,39 @@ export type Database = {
         }
         Relationships: []
       }
+      study_unlock_logs: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string
+          created_at: string
+          id: string
+          previous_topic: string | null
+          student_email: string
+          student_id: string
+        }
+        Insert: {
+          action?: string
+          admin_email?: string | null
+          admin_id: string
+          created_at?: string
+          id?: string
+          previous_topic?: string | null
+          student_email: string
+          student_id: string
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string
+          created_at?: string
+          id?: string
+          previous_topic?: string | null
+          student_email?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -248,6 +287,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_unlock_study: { Args: { _user_id: string }; Returns: undefined }
       get_leaderboard: {
         Args: never
         Returns: {
