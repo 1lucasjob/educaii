@@ -21,6 +21,7 @@ import Admin from "./pages/Admin";
 import Configuracoes from "./pages/Configuracoes";
 import ChatProfessor from "./pages/ChatProfessor";
 import Planos from "./pages/Planos";
+import Termos from "./pages/Termos";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
             <Route path="/recuperar-email" element={<RecuperarEmail />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/termos" element={<Termos />} />
 
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Navigate to="/app/estudar" replace />} />
