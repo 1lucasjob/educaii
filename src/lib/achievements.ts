@@ -1,4 +1,4 @@
-import { Trophy, Flame, Star, Target, Award, Crown, Zap, BookOpen, Medal, Rocket, Timer } from "lucide-react";
+import { Trophy, Flame, Star, Target, Award, Crown, Zap, BookOpen, Medal, Rocket, Timer, Sparkles, Moon, Sun, Diamond, Ghost, Infinity as InfinityIcon, Swords } from "lucide-react";
 
 export interface AttemptLite {
   topic: string;
@@ -16,6 +16,7 @@ export interface Achievement {
   unlocked: boolean;
   progress: number; // 0-100
   hint: string;
+  secret?: boolean;
 }
 
 export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
@@ -37,13 +38,70 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
   // Daily activity: unique days
   const uniqueDays = new Set(attempts.map((a) => new Date(a.created_at).toDateString())).size;
 
-  // Speedster: hard quiz passed (80+) in under 5 minutes
+  // Speedster
   const speedsterCount = hardAttempts.filter(
     (a) => a.score >= 80 && (a.time_spent_seconds ?? Infinity) < 300,
   ).length;
   const bestHardTime = hardAttempts
     .filter((a) => a.score >= 80 && a.time_spent_seconds && a.time_spent_seconds > 0)
     .reduce((m, a) => Math.min(m, a.time_spent_seconds!), Infinity);
+
+  // ===== Secret achievements helpers =====
+  const perfectHard = hardAttempts.filter((a) => a.score === 100);
+  const perfectHardCount = perfectHard.length;
+
+  // Perfect hard streak (consecutive)
+  let perfectHardStreak = 0;
+  for (const a of sorted) {
+    if (a.score === 100) perfectHardStreak++;
+    else break;
+  }
+
+  // Night owl: hard 80+ between 00:00 and 04:59 local
+  const nightOwlCount = hardAttempts.filter((a) => {
+    if (a.score < 80) return false;
+    const h = new Date(a.created_at).getHours();
+    return h >= 0 && h < 5;
+  }).length;
+
+  // Early bird: hard 80+ between 05:00 and 06:59 local
+  const earlyBirdCount = hardAttempts.filter((a) => {
+    if (a.score < 80) return false;
+    const h = new Date(a.created_at).getHours();
+    return h >= 5 && h < 7;
+  }).length;
+
+  // Marathonist: 5+ hard 80+ in the same calendar day
+  const hardPerDay = new Map<string, number>();
+  hardAttempts.forEach((a) => {
+    if (a.score < 80) return;
+    const d = new Date(a.created_at).toDateString();
+    hardPerDay.set(d, (hardPerDay.get(d) ?? 0) + 1);
+  });
+  const maxHardOneDay = Array.from(hardPerDay.values()).reduce((m, v) => Math.max(m, v), 0);
+
+  // Lightning: hard 100 in under 3 minutes
+  const lightningCount = hardAttempts.filter(
+    (a) => a.score === 100 && (a.time_spent_seconds ?? Infinity) < 180,
+  ).length;
+
+  // Polymath: aprovação no difícil (80+) em 10 temas distintos
+  const hardPassedTopics = new Set(
+    hardAttempts.filter((a) => a.score >= 80).map((a) => a.topic.toLowerCase().trim()),
+  ).size;
+
+  // Iron will: 30 dias distintos de estudo
+  const ironWillDays = uniqueDays;
+
+  // Phoenix: aprovação no difícil (80+) imediatamente após uma reprovação no difícil (<80) — em ordem cronológica
+  const chronoHard = [...hardAttempts].sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+  let phoenix = false;
+  for (let i = 1; i < chronoHard.length; i++) {
+    if (chronoHard[i - 1].score < 80 && chronoHard[i].score >= 80) {
+      phoenix = true;
+      break;
+    }
+  }
 
   const pct = (val: number, target: number) => Math.min(100, Math.round((val / target) * 100));
 
@@ -146,6 +204,78 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
       unlocked: total >= 25,
       progress: pct(total, 25),
       hint: `${total}/25 simulados`,
+    },
+
+    // ============ SECRET ACHIEVEMENTS ============
+    {
+      id: "secret_perfect_master",
+      title: "Lenda Imaculada",
+      description: "Tire 100 pontos em 5 simulados difíceis",
+      icon: Diamond,
+      unlocked: perfectHardCount >= 5,
+      progress: pct(perfectHardCount, 5),
+      hint: `${perfectHardCount}/5 perfeitos no difícil`,
+      secret: true,
+    },
+    {
+      id: "secret_perfect_streak",
+      title: "Combo Perfeito",
+      description: "3 simulados difíceis com 100 pontos em sequência",
+      icon: Sparkles,
+      unlocked: perfectHardStreak >= 3,
+      progress: pct(perfectHardStreak, 3),
+      hint: `Sequência perfeita: ${perfectHardStreak}/3`,
+      secret: true,
+    },
+    {
+      id: "secret_night_owl",
+      title: "Coruja Noturna",
+      description: "Passe em 3 simulados difíceis entre 00h e 05h",
+      icon: Moon,
+      unlocked: nightOwlCount >= 3,
+      progress: pct(nightOwlCount, 3),
+      hint: `${nightOwlCount}/3 madrugadas vitoriosas`,
+      secret: true,
+    },
+    {
+      id: "secret_early_bird",
+      title: "Madrugador",
+      description: "Passe em 3 simulados difíceis entre 05h e 07h",
+      icon: Sun,
+      unlocked: earlyBirdCount >= 3,
+      progress: pct(earlyBirdCount, 3),
+      hint: `${earlyBirdCount}/3 amanheceres vitoriosos`,
+      secret: true,
+    },
+    {
+      id: "secret_marathon",
+      title: "Maratonista",
+      description: "5 aprovações no difícil em um único dia",
+      icon: InfinityIcon,
+      unlocked: maxHardOneDay >= 5,
+      progress: pct(maxHardOneDay, 5),
+      hint: `Recorde do dia: ${maxHardOneDay}/5`,
+      secret: true,
+    },
+    {
+      id: "secret_lightning",
+      title: "Relâmpago",
+      description: "Tire 100 em um simulado difícil em menos de 3 minutos",
+      icon: Zap,
+      unlocked: lightningCount >= 1,
+      progress: lightningCount >= 1 ? 100 : 0,
+      hint: lightningCount >= 1 ? "Conquistado" : "Velocidade + perfeição",
+      secret: true,
+    },
+    {
+      id: "secret_phoenix",
+      title: "Fênix",
+      description: "Volte por cima: aprove no difícil logo após uma reprovação no difícil",
+      icon: Ghost,
+      unlocked: phoenix,
+      progress: phoenix ? 100 : 0,
+      hint: phoenix ? "Renasceu das cinzas" : "Caia e levante-se",
+      secret: true,
     },
   ];
 }
