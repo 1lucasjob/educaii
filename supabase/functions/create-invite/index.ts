@@ -1,4 +1,4 @@
-// Validate admin PIN, create invite token, and increment available slots
+// Validate admin PIN, create invite token with plan, increment slots
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -7,6 +7,10 @@ const corsHeaders = {
 };
 
 const ADMIN_PIN = "1631";
+const VALID_PLANS = ["free", "days_30", "days_90", "premium"] as const;
+type Plan = typeof VALID_PLANS[number];
+
+const planDays = (p: Plan) => p === "premium" ? 366 : p === "days_90" ? 90 : 30;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -35,16 +39,19 @@ Deno.serve(async (req) => {
     }
     const userId = claims.claims.sub;
 
-    const { pin } = await req.json();
+    const body = await req.json();
+    const { pin, plan } = body as { pin: string; plan?: Plan };
+
     if (pin !== ADMIN_PIN) {
       return new Response(JSON.stringify({ error: "PIN incorreto" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const chosenPlan: Plan = (plan && VALID_PLANS.includes(plan)) ? plan : "free";
+
     const admin = createClient(SUPABASE_URL, SERVICE);
 
-    // Check role
     const { data: roleData } = await admin
       .from("user_roles")
       .select("role")
@@ -57,20 +64,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate token
     const inviteToken = crypto.randomUUID().replace(/-/g, "");
+    const accessExpires = new Date(Date.now() + planDays(chosenPlan) * 86400000).toISOString();
 
     const { error: insErr } = await admin.from("invites").insert({
       token: inviteToken,
       created_by: userId,
+      plan: chosenPlan,
+      access_expires_at: accessExpires,
     });
     if (insErr) throw insErr;
 
-    // Increment slots
     const { data: slot } = await admin.from("available_slots").select("count").eq("id", 1).single();
     await admin.from("available_slots").update({ count: (slot?.count ?? 0) + 1 }).eq("id", 1);
 
-    return new Response(JSON.stringify({ token: inviteToken }), {
+    return new Response(JSON.stringify({ token: inviteToken, plan: chosenPlan }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
