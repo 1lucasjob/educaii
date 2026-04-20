@@ -15,7 +15,7 @@ export default function Termos() {
             <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shadow-glow">
               <HardHat className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
             </div>
-            <span className="font-bold">EducA.I. Academy</span>
+            <span className="font-bold">EDUCA.I Academy</span>
           </div>
         </div>
 
@@ -30,7 +30,7 @@ export default function Termos() {
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-primary">1. Aceitação dos Termos</h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Ao criar uma conta e utilizar a plataforma <strong className="text-foreground">EducA.I. Academy</strong>, você
+              Ao criar uma conta e utilizar a plataforma <strong className="text-foreground">EDUCA.I Academy</strong>, você
               declara ter lido, compreendido e aceito integralmente as regras descritas neste documento. Se não
               concordar com qualquer item, não utilize o serviço.
             </p>

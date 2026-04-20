@@ -98,7 +98,7 @@ export default function Planos() {
       <div className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
           <Sparkles className="w-7 h-7 text-primary" />
-          Planos EducA.I.
+          Planos EDUCA.I
         </h1>
         <p className="text-muted-foreground text-sm">
           Escolha o plano ideal para sua jornada de estudos.

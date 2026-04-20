@@ -57,7 +57,7 @@ function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-bold leading-tight">EducA.I.</p>
+              <p className="font-bold leading-tight">EDUCA.I</p>
               <div className="flex items-center gap-1.5">
                 <p className="text-xs text-muted-foreground">Academy</p>
                 {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} />}
@@ -155,7 +155,7 @@ export default function AppLayout() {
           <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card/50 backdrop-blur sticky top-0 z-10">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <span className="text-sm text-muted-foreground hidden sm:inline">EducA.I. Academy</span>
+              <span className="text-sm text-muted-foreground hidden sm:inline">EDUCA.I Academy</span>
             </div>
             <div className="flex items-center gap-3">
               {isAdmin && demoEnabled && (

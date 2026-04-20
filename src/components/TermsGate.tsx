@@ -47,7 +47,7 @@ export default function TermsGate() {
             Termos de Uso — Aceite Necessário
           </DialogTitle>
           <DialogDescription>
-            Para continuar usando o EducA.I. Academy, leia e aceite os termos abaixo.
+            Para continuar usando o EDUCA.I Academy, leia e aceite os termos abaixo.
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +110,7 @@ export default function TermsGate() {
             <Link to="/termos" target="_blank" className="text-primary underline">
               Termos de Uso
             </Link>{" "}
-            do EducA.I. Academy.
+            do EDUCA.I Academy.
           </label>
         </div>
 
