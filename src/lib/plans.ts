@@ -15,8 +15,9 @@ export function daysUntil(iso: string | null): number | null {
   return Math.ceil(ms / 86400000);
 }
 
-/** Show the renewal banner when ≤10 days remaining. FREE has no renewal. */
-export function shouldShowRenewal(plan: AccessPlan, expiresAt: string | null): boolean {
+/** Show the renewal banner when ≤10 days remaining. FREE has no renewal. Admin is lifetime. */
+export function shouldShowRenewal(plan: AccessPlan, expiresAt: string | null, isAdmin = false): boolean {
+  if (isAdmin) return false;
   if (plan === "free") return false;
   const d = daysUntil(expiresAt);
   return d !== null && d <= 10 && d >= 0;

@@ -1,5 +1,5 @@
 import type { AccessPlan } from "@/contexts/AuthContext";
-import { Crown, Star, Clock, Sparkles } from "lucide-react";
+import { Crown, Star, Clock, Sparkles, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crown }> = {
@@ -28,15 +28,23 @@ const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crow
   },
 };
 
+const ADMIN_STYLE = {
+  label: "ADMIN",
+  // Dourado com bordas roxas
+  cls: "bg-gradient-to-r from-amber-300 to-amber-500 text-purple-900 border-2 border-purple-600 dark:text-purple-950",
+  Icon: ShieldCheck,
+};
+
 interface Props {
   plan: AccessPlan;
   size?: "sm" | "md";
   showIcon?: boolean;
   className?: string;
+  isAdmin?: boolean;
 }
 
-export default function PlanBadge({ plan, size = "sm", showIcon = true, className }: Props) {
-  const s = STYLES[plan];
+export default function PlanBadge({ plan, size = "sm", showIcon = true, className, isAdmin = false }: Props) {
+  const s = isAdmin ? ADMIN_STYLE : STYLES[plan];
   if (!s) return null;
   const { Icon } = s;
   return (
@@ -47,7 +55,7 @@ export default function PlanBadge({ plan, size = "sm", showIcon = true, classNam
         s.cls,
         className
       )}
-      aria-label={`Plano ${s.label}`}
+      aria-label={isAdmin ? "Administrador" : `Plano ${s.label}`}
     >
       {showIcon && <Icon className={size === "sm" ? "w-2.5 h-2.5" : "w-3.5 h-3.5"} />}
       {s.label}

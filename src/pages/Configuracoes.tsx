@@ -13,7 +13,7 @@ import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, R
 import { useToast } from "@/hooks/use-toast";
 
 export default function Configuracoes() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile, isAdmin } = useAuth();
   const { toast } = useToast();
 
   const [newPwd, setNewPwd] = useState("");
@@ -96,35 +96,44 @@ export default function Configuracoes() {
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-muted-foreground">Plano atual:</span>
-                <span className="font-semibold text-primary">{planLabel(profile?.plan ?? "free")}</span>
-                {profile && <PlanBadge plan={profile.plan} size="md" />}
+                <span className="font-semibold text-primary">{isAdmin ? "ADMIN" : planLabel(profile?.plan ?? "free")}</span>
+                {profile && <PlanBadge plan={profile.plan} size="md" isAdmin={isAdmin} />}
               </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Expira em:</span>
-                <span className={(() => {
-                  const d = daysUntil(profile?.access_expires_at ?? null);
-                  if (d === null) return "text-muted-foreground";
-                  if (d <= 10) return "text-destructive font-semibold";
-                  if (d <= 30) return "text-yellow-500 font-semibold";
-                  return "text-green-500 font-semibold";
-                })()}>
-                  {(() => {
-                    const d = daysUntil(profile?.access_expires_at ?? null);
-                    if (d === null) return "—";
-                    if (d < 0) return "Expirado";
-                    return `${d} ${d === 1 ? "dia" : "dias"}`;
-                  })()}
-                </span>
-              </div>
-              {profile?.access_expires_at && (
-                <p className="text-xs text-muted-foreground">
-                  {new Date(profile.access_expires_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
-                </p>
+              {isAdmin ? (
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-primary">Acesso vitalício de administrador</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Expira em:</span>
+                    <span className={(() => {
+                      const d = daysUntil(profile?.access_expires_at ?? null);
+                      if (d === null) return "text-muted-foreground";
+                      if (d <= 10) return "text-destructive font-semibold";
+                      if (d <= 30) return "text-yellow-500 font-semibold";
+                      return "text-green-500 font-semibold";
+                    })()}>
+                      {(() => {
+                        const d = daysUntil(profile?.access_expires_at ?? null);
+                        if (d === null) return "—";
+                        if (d < 0) return "Expirado";
+                        return `${d} ${d === 1 ? "dia" : "dias"}`;
+                      })()}
+                    </span>
+                  </div>
+                  {profile?.access_expires_at && (
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(profile.access_expires_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>
-          {(() => {
+          {!isAdmin && (() => {
             const d = daysUntil(profile?.access_expires_at ?? null);
             const showButton = d !== null && d <= 10;
             const mailto = profile ? buildRenewalMailto({
