@@ -3,9 +3,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Trophy, TrendingUp, Target, Award, Clock, ShieldCheck, ShieldOff } from "lucide-react";
+import { BarChart3, Trophy, TrendingUp, Target, Award, Clock, ShieldCheck, ShieldOff, FlaskConical } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { AchievementsGrid } from "@/components/AchievementsGrid";
+import { useDemoMode } from "@/contexts/DemoModeContext";
 import {
   ChartContainer,
   ChartTooltip,
@@ -42,7 +43,8 @@ const formatDuration = (s: number) => {
 
 export default function Progresso() {
   const { user } = useAuth();
-  const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const { enabled: demoEnabled, fakeAttempts } = useDemoMode();
+  const [realAttempts, setRealAttempts] = useState<Attempt[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -51,8 +53,18 @@ export default function Progresso() {
       .select("id,topic,difficulty,score,created_at,time_spent_seconds,counts_for_ranking")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
-      .then(({ data }) => setAttempts((data as Attempt[]) ?? []));
+      .then(({ data }) => setRealAttempts((data as Attempt[]) ?? []));
   }, [user]);
+
+  const attempts = useMemo<Attempt[]>(
+    () =>
+      demoEnabled
+        ? [...realAttempts, ...(fakeAttempts as Attempt[])].sort(
+            (a, b) => +new Date(a.created_at) - +new Date(b.created_at),
+          )
+        : realAttempts,
+    [demoEnabled, realAttempts, fakeAttempts],
+  );
 
   const total = attempts.length;
   const avg = total ? Math.round(attempts.reduce((s, a) => s + a.score, 0) / total) : 0;
@@ -116,6 +128,12 @@ export default function Progresso() {
       <h1 className="text-3xl font-bold flex items-center gap-2">
         <BarChart3 className="text-primary" /> Meu Progresso
       </h1>
+      {demoEnabled && (
+        <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-sm">
+          <FlaskConical className="w-4 h-4 text-primary" />
+          <span><strong>Modo de teste ativo</strong> — simulados fictícios incluídos para visualização.</span>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="p-5">
