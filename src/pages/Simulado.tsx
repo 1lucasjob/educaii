@@ -137,14 +137,16 @@ export default function Simulado() {
       const newlyUnlocked = computeAchievements(allAttempts)
         .filter((a) => a.unlocked && !prevUnlocked.has(a.id));
 
+      if (newlyUnlocked.length > 0) fireConfetti();
       newlyUnlocked.forEach((ach, i) => {
         setTimeout(() => {
+          if (i > 0) fireConfetti();
           toast({
             title: "🏆 Conquista desbloqueada!",
             description: `${ach.title} — ${ach.description}`,
             className: "animate-scale-in border-primary bg-gradient-to-br from-primary/10 to-background",
           });
-        }, i * 600);
+        }, i * 800);
       });
     }
   };
