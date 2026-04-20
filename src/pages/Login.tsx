@@ -47,7 +47,8 @@ export default function Login() {
           <div className="w-20 h-20 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-glow animate-pulse-glow">
             <HardHat className="w-10 h-10 text-primary-foreground" strokeWidth={2.5} />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">EDUCA.I Academy</h1>
+          <h1 className="text-4xl font-bold tracking-tight leading-tight">EDUCA.I</h1>
+          <p className="text-lg text-muted-foreground leading-tight">Academy</p>
           <p className="text-muted-foreground mt-2">Estudo focado em Segurança do Trabalho</p>
         </div>
 
