@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Medal, Award, Crown, EyeOff, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { computeAchievements, AttemptLite } from "@/lib/achievements";
@@ -18,6 +19,14 @@ interface Row {
   attempts_data: AttemptLite[];
 }
 
+type Period = "week" | "month" | "all";
+
+const PERIOD_LABEL: Record<Period, string> = {
+  week: "Últimos 7 dias",
+  month: "Últimos 30 dias",
+  all: "Geral",
+};
+
 const rankIcon = (i: number) => {
   if (i === 0) return <Crown className="w-5 h-5 text-primary" />;
   if (i === 1) return <Medal className="w-5 h-5 text-foreground/70" />;
@@ -25,10 +34,17 @@ const rankIcon = (i: number) => {
   return <span className="w-5 inline-block text-center text-xs text-muted-foreground font-mono">{i + 1}</span>;
 };
 
+const cutoffFor = (p: Period): number | null => {
+  if (p === "all") return null;
+  const days = p === "week" ? 7 : 30;
+  return Date.now() - days * 24 * 60 * 60 * 1000;
+};
+
 export default function Ranking() {
   const { user, profile } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<Period>("all");
 
   useEffect(() => {
     supabase.rpc("get_leaderboard").then(({ data }) => {
@@ -37,17 +53,37 @@ export default function Ranking() {
     });
   }, []);
 
-  const enriched = useMemo(
-    () =>
-      rows.map((r) => {
-        const list = Array.isArray(r.attempts_data) ? r.attempts_data : [];
+  const ranked = useMemo(() => {
+    const cutoff = cutoffFor(period);
+    return rows
+      .map((r) => {
+        const list = (Array.isArray(r.attempts_data) ? r.attempts_data : []).filter(
+          (a) => cutoff === null || +new Date(a.created_at) >= cutoff,
+        );
+        const attempts = list.length;
+        if (attempts === 0) return null;
+        const total_score = list.reduce((s, a) => s + a.score, 0);
+        const hard_passed = list.filter((a) => a.difficulty === "hard" && a.score >= 80).length;
+        const avg = list.reduce((s, a) => s + a.score, 0) / attempts;
+        const composite_score = hard_passed * 10 + avg;
         const unlocked = computeAchievements(list).filter((a) => a.unlocked).length;
-        return { ...r, unlocked };
-      }),
-    [rows],
-  );
-  const totalAchievements = enriched.length > 0 ? computeAchievements([]).length : 10;
-  const myIndex = enriched.findIndex((r) => r.user_id === user?.id);
+        return {
+          user_id: r.user_id,
+          display_name: r.display_name,
+          attempts,
+          total_score,
+          hard_passed,
+          avg_score: +avg.toFixed(1),
+          composite_score,
+          unlocked,
+        };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .sort((a, b) => b.composite_score - a.composite_score || b.total_score - a.total_score);
+  }, [rows, period]);
+
+  const totalAchievements = computeAchievements([]).length;
+  const myIndex = ranked.findIndex((r) => r.user_id === user?.id);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -55,8 +91,16 @@ export default function Ranking() {
         <Trophy className="text-primary" /> Ranking
       </h1>
       <p className="text-sm text-muted-foreground">
-        Top 100 alunos ordenados pelo score composto: <strong>aprovações no difícil × 10 + média de pontos</strong>.
+        Alunos ordenados pelo score composto: <strong>aprovações no difícil × 10 + média de pontos</strong>.
       </p>
+
+      <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
+        <TabsList className="grid grid-cols-3 w-full sm:w-auto">
+          <TabsTrigger value="week">Semanal</TabsTrigger>
+          <TabsTrigger value="month">Mensal</TabsTrigger>
+          <TabsTrigger value="all">Geral</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {profile && !profile.show_in_ranking && (
         <Card className="p-4 border-warning/40 bg-warning/5 flex items-start gap-3">
@@ -75,13 +119,18 @@ export default function Ranking() {
       )}
 
       <Card className="p-0 overflow-hidden">
+        <div className="px-4 py-2 border-b border-border bg-muted/30 text-xs text-muted-foreground">
+          Período: <strong className="text-foreground">{PERIOD_LABEL[period]}</strong> · {ranked.length} alunos
+        </div>
         {loading ? (
           <p className="text-center text-muted-foreground py-12">Carregando ranking…</p>
-        ) : rows.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">Ninguém no ranking ainda. Faça um simulado para entrar!</p>
+        ) : ranked.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12">
+            Nenhum simulado no período selecionado.
+          </p>
         ) : (
           <div className="divide-y divide-border">
-            {enriched.map((r, i) => {
+            {ranked.map((r, i) => {
               const isMe = r.user_id === user?.id;
               return (
                 <div
@@ -97,7 +146,7 @@ export default function Ranking() {
                       {isMe && <Badge variant="outline" className="ml-2 text-xs">Você</Badge>}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {r.attempts} simulados · {r.hard_passed} aprovações no difícil · média {r.avg_score}
+                      {r.attempts} simulados · {r.hard_passed} aprovações · média {r.avg_score}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
@@ -117,7 +166,8 @@ export default function Ranking() {
 
       {myIndex >= 0 && (
         <p className="text-center text-sm text-muted-foreground">
-          Sua posição: <strong className="text-primary">#{myIndex + 1}</strong> de {enriched.length}
+          Sua posição em <strong>{PERIOD_LABEL[period]}</strong>:{" "}
+          <strong className="text-primary">#{myIndex + 1}</strong> de {ranked.length}
         </p>
       )}
     </div>
