@@ -101,6 +101,39 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_settings: {
+        Row: {
+          benefits: Json
+          duration_label: string
+          highlight: string | null
+          old_price: string | null
+          plan: Database["public"]["Enums"]["access_plan"]
+          price: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          benefits?: Json
+          duration_label?: string
+          highlight?: string | null
+          old_price?: string | null
+          plan: Database["public"]["Enums"]["access_plan"]
+          price?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          benefits?: Json
+          duration_label?: string
+          highlight?: string | null
+          old_price?: string | null
+          plan?: Database["public"]["Enums"]["access_plan"]
+          price?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           access_expires_at: string | null
