@@ -227,6 +227,29 @@ export default function Ranking() {
                     média {sel.avg_score} · score {Math.round(sel.composite_score)}
                   </DialogDescription>
                 </DialogHeader>
+                {list.length > 0 && (
+                  <div className="mt-2 mb-3">
+                    <h3 className="font-bold text-sm mb-2 text-muted-foreground">Últimos temas estudados</h3>
+                    <ul className="space-y-1">
+                      {list
+                        .slice()
+                        .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+                        .slice(0, 5)
+                        .map((a, idx) => {
+                          const t = (a.topic ?? "").split("\n")[0].trim();
+                          const display = t.length > 70 ? t.slice(0, 70) + "…" : t || "Sem título";
+                          return (
+                            <li key={idx} className="flex items-center justify-between text-sm gap-2 px-2 py-1.5 rounded bg-muted/40">
+                              <span className="truncate">{display}</span>
+                              <Badge variant="outline" className="text-[10px] shrink-0">
+                                {a.difficulty === "hard" ? "Difícil" : "Fácil"} · {a.score}
+                              </Badge>
+                            </li>
+                          );
+                        })}
+                    </ul>
+                  </div>
+                )}
                 <div className="flex items-center justify-between mb-3 mt-2">
                   <h3 className="font-bold flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" /> Conquistas

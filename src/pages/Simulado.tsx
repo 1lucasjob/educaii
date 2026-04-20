@@ -254,7 +254,7 @@ export default function Simulado() {
         <Card className="p-8 text-center shadow-glow">
           <Trophy className={`mx-auto w-16 h-16 mb-3 ${passed ? "text-success" : "text-primary"}`} />
           <h1 className="text-4xl font-bold mb-2">{score}<span className="text-muted-foreground text-2xl">/100</span></h1>
-          <p className="text-muted-foreground">Simulado {difficulty === "hard" ? "Difícil" : "Fácil"} · {topic}</p>
+          <p className="text-muted-foreground">Simulado {difficulty === "hard" ? "Difícil" : "Fácil"} · {topic.length > 80 ? topic.slice(0, 80) + "…" : topic}</p>
           <p className="text-xs text-muted-foreground mt-2 inline-flex items-center gap-1.5">
             <Clock className="w-3 h-3" /> Tempo gasto: <strong className="text-foreground">{formatTime(timeSpent)}</strong>
           </p>
@@ -324,6 +324,12 @@ export default function Simulado() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
+      {topic && (
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Tema</p>
+          <h1 className="text-lg font-bold text-foreground">{topic.length > 80 ? topic.slice(0, 80) + "…" : topic}</h1>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Badge variant="outline">Questão {current + 1} de {questions.length}</Badge>
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-sm font-semibold border ${lowTime ? "bg-destructive/10 text-destructive border-destructive/40 animate-pulse" : "bg-muted border-border"}`}>
