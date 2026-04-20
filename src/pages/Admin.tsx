@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +37,7 @@ interface StudentRow {
   last_score: number;
   current_topic: string | null;
   current_topic_unlocked: boolean;
+  expert_unlocked_until: string | null;
 }
 
 export default function Admin() {
@@ -58,7 +59,7 @@ export default function Admin() {
     const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked").order("access_expires_at", { ascending: true }),
+      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until").order("access_expires_at", { ascending: true }),
       supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
     ]);
@@ -105,6 +106,17 @@ export default function Admin() {
       return;
     }
     toast({ title: "Estudo liberado!", description: `${email} pode escolher novo tópico. Ação registrada no histórico.` });
+    load();
+  };
+
+  const unlockExpert = async (userId: string, email: string) => {
+    if (!confirm(`Liberar Simulado Expert por 24h para ${email}?`)) return;
+    const { error } = await supabase.rpc("admin_unlock_expert", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Expert liberado!", description: `${email} pode acessar o Simulado Expert por 24h.` });
     load();
   };
 
@@ -288,6 +300,7 @@ export default function Admin() {
               <TableHead>Plano</TableHead>
               <TableHead>Expira</TableHead>
               <TableHead>Estudo</TableHead>
+              <TableHead>Expert 24h</TableHead>
               <TableHead>Renovar</TableHead>
             </TableRow>
           </TableHeader>
@@ -295,6 +308,7 @@ export default function Admin() {
             {students.map((s) => {
               const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
               const isAdminRow = adminIds.has(s.id);
+              const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
               return (
                 <TableRow key={s.id}>
                   <TableCell className="text-xs truncate max-w-[180px]">{s.email}</TableCell>
@@ -327,6 +341,23 @@ export default function Admin() {
                     )}
                   </TableCell>
                   <TableCell>
+                    {expertActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-purple-400" title={new Date(s.expert_unlocked_until!).toLocaleString("pt-BR")}>
+                        <Award className="w-3 h-3" /> Ativo até{" "}
+                        {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs border-purple-500/40 hover:bg-purple-500/10"
+                        onClick={() => unlockExpert(s.id, s.email)}
+                      >
+                        <Award className="w-3 h-3 mr-1" /> Liberar 24h
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-8 w-[130px] text-xs">
                         <RefreshCw className="w-3 h-3 mr-1" />
@@ -343,7 +374,7 @@ export default function Admin() {
               );
             })}
             {students.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
