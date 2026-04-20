@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { sha256 } from "@/lib/crypto";
 import { KeyRound, HardHat } from "lucide-react";
@@ -24,6 +25,7 @@ export default function Cadastro() {
   const [reserveCode, setReserveCode] = useState("");
   const [secretQuestion, setSecretQuestion] = useState("");
   const [secretAnswer, setSecretAnswer] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     const validate = async () => {
@@ -45,6 +47,10 @@ export default function Cadastro() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTerms) {
+      toast({ title: "Aceite os Termos de Uso", description: "Você precisa aceitar os Termos de Uso para continuar.", variant: "destructive" });
+      return;
+    }
     if (!/^\d{5}$/.test(reserveCode)) {
       toast({ title: "Código reserva inválido", description: "Deve ter exatamente 5 dígitos.", variant: "destructive" });
       return;
@@ -63,6 +69,7 @@ export default function Cadastro() {
           secret_question: secretQuestion,
           secret_answer_hash: answerHash,
           invite_token: token,
+          terms_accepted_at: new Date().toISOString(),
         },
       },
     });
@@ -130,7 +137,20 @@ export default function Cadastro() {
               <Label>Resposta secreta</Label>
               <Input required value={secretAnswer} onChange={(e) => setSecretAnswer(e.target.value)} />
             </div>
-            <Button type="submit" disabled={loading} className="w-full gradient-primary text-primary-foreground shadow-glow">
+            <div className="flex items-start gap-2 pt-2">
+              <Checkbox
+                id="cad-terms"
+                checked={acceptedTerms}
+                onCheckedChange={(v) => setAcceptedTerms(v === true)}
+              />
+              <label htmlFor="cad-terms" className="text-sm leading-relaxed cursor-pointer">
+                Li e aceito os{" "}
+                <Link to="/termos" target="_blank" className="text-primary underline font-medium">
+                  Termos de Uso
+                </Link>
+              </label>
+            </div>
+            <Button type="submit" disabled={loading || !acceptedTerms} className="w-full gradient-primary text-primary-foreground shadow-glow">
               {loading ? "Criando…" : "Criar conta"}
               <KeyRound className="ml-2" />
             </Button>

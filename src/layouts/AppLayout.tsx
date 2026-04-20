@@ -1,4 +1,4 @@
-import { NavLink, useLocation, Outlet, Navigate } from "react-router-dom";
+import { NavLink, useLocation, Outlet, Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
@@ -15,10 +15,11 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock, Sparkles } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock, Sparkles, FileText } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
+import TermsGate from "@/components/TermsGate";
 import { computeFreeTrial } from "@/lib/freeTrial";
 
 const items = [
@@ -124,6 +125,14 @@ function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/termos" target="_blank" className="hover:bg-sidebar-accent/60">
+                    <FileText className="mr-2 h-4 w-4" />
+                    {!collapsed && <span>Termos de Uso</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -187,6 +196,7 @@ export default function AppLayout() {
           </main>
         </div>
       </div>
+      <TermsGate />
     </SidebarProvider>
   );
 }

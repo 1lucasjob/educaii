@@ -37,10 +37,9 @@ export default function TermsGate() {
   return (
     <Dialog open={true}>
       <DialogContent
-        className="max-w-2xl"
+        className="max-w-2xl [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        hideCloseButton
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

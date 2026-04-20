@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { GraduationCap, Send, Lock, Mail, Trash2, Loader2, Bookmark, BookmarkCheck, Clock } from "lucide-react";
+import { GraduationCap, Send, Lock, Mail, Trash2, Loader2, Bookmark, BookmarkCheck, Clock, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { buildRenewalMailto, planLabel } from "@/lib/plans";
 import { computeFreeTrial } from "@/lib/freeTrial";
@@ -248,6 +248,14 @@ export default function ChatProfessor() {
         </AlertDescription>
       </Alert>
 
+      <Alert className="mb-3 border-blue-500/40 bg-blue-500/10">
+        <Wrench className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-xs">
+          O Chat está em <strong>atualização</strong> para ficar mais rápido e preciso. Algumas respostas podem
+          demorar mais que o normal — obrigado pela paciência!
+        </AlertDescription>
+      </Alert>
+
       <Card className="flex-1 flex flex-col overflow-hidden">
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
           {loadingHistory ? (
@@ -278,8 +286,21 @@ export default function ChatProfessor() {
                 >
                   {m.role === "assistant" ? (
                     <>
-                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-2 prose-ul:my-2">
-                        <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
+                      <div className="text-sm leading-relaxed space-y-2 max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            h1: ({ node, ...props }) => <h2 className="text-base font-bold mt-4 mb-2 text-primary" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-base font-bold mt-4 mb-2 text-primary" {...props} />,
+                            h3: ({ node, ...props }) => <h3 className="text-sm font-semibold mt-3 mb-1.5" {...props} />,
+                            p: ({ node, ...props }) => <p className="my-2 leading-relaxed" {...props} />,
+                            ul: ({ node, ...props }) => <ul className="my-2 space-y-1.5 pl-5 list-disc" {...props} />,
+                            ol: ({ node, ...props }) => <ol className="my-2 space-y-1.5 pl-5 list-decimal" {...props} />,
+                            li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
+                            strong: ({ node, ...props }) => <strong className="text-yellow-400 font-semibold" {...props} />,
+                          }}
+                        >
+                          {m.content || "…"}
+                        </ReactMarkdown>
                       </div>
                       {m.id && m.content && (
                         <div className="flex justify-end mt-2 pt-2 border-t border-border/50">
