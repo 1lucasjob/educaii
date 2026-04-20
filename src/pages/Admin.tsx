@@ -102,6 +102,17 @@ export default function Admin() {
           </div>
         </div>
 
+        {demoEnabled && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/ranking")} className="gap-1 border-primary/40">
+              <Trophy className="w-3.5 h-3.5 text-primary" /> Ver Ranking demo
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/progresso")} className="gap-1 border-primary/40">
+              <Eye className="w-3.5 h-3.5 text-primary" /> Ver Meu Progresso
+            </Button>
+          </div>
+        )}
+
         <div className="mt-5">
           <p className="text-sm font-medium flex items-center gap-2 mb-2">
             <Palette className="w-4 h-4 text-primary" /> Pré-visualizar tema
