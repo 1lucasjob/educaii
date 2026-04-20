@@ -23,13 +23,21 @@ export default function Estudar() {
   const unlocked = profile?.current_topic_unlocked ?? true;
   const lastScore = profile?.last_score ?? 0;
 
+  const MIN_CHARS = 500;
+  const topicLength = topic.trim().length;
+  const meetsMin = topicLength >= MIN_CHARS;
+
   const generate = async () => {
     if (!unlocked) {
       toast({ title: "Tema bloqueado", description: "Conclua o Simulado Difícil com 80+ pontos para liberar.", variant: "destructive" });
       return;
     }
-    if (topic.trim().length < 3) {
-      toast({ title: "Digite um tema válido", variant: "destructive" });
+    if (!meetsMin) {
+      toast({
+        title: "Texto insuficiente",
+        description: `Escreva pelo menos ${MIN_CHARS} caracteres descrevendo o tema (atual: ${topicLength}). Isso garante simulados válidos para o ranking.`,
+        variant: "destructive",
+      });
       return;
     }
     setLoadingSummary(true);
@@ -87,14 +95,20 @@ export default function Estudar() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Sobre qual tema quer estudar?</label>
+          <label className="text-sm font-medium">Sobre qual tema quer estudar? Descreva com detalhes</label>
           <Textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             disabled={!unlocked || loadingSummary}
-            placeholder={unlocked ? "Ex: NR-35 Trabalho em Altura, EPIs, ergonomia, brigada de incêndio…" : "Conclua o simulado difícil para liberar."}
-            className="min-h-24"
+            placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, pontos importantes…). Mínimo 500 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
+            className="min-h-32"
           />
+          <div className="flex items-center justify-between text-xs">
+            <span className={meetsMin ? "text-success" : "text-muted-foreground"}>
+              {topicLength}/{MIN_CHARS} caracteres {meetsMin ? "✓ válido para ranking" : "(mínimo para contar no ranking)"}
+            </span>
+            <Progress value={Math.min(100, (topicLength / MIN_CHARS) * 100)} className="w-24 h-1.5" />
+          </div>
           <Button onClick={generate} disabled={!unlocked || loadingSummary} className="w-full gradient-primary text-primary-foreground shadow-glow">
             {loadingSummary ? "Gerando resumo…" : (<><Sparkles className="mr-2" /> Gerar Estudo</>)}
           </Button>
