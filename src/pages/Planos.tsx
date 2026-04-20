@@ -142,12 +142,18 @@ export default function Planos() {
                 className={cn(
                   "p-6 flex flex-col gap-4 relative transition-all",
                   isCurrent && "ring-2 ring-primary shadow-glow",
-                  p.highlight && !isCurrent && "border-primary/40"
+                  p.highlight && !isCurrent && !p.locked && "border-primary/40",
+                  p.locked && !isAdmin && "opacity-75"
                 )}
               >
-                {p.highlight && !isEditing && (
+                {p.highlight && !isEditing && !p.locked && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow-md">
                     {p.highlight}
+                  </div>
+                )}
+                {p.locked && !isEditing && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-muted text-muted-foreground text-xs font-bold px-3 py-1 rounded-full shadow-md border border-border flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Indisponível
                   </div>
                 )}
                 {isCurrent && (
@@ -208,6 +214,16 @@ export default function Planos() {
                         placeholder="Acesso completo&#10;Quizzes ilimitados"
                       />
                     </div>
+                    <div className="flex items-center justify-between rounded-md border border-border p-2">
+                      <div className="space-y-0.5">
+                        <Label className="text-xs">Plano travado</Label>
+                        <p className="text-[10px] text-muted-foreground">Quando ativo, exibe "Indisponível" para os alunos.</p>
+                      </div>
+                      <Switch
+                        checked={draft.locked}
+                        onCheckedChange={(v) => setDraft({ ...draft, locked: v })}
+                      />
+                    </div>
                     <div className="flex gap-2 pt-2">
                       <Button onClick={save} disabled={saving} className="flex-1">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
@@ -239,12 +255,22 @@ export default function Planos() {
                       ))}
                     </ul>
 
-                    {!isAdmin && !isCurrent && (
+                    {!isAdmin && !isCurrent && !p.locked && (
                       <Button asChild className="gradient-primary text-primary-foreground shadow-glow w-full">
                         <a href={mailto}>
                           <Mail className="w-4 h-4 mr-2" /> Quero este plano
                         </a>
                       </Button>
+                    )}
+                    {!isAdmin && !isCurrent && p.locked && (
+                      <Button disabled variant="outline" className="w-full gap-2">
+                        <Lock className="w-4 h-4" /> Indisponível no momento
+                      </Button>
+                    )}
+                    {isAdmin && p.locked && (
+                      <div className="text-xs text-center text-muted-foreground border border-dashed border-border rounded-md p-2 flex items-center justify-center gap-1">
+                        <Lock className="w-3 h-3" /> Travado — alunos verão "Indisponível"
+                      </div>
                     )}
                     {isCurrent && (
                       <Button disabled variant="outline" className="w-full">
