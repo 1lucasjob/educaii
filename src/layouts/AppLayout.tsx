@@ -35,9 +35,10 @@ const adminItems = [
 
 function AppSidebar() {
   const { state } = useSidebar();
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const chatLocked = !isAdmin && !profile?.chat_unlocked;
   const cls = (path: string) =>
     location.pathname === path
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
