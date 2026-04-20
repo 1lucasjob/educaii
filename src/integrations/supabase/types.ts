@@ -34,30 +34,36 @@ export type Database = {
       }
       invites: {
         Row: {
+          access_expires_at: string | null
           created_at: string
           created_by: string | null
           expires_at: string
           id: string
+          plan: Database["public"]["Enums"]["access_plan"]
           token: string
           used: boolean
           used_at: string | null
           used_by: string | null
         }
         Insert: {
+          access_expires_at?: string | null
           created_at?: string
           created_by?: string | null
           expires_at?: string
           id?: string
+          plan?: Database["public"]["Enums"]["access_plan"]
           token: string
           used?: boolean
           used_at?: string | null
           used_by?: string | null
         }
         Update: {
+          access_expires_at?: string | null
           created_at?: string
           created_by?: string | null
           expires_at?: string
           id?: string
+          plan?: Database["public"]["Enums"]["access_plan"]
           token?: string
           used?: boolean
           used_at?: string | null
@@ -67,12 +73,14 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_expires_at: string | null
           created_at: string
           current_topic: string | null
           current_topic_unlocked: boolean
           email: string
           id: string
           last_score: number
+          plan: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash: string | null
           secret_answer_hash: string | null
           secret_question: string | null
@@ -81,12 +89,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_expires_at?: string | null
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
           email: string
           id: string
           last_score?: number
+          plan?: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash?: string | null
           secret_answer_hash?: string | null
           secret_question?: string | null
@@ -95,12 +105,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_expires_at?: string | null
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
           email?: string
           id?: string
           last_score?: number
+          plan?: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash?: string | null
           secret_answer_hash?: string | null
           secret_question?: string | null
@@ -202,6 +214,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_renew_user: {
+        Args: {
+          _plan: Database["public"]["Enums"]["access_plan"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       get_leaderboard: {
         Args: never
         Returns: {
@@ -222,8 +241,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      plan_duration: {
+        Args: { _plan: Database["public"]["Enums"]["access_plan"] }
+        Returns: string
+      }
     }
     Enums: {
+      access_plan: "free" | "days_30" | "days_90" | "premium"
       app_role: "admin" | "student"
       quiz_difficulty: "easy" | "hard"
     }
@@ -353,6 +377,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_plan: ["free", "days_30", "days_90", "premium"],
       app_role: ["admin", "student"],
       quiz_difficulty: ["easy", "hard"],
     },

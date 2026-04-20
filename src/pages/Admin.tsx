@@ -8,11 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
+import { PLANS, planLabel } from "@/lib/plans";
+import type { AccessPlan } from "@/contexts/AuthContext";
 
 interface Invite {
   id: string;
@@ -21,6 +24,16 @@ interface Invite {
   expires_at: string;
   used_at: string | null;
   created_at: string;
+  plan: AccessPlan;
+  access_expires_at: string | null;
+}
+
+interface StudentRow {
+  id: string;
+  email: string;
+  plan: AccessPlan;
+  access_expires_at: string | null;
+  last_score: number;
 }
 
 export default function Admin() {
@@ -30,34 +43,48 @@ export default function Admin() {
   const [previewTheme, setPreviewTheme] = useState<ThemeName>(getStoredTheme());
   const [slots, setSlots] = useState(0);
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [students, setStudents] = useState<StudentRow[]>([]);
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
+  const [plan, setPlan] = useState<AccessPlan>("free");
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
-    const [{ data: s }, { data: i }] = await Promise.all([
+    const [{ data: s }, { data: i }, { data: st }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score").order("access_expires_at", { ascending: true }),
     ]);
     setSlots(s?.count ?? 0);
     setInvites((i as Invite[]) ?? []);
+    setStudents((st as StudentRow[]) ?? []);
   };
 
   useEffect(() => { load(); }, []);
 
   const release = async () => {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("create-invite", { body: { pin } });
+    const { data, error } = await supabase.functions.invoke("create-invite", { body: { pin, plan } });
     setLoading(false);
     if (error || data?.error) {
       toast({ title: "Erro", description: data?.error ?? error?.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Acesso liberado!", description: "Link copiado para a área de transferência." });
+    toast({ title: "Acesso liberado!", description: `Plano ${planLabel(plan)} · link copiado.` });
     const link = `${window.location.origin}/cadastro?token=${data.token}`;
     navigator.clipboard.writeText(link).catch(() => {});
     setOpen(false);
     setPin("");
+    load();
+  };
+
+  const renew = async (userId: string, newPlan: AccessPlan) => {
+    const { error } = await supabase.rpc("admin_renew_user", { _user_id: userId, _plan: newPlan });
+    if (error) {
+      toast({ title: "Erro ao renovar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Acesso renovado!", description: `Plano ${planLabel(newPlan)} aplicado.` });
     load();
   };
 
@@ -198,13 +225,14 @@ export default function Admin() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="font-bold mb-4">Convites ({invites.length})</h2>
+        <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Status</TableHead>
+              <TableHead>Plano</TableHead>
               <TableHead>Criado</TableHead>
-              <TableHead>Expira</TableHead>
+              <TableHead>Expira link</TableHead>
               <TableHead>Ação</TableHead>
             </TableRow>
           </TableHeader>
@@ -212,6 +240,7 @@ export default function Admin() {
             {invites.map((i) => (
               <TableRow key={i.id}>
                 <TableCell>{statusOf(i)}</TableCell>
+                <TableCell><Badge variant="outline">{planLabel(i.plan)}</Badge></TableCell>
                 <TableCell className="text-xs">{new Date(i.created_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell className="text-xs">{new Date(i.expires_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell>
@@ -224,7 +253,56 @@ export default function Admin() {
               </TableRow>
             ))}
             {invites.length === 0 && (
-              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Nenhum convite ainda.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Nenhum convite ainda.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="font-bold mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Alunos cadastrados ({students.length})</h2>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Email</TableHead>
+              <TableHead>Plano</TableHead>
+              <TableHead>Expira</TableHead>
+              <TableHead>Renovar</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {students.map((s) => {
+              const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
+              return (
+                <TableRow key={s.id}>
+                  <TableCell className="text-xs truncate max-w-[180px]">{s.email}</TableCell>
+                  <TableCell><Badge variant="outline">{planLabel(s.plan)}</Badge></TableCell>
+                  <TableCell className="text-xs">
+                    {s.access_expires_at ? (
+                      <span className={expired ? "text-destructive font-semibold" : ""}>
+                        {new Date(s.access_expires_at).toLocaleDateString("pt-BR")}
+                        {expired && " (expirado)"}
+                      </span>
+                    ) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
+                      <SelectTrigger className="h-8 w-[130px] text-xs">
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        <SelectValue placeholder="Renovar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PLANS.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.label} · {p.days}d</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {students.length === 0 && (
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -233,15 +311,33 @@ export default function Admin() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><KeyRound className="text-primary" /> Confirmar liberação</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><KeyRound className="text-primary" /> Liberar novo acesso</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">Digite o PIN do administrador para gerar um novo link de cadastro único.</p>
+          <p className="text-sm text-muted-foreground">Escolha o plano e digite o PIN para gerar um link de cadastro único.</p>
           <div className="space-y-2">
-            <Label>PIN</Label>
+            <Label>Plano de acesso</Label>
+            <Select value={plan} onValueChange={(v) => setPlan(v as AccessPlan)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PLANS.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{p.label}</span>
+                      <span className="text-xs text-muted-foreground">{p.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>PIN do administrador</Label>
             <Input type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
           </div>
           <Button onClick={release} disabled={loading || pin.length !== 4} className="gradient-primary text-primary-foreground">
-            {loading ? "Liberando…" : "Confirmar"}
+            {loading ? "Liberando…" : `Confirmar — ${planLabel(plan)}`}
           </Button>
         </DialogContent>
       </Dialog>
