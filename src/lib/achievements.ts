@@ -300,6 +300,7 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
       progress: pct(total, 100),
       hint: `${total}/100 simulados`,
       secret: true,
+      ultra: true,
     },
     {
       id: "ultra_omniscient",
@@ -310,6 +311,7 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
       progress: pct(omniscientTopics, 20),
       hint: `${omniscientTopics}/20 temas dominados`,
       secret: true,
+      ultra: true,
     },
     {
       id: "ultra_time_mage",
@@ -320,6 +322,7 @@ export function computeAchievements(attempts: AttemptLite[]): Achievement[] {
       progress: pct(timeMageCount, 10),
       hint: `${timeMageCount}/10 perfeições relâmpago`,
       secret: true,
+      ultra: true,
     },
   ];
 }
