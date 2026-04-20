@@ -113,6 +113,7 @@ export type Database = {
       quiz_attempts: {
         Row: {
           answers: Json | null
+          counts_for_ranking: boolean
           created_at: string
           difficulty: Database["public"]["Enums"]["quiz_difficulty"]
           id: string
@@ -125,6 +126,7 @@ export type Database = {
         }
         Insert: {
           answers?: Json | null
+          counts_for_ranking?: boolean
           created_at?: string
           difficulty: Database["public"]["Enums"]["quiz_difficulty"]
           id?: string
@@ -137,6 +139,7 @@ export type Database = {
         }
         Update: {
           answers?: Json | null
+          counts_for_ranking?: boolean
           created_at?: string
           difficulty?: Database["public"]["Enums"]["quiz_difficulty"]
           id?: string
