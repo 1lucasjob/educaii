@@ -15,6 +15,7 @@ import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
 import { PLANS, planLabel } from "@/lib/plans";
+import PlanBadge from "@/components/PlanBadge";
 import type { AccessPlan } from "@/contexts/AuthContext";
 
 interface Invite {
@@ -47,22 +48,25 @@ export default function Admin() {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [unlockLogs, setUnlockLogs] = useState<Array<{ id: string; created_at: string; admin_email: string | null; student_email: string; previous_topic: string | null }>>([]);
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [plan, setPlan] = useState<AccessPlan>("free");
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
-    const [{ data: s }, { data: i }, { data: st }, { data: logs }] = await Promise.all([
+    const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked").order("access_expires_at", { ascending: true }),
       supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
+      supabase.from("user_roles").select("user_id").eq("role", "admin"),
     ]);
     setSlots(s?.count ?? 0);
     setInvites((i as Invite[]) ?? []);
     setStudents((st as StudentRow[]) ?? []);
     setUnlockLogs((logs as any) ?? []);
+    setAdminIds(new Set(((roles as any[]) ?? []).map((r) => r.user_id)));
   };
 
   useEffect(() => { load(); }, []);
@@ -290,12 +294,15 @@ export default function Admin() {
           <TableBody>
             {students.map((s) => {
               const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
+              const isAdminRow = adminIds.has(s.id);
               return (
                 <TableRow key={s.id}>
                   <TableCell className="text-xs truncate max-w-[180px]">{s.email}</TableCell>
-                  <TableCell><Badge variant="outline">{planLabel(s.plan)}</Badge></TableCell>
+                  <TableCell><PlanBadge plan={s.plan} isAdmin={isAdminRow} size="sm" /></TableCell>
                   <TableCell className="text-xs">
-                    {s.access_expires_at ? (
+                    {isAdminRow ? (
+                      <span className="text-primary font-semibold">Vitalício</span>
+                    ) : s.access_expires_at ? (
                       <span className={expired ? "text-destructive font-semibold" : ""}>
                         {new Date(s.access_expires_at).toLocaleDateString("pt-BR")}
                         {expired && " (expirado)"}
