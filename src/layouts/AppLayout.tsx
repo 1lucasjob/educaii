@@ -159,6 +159,7 @@ export default function AppLayout() {
                 </Button>
               )}
               {isAdmin && <Badge className="gradient-primary text-primary-foreground border-0">Admin</Badge>}
+              {!isAdmin && profile && <PlanBadge plan={profile.plan} size="sm" className="hidden sm:inline-flex" />}
               <span className="text-sm hidden sm:inline truncate max-w-[180px]">{profile?.email}</span>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4" />
