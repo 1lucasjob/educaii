@@ -87,6 +87,61 @@ export default function Configuracoes() {
       </Card>
 
       <Card className="p-6">
+        <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-primary" /> Plano de acesso
+            </h2>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Plano atual:</span>
+                <span className="font-semibold text-primary">{planLabel(profile?.plan ?? "free")}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Expira em:</span>
+                <span className={(() => {
+                  const d = daysUntil(profile?.access_expires_at ?? null);
+                  if (d === null) return "text-muted-foreground";
+                  if (d <= 10) return "text-destructive font-semibold";
+                  if (d <= 30) return "text-yellow-500 font-semibold";
+                  return "text-green-500 font-semibold";
+                })()}>
+                  {(() => {
+                    const d = daysUntil(profile?.access_expires_at ?? null);
+                    if (d === null) return "—";
+                    if (d < 0) return "Expirado";
+                    return `${d} ${d === 1 ? "dia" : "dias"}`;
+                  })()}
+                </span>
+              </div>
+              {profile?.access_expires_at && (
+                <p className="text-xs text-muted-foreground">
+                  {new Date(profile.access_expires_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                </p>
+              )}
+            </div>
+          </div>
+          {(() => {
+            const d = daysUntil(profile?.access_expires_at ?? null);
+            const showButton = d !== null && d <= 10;
+            const mailto = profile ? buildRenewalMailto({
+              userEmail: profile.email,
+              plan: profile.plan,
+              expiresAt: profile.access_expires_at,
+            }) : "#";
+            return showButton ? (
+              <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-glow shrink-0">
+                <a href={mailto}>
+                  <RefreshCw className="w-4 h-4 mr-2" /> Renovar agora
+                </a>
+              </Button>
+            ) : null;
+          })()}
+        </div>
+      </Card>
+
+      <Card className="p-6">
         <h2 className="font-bold mb-1">Tema</h2>
         <p className="text-sm text-muted-foreground mb-4">Escolha a paleta de cores da sua área de estudo.</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
