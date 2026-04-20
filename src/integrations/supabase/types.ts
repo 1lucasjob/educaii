@@ -362,7 +362,7 @@ export type Database = {
     Enums: {
       access_plan: "free" | "days_30" | "days_60" | "days_90" | "premium"
       app_role: "admin" | "student"
-      quiz_difficulty: "easy" | "hard"
+      quiz_difficulty: "easy" | "hard" | "expert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -492,7 +492,7 @@ export const Constants = {
     Enums: {
       access_plan: ["free", "days_30", "days_60", "days_90", "premium"],
       app_role: ["admin", "student"],
-      quiz_difficulty: ["easy", "hard"],
+      quiz_difficulty: ["easy", "hard", "expert"],
     },
   },
 } as const

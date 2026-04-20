@@ -1,0 +1,1 @@
+ALTER TYPE public.quiz_difficulty ADD VALUE IF NOT EXISTS 'expert';
