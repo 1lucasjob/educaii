@@ -14,6 +14,34 @@ import {
   Armchair,
   MoveUp,
   FileText,
+  Archive,
+  Ban,
+  Briefcase,
+  Building2,
+  Truck,
+  Gauge,
+  Flame,
+  AlertTriangle,
+  Construction,
+  Bomb,
+  Fuel,
+  Sun,
+  Pickaxe,
+  FlameKindling,
+  Bath,
+  Trash2,
+  Palette,
+  IdCard,
+  Scale,
+  Anchor,
+  Ship,
+  Tractor,
+  HeartPulse,
+  Box,
+  Wrench,
+  Beef,
+  Droplet,
+  Recycle,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,15 +59,43 @@ const REVOKED = new Set(["NR-02","NR-27"]);
 
 const NR_ICONS: Record<string, LucideIcon> = {
   "NR-01": BookOpen,
+  "NR-02": Archive,
+  "NR-03": Ban,
+  "NR-04": Briefcase,
   "NR-05": Users,
   "NR-06": HardHat,
   "NR-07": Stethoscope,
+  "NR-08": Building2,
   "NR-09": Activity,
   "NR-10": Zap,
+  "NR-11": Truck,
   "NR-12": Cog,
+  "NR-13": Gauge,
+  "NR-14": Flame,
   "NR-15": FlaskConical,
+  "NR-16": AlertTriangle,
   "NR-17": Armchair,
+  "NR-18": Construction,
+  "NR-19": Bomb,
+  "NR-20": Fuel,
+  "NR-21": Sun,
+  "NR-22": Pickaxe,
+  "NR-23": FlameKindling,
+  "NR-24": Bath,
+  "NR-25": Trash2,
+  "NR-26": Palette,
+  "NR-27": IdCard,
+  "NR-28": Scale,
+  "NR-29": Anchor,
+  "NR-30": Ship,
+  "NR-31": Tractor,
+  "NR-32": HeartPulse,
+  "NR-33": Box,
+  "NR-34": Wrench,
   "NR-35": MoveUp,
+  "NR-36": Beef,
+  "NR-37": Droplet,
+  "NR-38": Recycle,
 };
 const getIcon = (id: string): LucideIcon => NR_ICONS[id] ?? FileText;
 
@@ -151,11 +207,11 @@ export default function Normas() {
       </div>
 
       {searching ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma NR encontrada.</p>
           ) : (
-            filtered.map((n) => renderChip(n.id, MAIN_NRS.includes(n.id)))
+            filtered.map((n) => renderChip(n.id, true))
           )}
         </div>
       ) : (
@@ -172,8 +228,8 @@ export default function Normas() {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
               Demais NRs
             </p>
-            <div className="flex flex-wrap gap-2">
-              {otherList.map((n) => renderChip(n.id, false))}
+            <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+              {otherList.map((n) => renderChip(n.id, true))}
             </div>
           </div>
         </div>
