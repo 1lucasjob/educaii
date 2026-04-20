@@ -27,7 +27,7 @@ export default function Estudar() {
   const unlocked = (profile?.current_topic_unlocked ?? true) && !freeExpired;
   const lastScore = profile?.last_score ?? 0;
 
-  const MIN_CHARS = 500;
+  const MIN_CHARS = 1000;
   const topicLength = topic.trim().length;
   const meetsMin = topicLength >= MIN_CHARS;
 
@@ -131,7 +131,7 @@ export default function Estudar() {
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             disabled={!unlocked || loadingSummary}
-            placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, pontos importantes…). Mínimo 500 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
+            placeholder={unlocked ? "Descreva em detalhe o que quer estudar (NR, contexto, riscos, medidas, normas aplicáveis…). Mínimo 1000 caracteres para contar no ranking." : "Conclua o simulado difícil para liberar."}
             className="min-h-32"
           />
           <div className="flex items-center justify-between text-xs">
