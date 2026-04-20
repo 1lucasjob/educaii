@@ -182,7 +182,7 @@ export default function Estudar() {
               className="min-h-32"
             />
             <div className="flex items-center justify-between text-xs gap-3">
-              <span className={meetsExpert ? "text-purple-400" : meetsHard ? "text-success" : meetsEasy ? "text-primary" : "text-muted-foreground"}>
+              <span style={meetsExpert ? { color: "hsl(280 80% 65%)" } : undefined} className={meetsExpert ? "" : meetsHard ? "text-success" : meetsEasy ? "text-primary" : "text-muted-foreground"}>
                 {meetsExpert
                   ? `${topicLength}/${MIN_CHARS_EXPERT} ✓ libera Fácil + Difícil + Expert`
                   : meetsHard
