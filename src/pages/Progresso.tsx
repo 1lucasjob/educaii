@@ -43,7 +43,7 @@ const formatDuration = (s: number) => {
 
 export default function Progresso() {
   const { user } = useAuth();
-  const { enabled: demoEnabled, fakeAttempts } = useDemoMode();
+  const { enabled: demoEnabled, fakeAttempts, viewAsRow } = useDemoMode();
   const [realAttempts, setRealAttempts] = useState<Attempt[]>([]);
 
   useEffect(() => {
@@ -56,15 +56,27 @@ export default function Progresso() {
       .then(({ data }) => setRealAttempts((data as Attempt[]) ?? []));
   }, [user]);
 
-  const attempts = useMemo<Attempt[]>(
-    () =>
-      demoEnabled
-        ? [...realAttempts, ...(fakeAttempts as Attempt[])].sort(
-            (a, b) => +new Date(a.created_at) - +new Date(b.created_at),
-          )
-        : realAttempts,
-    [demoEnabled, realAttempts, fakeAttempts],
-  );
+  const attempts = useMemo<Attempt[]>(() => {
+    if (demoEnabled && viewAsRow) {
+      return viewAsRow.attempts_data
+        .map((a, i) => ({
+          id: `view-${i}`,
+          topic: a.topic,
+          difficulty: a.difficulty,
+          score: a.score,
+          created_at: a.created_at,
+          time_spent_seconds: a.time_spent_seconds ?? 0,
+          counts_for_ranking: (a.time_spent_seconds ?? 0) >= 120,
+        }))
+        .sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+    }
+    if (demoEnabled) {
+      return [...realAttempts, ...(fakeAttempts as Attempt[])].sort(
+        (a, b) => +new Date(a.created_at) - +new Date(b.created_at),
+      );
+    }
+    return realAttempts;
+  }, [demoEnabled, realAttempts, fakeAttempts, viewAsRow]);
 
   const total = attempts.length;
   const avg = total ? Math.round(attempts.reduce((s, a) => s + a.score, 0) / total) : 0;
