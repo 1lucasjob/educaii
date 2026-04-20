@@ -15,12 +15,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, HardHat } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, HardHat, Trophy } from "lucide-react";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
   { title: "Normas Principais", url: "/app/normas", icon: BookOpen },
   { title: "Meu Progresso", url: "/app/progresso", icon: BarChart3 },
+  { title: "Ranking", url: "/app/ranking", icon: Trophy },
 ];
 
 const adminItems = [{ title: "Gestão de Cadastros", url: "/app/admin", icon: ShieldCheck }];

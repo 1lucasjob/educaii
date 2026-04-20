@@ -76,6 +76,7 @@ export type Database = {
           reserve_code_hash: string | null
           secret_answer_hash: string | null
           secret_question: string | null
+          show_in_ranking: boolean
           theme: string
           updated_at: string
         }
@@ -89,6 +90,7 @@ export type Database = {
           reserve_code_hash?: string | null
           secret_answer_hash?: string | null
           secret_question?: string | null
+          show_in_ranking?: boolean
           theme?: string
           updated_at?: string
         }
@@ -102,6 +104,7 @@ export type Database = {
           reserve_code_hash?: string | null
           secret_answer_hash?: string | null
           secret_question?: string | null
+          show_in_ranking?: boolean
           theme?: string
           updated_at?: string
         }
@@ -196,6 +199,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          attempts: number
+          avg_score: number
+          composite_score: number
+          display_name: string
+          hard_passed: number
+          total_score: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

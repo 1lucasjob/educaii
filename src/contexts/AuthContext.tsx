@@ -10,6 +10,7 @@ interface Profile {
   current_topic: string | null;
   current_topic_unlocked: boolean;
   last_score: number;
+  show_in_ranking: boolean;
 }
 
 interface AuthCtx {
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = async (uid: string) => {
     const { data: p } = await supabase
       .from("profiles")
-      .select("id,email,theme,current_topic,current_topic_unlocked,last_score")
+      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking")
       .eq("id", uid)
       .maybeSingle();
     if (p) {
