@@ -73,6 +73,26 @@ export default function Simulado() {
       setLoading(false);
       return;
     }
+    const wantResume = params.get("resume") === "1";
+    if (wantResume && profile?.id) {
+      const saved = loadQuiz(profile.id);
+      if (
+        saved &&
+        saved.topic === topic &&
+        saved.difficulty === difficulty &&
+        saved.questions.length > 0
+      ) {
+        const elapsed = Math.max(0, Math.floor((Date.now() - saved.savedAt) / 1000));
+        const adjusted = Math.max(0, saved.timeLeft - elapsed);
+        setQuestions(saved.questions);
+        setAnswers(saved.answers);
+        setCurrent(Math.min(saved.current, saved.questions.length - 1));
+        setTimeLeft(adjusted);
+        setTimeSpent(saved.timeSpent + elapsed);
+        setLoading(false);
+        return;
+      }
+    }
     const load = async () => {
       let sourceText: string | undefined;
       try {
@@ -93,6 +113,43 @@ export default function Simulado() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Persistir progresso em localStorage para permitir "Retomar Simulado"
+  useEffect(() => {
+    if (loading || finished || blocked) return;
+    if (!profile?.id || questions.length === 0) return;
+    saveQuiz(profile.id, {
+      topic,
+      difficulty,
+      questions,
+      answers,
+      current,
+      timeLeft,
+      timeSpent,
+      savedAt: Date.now(),
+      timeLimit: TIME_LIMIT,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, answers, current, finished, loading]);
+
+  // Salvar timer a cada 5s para manter timeLeft atualizado caso o usuário saia
+  useEffect(() => {
+    if (loading || finished || blocked) return;
+    if (!profile?.id || questions.length === 0) return;
+    if (timeLeft % 5 !== 0) return;
+    saveQuiz(profile.id, {
+      topic,
+      difficulty,
+      questions,
+      answers,
+      current,
+      timeLeft,
+      timeSpent,
+      savedAt: Date.now(),
+      timeLimit: TIME_LIMIT,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft]);
 
   // Countdown timer
   useEffect(() => {
