@@ -79,7 +79,9 @@ export function computePlanWindows(opts: {
 export function expertActive(opts: {
   plan: AccessPlan | null | undefined;
   expertUnlockedUntil: string | null | undefined;
+  isAdmin?: boolean;
 }): boolean {
+  if (opts.isAdmin) return true;
   if (opts.plan === "premium" || opts.plan === "days_180") return true;
   if (opts.expertUnlockedUntil) {
     return new Date(opts.expertUnlockedUntil).getTime() > Date.now();
