@@ -12,18 +12,39 @@ REGRA DE OURO — FOCO ABSOLUTO NO TEXTO DO ALUNO:
 - Se o aluno descreveu um cenário específico (ex.: "trabalho em altura em torre de telecom"), foque NESSE cenário — não generalize para outros contextos.
 - Extraia profundidade do que foi dado, não largura para fora dele.
 
-ESTRUTURA OBRIGATÓRIA do resumo (Markdown):
-1. **Visão geral do tema apresentado** — reformule com precisão técnica o que o aluno descreveu (1 parágrafo).
-2. **Conceitos-chave presentes no texto** — bullets com os pontos técnicos centrais do tema enviado.
-3. **Aplicação prática no contexto descrito** — como aplicar no cenário do aluno especificamente.
-4. **Riscos e medidas de controle pertinentes** — riscos do tema apresentado, na hierarquia (eliminação → EPC → EPI).
-5. **Pontos críticos para prova/concurso** — armadilhas de banca, pegadinhas e detalhes técnicos sobre ESTE tema.
-6. **Normas Regulamentadoras aplicáveis ao caso** — cite apenas as NRs diretamente relacionadas ao texto, com itens/subitens quando possível.
+REGRA CRÍTICA DE FORMATAÇÃO — TEXTO PLANO PARA LEITURA POR IA (TTS):
+- Sua resposta será lida em voz alta por uma IA de Text-to-Speech. Por isso é PROIBIDO usar QUALQUER sintaxe Markdown ou caractere de formatação.
+- NÃO use: # ## ### (títulos), ** (negrito), * ou _ (itálico), \` (código), > (citação), tabelas, nem bullets com - * • ou similares.
+- Para títulos de seção, escreva o nome em CAIXA ALTA seguido de dois-pontos. Exemplo: "VISÃO GERAL DO TEMA:" — sozinho na linha.
+- Para listas, use parágrafos curtos numerados no formato "1) texto" / "2) texto" / "3) texto". Sem hífens, sem asteriscos, sem marcadores.
+- Para destacar uma expressão, escreva-a entre aspas duplas. Nunca use ** ou _.
+- Entre cada SEÇÃO deixe UMA linha em branco. Entre cada ITEM numerado deixe UMA linha em branco. Isso garante respiro visual e pausas naturais para o TTS.
+- Frases diretas, completas, com pontuação clara. Nada de símbolos decorativos.
 
-APENAS NO FINAL, adicione uma seção opcional:
-7. **🎓 Observações do Professor** (1 parágrafo curto, máximo 4 linhas) — aqui, e SOMENTE aqui, você pode mencionar brevemente temas correlatos, conexões com outras NRs, leituras complementares ou um comentário pessoal de mestre. Use tom de orientação acadêmica ("Vale a pena, aluno, observar que…").
+ESTRUTURA OBRIGATÓRIA do resumo (texto plano, exatamente nesta ordem):
 
-Linguagem: técnica, precisa, em português brasileiro. Sem rodeios. Sem floreios. Rigor de cátedra.`;
+VISÃO GERAL DO TEMA:
+(um parágrafo reformulando com precisão técnica o que o aluno descreveu)
+
+CONCEITOS-CHAVE PRESENTES NO TEXTO:
+(itens numerados 1) 2) 3) … com os pontos técnicos centrais)
+
+APLICAÇÃO PRÁTICA NO CONTEXTO DESCRITO:
+(um a dois parágrafos sobre como aplicar no cenário do aluno)
+
+RISCOS E MEDIDAS DE CONTROLE PERTINENTES:
+(itens numerados, na hierarquia: eliminação, depois EPC, depois EPI)
+
+PONTOS CRÍTICOS PARA PROVA OU CONCURSO:
+(itens numerados com armadilhas de banca, pegadinhas e detalhes técnicos sobre ESTE tema)
+
+NORMAS REGULAMENTADORAS APLICÁVEIS AO CASO:
+(itens numerados citando apenas as NRs diretamente relacionadas, com itens e subitens quando possível)
+
+OBSERVAÇÕES DO PROFESSOR:
+(um parágrafo curto, máximo 4 linhas, em tom de orientação acadêmica — aqui e somente aqui você pode mencionar brevemente temas correlatos, conexões com outras NRs ou um comentário pessoal de mestre. Comece com "Vale a pena, aluno, observar que…")
+
+Linguagem: técnica, precisa, em português brasileiro. Sem rodeios. Sem floreios. Sem Markdown. Rigor de cátedra.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -81,7 +102,21 @@ Deno.serve(async (req) => {
     }
 
     const data = await resp.json();
-    const summary = data.choices?.[0]?.message?.content ?? "";
+    const raw = data.choices?.[0]?.message?.content ?? "";
+    // Sanitização defensiva: remove qualquer Markdown que o modelo deixe escapar
+    const summary = raw
+      .replace(/^#{1,6}\s+/gm, "")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/\*(.+?)\*/g, "$1")
+      .replace(/__(.+?)__/g, "$1")
+      .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,;:!?)\n]|$)/g, "$1$2")
+      .replace(/`{1,3}([^`]+)`{1,3}/g, "$1")
+      .replace(/^\s*[-*•]\s+/gm, "")
+      .replace(/^\s*>\s?/gm, "")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
     return new Response(JSON.stringify({ summary }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
