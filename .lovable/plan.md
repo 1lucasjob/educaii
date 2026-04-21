@@ -2,69 +2,78 @@
 
 ## Objetivo
 
-1. **Perfil editável** por aluno com **nick (display name)** e **imagem de avatar**, usado no ranking e no cabeçalho.
-2. Novo componente **`LoyaltyProgram`** — timeline gamificada de fidelidade que mostra títulos/cristais desbloqueados conforme os meses de permanência do usuário (baseado em `profiles.created_at`).
+1. **Programa de Fidelidade** — simplificar visual e mover para **abaixo das Conquistas** em `Progresso.tsx`.
+2. **Badge de fidelidade inline** — aparecer **ao lado do nick** do usuário no header, no Ranking (lista + dialog) e no card "Meu Perfil" das Configurações.
+3. **Pegar Nota (Trechos-Chave)** — nova área no **Módulo de Estudos** que extrai os trechos mais importantes **do texto colado, sem qualquer modificação** (verbatim).
 
 ---
 
-## Parte 1 — Perfil editável (nick + avatar)
+## Parte 1 — Simplificar `LoyaltyProgram` e reposicionar
 
-### Banco de dados (migração)
+### `src/components/LoyaltyProgram.tsx`
+- Manter o array `LOYALTY_TIERS` e a lógica de `userMonths`.
+- Trocar a timeline grande por um **layout compacto**:
+  - Cabeçalho enxuto: ícone + "Programa de Fidelidade" + barra fina de progresso até o próximo tier + label "Faltam X meses para {próximo}".
+  - **Grid horizontal scrollável** (ou wrap em desktop) com cristais pequenos (~48px), título curto abaixo e badge "X m". Desbloqueados com glow; bloqueados com `opacity-40 grayscale` + `Lock` mini.
+- Remover o fundo "tela cheia" escuro: usar `Card` padrão para combinar com o resto da página.
 
-- Adicionar em `public.profiles`:
-  - `display_name text` (nullable; fallback continua sendo a parte antes do `@` do email).
-  - `avatar_url text` (nullable).
-- Criar **storage bucket** `avatars` (público), com RLS em `storage.objects`:
-  - SELECT público.
-  - INSERT/UPDATE/DELETE permitidos apenas quando o nome do arquivo começar com `auth.uid()/` (cada usuário só mexe na sua pasta).
-- Atualizar a RPC `get_leaderboard` para retornar também `display_name` (usando `COALESCE(p.display_name, split_part(p.email,'@',1))`) e `avatar_url`.
-
-### Frontend
-
-- **`src/contexts/AuthContext.tsx`**: incluir `display_name` e `avatar_url` no tipo `Profile` e no `select`.
-- **`src/pages/Configuracoes.tsx`** — nova seção **"Meu Perfil"** no topo:
-  - Avatar grande (`Avatar` do shadcn) com botão "Trocar imagem" → upload para bucket `avatars/{user_id}/avatar.{ext}`, salva `avatar_url` no profile.
-  - Campo de texto "Apelido" (máx. 24 caracteres, sanitizado) + botão "Salvar".
-  - Botão "Remover imagem" quando houver avatar.
-  - Validação: imagem até 2 MB, tipos `image/png|jpeg|webp`.
-- **`src/layouts/AppLayout.tsx`**: mostrar avatar + nick no header (substituindo/complementando o email).
-- **`src/pages/Ranking.tsx`**: usar `display_name` e `avatar_url` vindos da RPC; renderizar `Avatar` ao lado do nome em cada linha do leaderboard e no dialog de detalhes.
+### `src/pages/Progresso.tsx`
+- Remover render atual acima das estatísticas.
+- Renderizar `<LoyaltyProgram />` **abaixo** da seção "Conquistas Secretas" (e abaixo de "Conquistas" quando não houver secretas), antes dos gráficos.
 
 ---
 
-## Parte 2 — Componente `LoyaltyProgram`
+## Parte 2 — Badge de fidelidade ao lado do nick
 
-### Arquivo novo: `src/components/LoyaltyProgram.tsx`
+### Novo: `src/components/LoyaltyBadge.tsx`
+- Props: `{ startDate?: string | Date | null; size?: "xs" | "sm" }`.
+- Reaproveita `LOYALTY_TIERS` para encontrar o **tier mais alto desbloqueado**.
+- Renderiza um `Tooltip` com um chip pequeno (ícone do tier + cores/glow do tier) + opcional título curto. Sem texto longo.
+- Se `userMonths < 1`, retorna `null`.
 
-- Props: `{ startDate: string | Date; className?: string }`. Calcula `userMonths` internamente com base em `startDate` (usa `profile.created_at`). Exporta também uma constante `LOYALTY_TIERS` para reaproveitamento.
-- **Dados** (array `LOYALTY_TIERS`): 1, 2, 3, 4, 6, 8, 10, 12, 15, 18, 21, 24 meses com título, ícone `lucide-react` e classes Tailwind conforme a especificação do usuário:
-  - 1 `Hexagon` cinza chumbo · 2 `Hexagon` branco borda cinza · 3 `Gem` esmeralda · 4 `Triangle` amarelo · 6 `Diamond` azul safira · 8 `Diamond` rubi · 10 `Gem` roxo · 12 `Shield` esmeralda com `drop-shadow-lg` · 15 `Crown` ouro · 18 `Star` ciano diamante · 21 `Sparkles` multicolor (`bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent`) · 24 `Cpu`+`Shield` holográfico com `animate-pulse` e glow azul/verde neon.
-- **Layout**:
-  - Wrapper com fundo escuro local (`bg-slate-950/60 rounded-xl p-6`) para destacar brilho, independente do tema.
-  - **Barra de progresso** no topo: mostra progresso (%) até o próximo marco não alcançado, com label "Faltam X meses para {próximo título}" ou "Você atingiu o nível máximo" quando `userMonths >= 24`.
-  - **Timeline vertical** (linha central) em desktop / lista empilhada em mobile. Cada tier é um card com:
-    - Ícone estilizado (gradiente + `drop-shadow` + `animate-pulse` para o 24) dentro de um círculo.
-    - Título + "X meses".
-    - Badge "Desbloqueado" / "Bloqueado".
-  - **Níveis desbloqueados** (`tier.months <= userMonths`): cores vibrantes + glow + `shadow-[0_0_20px_...]`.
-  - **Níveis bloqueados**: `opacity-50 grayscale` + overlay com ícone `Lock` pequeno sobreposto no canto do cristal.
-- Responsivo, acessível (`aria-label` em cada tier), sem libs extras.
+### Integrações
+- **`src/layouts/AppLayout.tsx`** (header): inserir `<LoyaltyBadge startDate={profile?.created_at} size="xs" />` imediatamente ao lado do `display_name`.
+- **`src/pages/Ranking.tsx`**:
+  - Lista: ao lado de `r.display_name` na linha do leaderboard.
+  - Dialog: ao lado do `sel.display_name` no `DialogTitle`.
+  - Para isso, expor `created_at` na RPC `get_leaderboard` (migração) e adicionar ao tipo `Row`.
+- **`src/pages/Configuracoes.tsx`**: badge ao lado do nick atual no card "Meu Perfil".
 
-### Integração
+### Migração SQL
+- Atualizar `get_leaderboard` para retornar também `created_at` do `profiles`.
 
-- **`src/pages/Progresso.tsx`**: adicionar seção "Programa de Fidelidade" renderizando `<LoyaltyProgram startDate={profile.created_at} />` acima das conquistas.
-- **`src/pages/Configuracoes.tsx`**: prévia compacta opcional do tier atual ao lado do plano (apenas ícone + título atual). *(opcional, mantém o componente principal na página de Progresso.)*
+---
+
+## Parte 3 — "Pegar Nota" (Trechos-Chave verbatim)
+
+### Edge function nova: `supabase/functions/extract-highlights/index.ts`
+- Input: `{ topic: string, title?: string, count?: number (default 6, max 10) }`.
+- Chama Lovable AI (`google/gemini-2.5-flash`) com system prompt rígido:
+  - "Retorne APENAS um JSON `{ "highlights": string[] }` com os trechos MAIS IMPORTANTES copiados **literalmente** do texto fornecido. NUNCA reescreva, parafraseie, resuma ou corrija. Cada item deve ser uma substring exata e contígua do texto. Tamanho 1–3 frases. Sem comentários."
+- **Validação verbatim no backend**: depois da resposta, normalizar (apenas trim) e **filtrar** mantendo somente strings que `topic.includes(trecho)` retorne `true`. Descartar o resto. Se sobrar 0, retornar erro amigável "Não foi possível extrair trechos verbatim — tente novamente".
+- Retornar `{ highlights: string[] }`.
+
+### `src/pages/Estudar.tsx`
+- Após o card "Resumo Técnico" (quando `summary` existe), adicionar **novo Card "Trechos-Chave (Pegar Nota)"**:
+  - Botão "Extrair trechos" (ou auto-disparado junto do `generate`, decidir por simplicidade: botão manual).
+  - Estado `highlights: string[]`, `loadingHighlights`.
+  - Lista de cards pequenos, cada um com:
+    - Trecho exato em `<blockquote>` com borda lateral primary, fonte serifada/itálico, `whitespace-pre-wrap`.
+    - Botão "Copiar" (clipboard) e contador `i/N`.
+  - Aviso pequeno: "Trechos extraídos diretamente do seu texto, sem modificações."
+- Não persiste no banco (efêmero por sessão); fica disponível enquanto o `summary` estiver visível.
 
 ---
 
 ## Arquivos afetados
 
-- Migração SQL: colunas `display_name`/`avatar_url`, bucket `avatars` + policies, update em `get_leaderboard`.
-- `src/integrations/supabase/types.ts` (auto-gerado).
-- `src/contexts/AuthContext.tsx` — tipo `Profile` estendido.
-- `src/pages/Configuracoes.tsx` — seção "Meu Perfil" (upload + nick).
-- `src/layouts/AppLayout.tsx` — avatar + nick no header.
-- `src/pages/Ranking.tsx` — render avatar/nick.
-- `src/components/LoyaltyProgram.tsx` — componente novo.
-- `src/pages/Progresso.tsx` — integra `LoyaltyProgram`.
+- **Novo**: `src/components/LoyaltyBadge.tsx`
+- **Novo**: `supabase/functions/extract-highlights/index.ts`
+- **Migração SQL**: atualizar `get_leaderboard` para incluir `created_at`
+- `src/components/LoyaltyProgram.tsx` — versão compacta
+- `src/pages/Progresso.tsx` — mover loyalty para abaixo das conquistas
+- `src/layouts/AppLayout.tsx` — badge no header
+- `src/pages/Ranking.tsx` — badge na lista e no dialog + tipo `Row`
+- `src/pages/Configuracoes.tsx` — badge no card "Meu Perfil"
+- `src/pages/Estudar.tsx` — seção "Pegar Nota"
 
