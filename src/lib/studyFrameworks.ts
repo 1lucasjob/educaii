@@ -144,3 +144,20 @@ export function getFrameworkById(id: string | null | undefined): Framework | und
   if (!id) return undefined;
   return FRAMEWORKS.find((f) => f.id === id);
 }
+
+/**
+ * Marcadores únicos no início do `template` de cada framework.
+ * Usados pelas edge functions para validar que o `topic` realmente veio
+ * de um modelo de estudo antes de aplicar o bypass de plano.
+ * Mantenha sincronizado com a primeira linha de cada `TEMPLATE_*`.
+ */
+export const FRAMEWORK_TEMPLATE_MARKERS: readonly string[] = [
+  "Resumo no formato 5W2H",
+  "Resumo no formato SWOT (FOFA)",
+];
+
+export function topicMatchesFrameworkTemplate(topic: string): boolean {
+  if (!topic) return false;
+  const head = topic.trimStart();
+  return FRAMEWORK_TEMPLATE_MARKERS.some((m) => head.startsWith(m));
+}

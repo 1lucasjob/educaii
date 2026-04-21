@@ -14,7 +14,9 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
-import { getFrameworkById, type Framework } from "@/lib/studyFrameworks";
+import { getFrameworkById, topicMatchesFrameworkTemplate, type Framework } from "@/lib/studyFrameworks";
+
+const FROM_FRAMEWORK_KEY = "estudar:from-framework";
 
 function stripMarkdown(s: string): string {
   return s
@@ -48,7 +50,34 @@ export default function Estudar() {
   const [loadingHighlights, setLoadingHighlights] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [resumable, setResumable] = useState<SavedQuiz | null>(null);
+  const [fromFramework, setFromFramework] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(FROM_FRAMEWORK_KEY) === "1"; } catch { return false; }
+  });
   const topicRef = useRef<HTMLTextAreaElement>(null);
+
+  const enableFrameworkBypass = () => {
+    setFromFramework(true);
+    try { sessionStorage.setItem(FROM_FRAMEWORK_KEY, "1"); } catch {}
+  };
+  const disableFrameworkBypass = () => {
+    setFromFramework(false);
+    try { sessionStorage.removeItem(FROM_FRAMEWORK_KEY); } catch {}
+  };
+
+  // Limpa o bypass quando o usuário edita o tema e ele deixa de bater com um template de framework
+  useEffect(() => {
+    if (!fromFramework) return;
+    if (topic && !topicMatchesFrameworkTemplate(topic)) {
+      disableFrameworkBypass();
+    }
+  }, [topic, fromFramework]);
+
+  // Limpa o bypass ao desmontar a página
+  useEffect(() => {
+    return () => {
+      try { sessionStorage.removeItem(FROM_FRAMEWORK_KEY); } catch {}
+    };
+  }, []);
 
   const handlePickFramework = (fw: Framework) => {
     console.log("[FrameworkPicker] picked:", fw.id);
@@ -79,6 +108,7 @@ export default function Estudar() {
     const fw = getFrameworkById(fwId);
     if (!fw) return;
     handlePickFramework(fw);
+    enableFrameworkBypass();
     const next = new URLSearchParams(searchParams);
     next.delete("framework");
     setSearchParams(next, { replace: true });
@@ -141,8 +171,9 @@ export default function Estudar() {
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
-  const freeExpired = trial.isFree && !trial.freeBaseActive && !isAdmin;
-  const unlocked = isAdmin || ((profile?.current_topic_unlocked ?? true) && !freeExpired);
+  const freeExpiredRaw = trial.isFree && !trial.freeBaseActive && !isAdmin;
+  const freeExpired = freeExpiredRaw && !fromFramework;
+  const unlocked = isAdmin || fromFramework || ((profile?.current_topic_unlocked ?? true) && !freeExpiredRaw);
   const lastScore = profile?.last_score ?? 0;
 
   const MIN_CHARS_EASY = 500;
@@ -156,10 +187,11 @@ export default function Estudar() {
   const meetsHard = topicLength >= MIN_CHARS_HARD || isAdmin;
   const meetsExpert = topicLength >= MIN_CHARS_EXPERT || isAdmin;
   const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
-  const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
-  const canExtractHighlights = highlightsActive({ plan: profile?.plan, highlightsUnlockedUntil: profile?.highlights_unlocked_until, isAdmin });
+  const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin }) || fromFramework;
+  const canExtractHighlights = highlightsActive({ plan: profile?.plan, highlightsUnlockedUntil: profile?.highlights_unlocked_until, isAdmin }) || fromFramework;
   const highlightsViaAdmin =
     !isAdmin &&
+    !fromFramework &&
     canExtractHighlights &&
     !!profile?.highlights_unlocked_until &&
     !["days_60", "days_90", "days_180", "premium"].includes(profile?.plan ?? "");
@@ -196,7 +228,7 @@ export default function Estudar() {
     setSummary(null);
     const cleanTitle = title.trim();
     const isHard = meetsHard;
-    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle } });
+    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle, from_framework: fromFramework } });
     setLoadingSummary(false);
     if (error || data?.error) {
       toast({ title: "Erro ao gerar resumo", description: data?.error ?? error?.message, variant: "destructive" });
@@ -225,7 +257,7 @@ export default function Estudar() {
     if (!sourceText) return;
     setLoadingHighlights(true);
     const { data, error } = await supabase.functions.invoke("extract-highlights", {
-      body: { topic: sourceText, title: activeTopic ?? "", count: 6 },
+      body: { topic: sourceText, title: activeTopic ?? "", count: 6, from_framework: fromFramework },
     });
     setLoadingHighlights(false);
     if (error || data?.error) {
@@ -278,6 +310,24 @@ export default function Estudar() {
             <Link to="/app/planos" className="text-primary underline underline-offset-2 font-medium">
               Faça upgrade para continuar estudando
             </Link>.
+          </AlertDescription>
+        </Alert>
+      )}
+      {fromFramework && (
+        <Alert className="border-primary/40 bg-primary/5">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <AlertDescription className="text-sm flex items-center justify-between gap-3 flex-wrap">
+            <span>
+              Você está usando um <strong>Modelo de Estudo</strong> — bloqueios de plano temporariamente liberados nesta sessão.
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={() => { disableFrameworkBypass(); setTitle(""); setTopic(""); }}
+            >
+              Sair do modo modelo
+            </Button>
           </AlertDescription>
         </Alert>
       )}
