@@ -10,8 +10,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import PlanBadge from "@/components/PlanBadge";
-import { buildPurchaseMailto } from "@/lib/plans";
-import { Check, Sparkles, Mail, ShieldCheck, Pencil, Save, X, Loader2, Lock } from "lucide-react";
+import PixPaymentDialog from "@/components/PixPaymentDialog";
+import { buildPurchaseMailto, planLabel } from "@/lib/plans";
+import { parsePriceToNumber } from "@/lib/pix";
+import { Check, Sparkles, Mail, ShieldCheck, Pencil, Save, X, Loader2, Lock, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PlanSetting {
@@ -34,6 +36,8 @@ export default function Planos() {
   const [editing, setEditing] = useState<AccessPlan | null>(null);
   const [draft, setDraft] = useState<PlanSetting | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pixOpen, setPixOpen] = useState(false);
+  const [pixData, setPixData] = useState<{ amount: number; plan: AccessPlan } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -255,13 +259,29 @@ export default function Planos() {
                       ))}
                     </ul>
 
-                    {!isAdmin && !isCurrent && !p.locked && (
-                      <Button asChild className="gradient-primary text-primary-foreground shadow-glow w-full">
-                        <a href={mailto}>
-                          <Mail className="w-4 h-4 mr-2" /> Quero este plano
-                        </a>
-                      </Button>
-                    )}
+                    {!isAdmin && !isCurrent && !p.locked && (() => {
+                      const amount = parsePriceToNumber(p.price);
+                      return (
+                        <div className="space-y-2">
+                          {amount && (
+                            <Button
+                              onClick={() => {
+                                setPixData({ amount, plan: p.plan });
+                                setPixOpen(true);
+                              }}
+                              className="gradient-primary text-primary-foreground shadow-glow w-full"
+                            >
+                              <QrCode className="w-4 h-4 mr-2" /> Pagar com PIX
+                            </Button>
+                          )}
+                          <Button asChild variant="outline" className="w-full">
+                            <a href={mailto}>
+                              <Mail className="w-4 h-4 mr-2" /> Solicitar por e-mail
+                            </a>
+                          </Button>
+                        </div>
+                      );
+                    })()}
                     {!isAdmin && !isCurrent && p.locked && (
                       <Button disabled variant="outline" className="w-full gap-2">
                         <Lock className="w-4 h-4" /> Indisponível no momento
@@ -286,8 +306,18 @@ export default function Planos() {
       )}
 
       <p className="text-xs text-center text-muted-foreground">
-        Ao clicar em "Quero este plano", abriremos seu cliente de e-mail para você enviar a solicitação ao administrador. A ativação é manual após confirmação do pagamento.
+        Após o pagamento via PIX, envie o comprovante ao administrador para ativarmos seu acesso. A liberação é manual.
       </p>
+
+      {pixData && profile && (
+        <PixPaymentDialog
+          open={pixOpen}
+          onOpenChange={setPixOpen}
+          amount={pixData.amount}
+          planLabel={planLabel(pixData.plan)}
+          notifyMailto={buildPurchaseMailto({ userEmail: profile.email, plan: pixData.plan })}
+        />
+      )}
     </div>
   );
 }
