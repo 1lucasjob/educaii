@@ -176,7 +176,18 @@ export default function AppLayout() {
                 </Button>
               )}
               {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} size="sm" className="hidden sm:inline-flex" />}
-              <span className="text-sm hidden md:inline truncate max-w-[180px]">{profile?.email}</span>
+              <div className="hidden md:flex items-center gap-2 min-w-0">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover border border-border" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[11px] font-semibold text-muted-foreground">
+                    {(profile?.display_name || profile?.email || "?").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-sm truncate max-w-[160px]">
+                  {profile?.display_name?.trim() || profile?.email?.split("@")[0]}
+                </span>
+              </div>
               <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sair">
                 <LogOut className="w-4 h-4" />
               </Button>

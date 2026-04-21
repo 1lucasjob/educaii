@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import LoyaltyProgram from "@/components/LoyaltyProgram";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -42,7 +43,7 @@ const formatDuration = (s: number) => {
 };
 
 export default function Progresso() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const { enabled: demoEnabled, fakeAttempts, viewAsRow } = useDemoMode();
   const [realAttempts, setRealAttempts] = useState<Attempt[]>([]);
 
@@ -156,6 +157,10 @@ export default function Progresso() {
             <span><strong>Modo de teste ativo</strong> — simulados fictícios incluídos para visualização.</span>
           )}
         </Card>
+      )}
+
+      {profile?.created_at && !viewAsRow && (
+        <LoyaltyProgram startDate={profile.created_at} />
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

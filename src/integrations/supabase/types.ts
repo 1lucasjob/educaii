@@ -179,11 +179,13 @@ export type Database = {
       profiles: {
         Row: {
           access_expires_at: string | null
+          avatar_url: string | null
           chat_unlocked: boolean
           created_at: string
           current_topic: string | null
           current_topic_unlocked: boolean
           days_30_renewals_count: number
+          display_name: string | null
           email: string
           expert_unlocked_until: string | null
           id: string
@@ -199,11 +201,13 @@ export type Database = {
         }
         Insert: {
           access_expires_at?: string | null
+          avatar_url?: string | null
           chat_unlocked?: boolean
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
           days_30_renewals_count?: number
+          display_name?: string | null
           email: string
           expert_unlocked_until?: string | null
           id: string
@@ -219,11 +223,13 @@ export type Database = {
         }
         Update: {
           access_expires_at?: string | null
+          avatar_url?: string | null
           chat_unlocked?: boolean
           created_at?: string
           current_topic?: string | null
           current_topic_unlocked?: boolean
           days_30_renewals_count?: number
+          display_name?: string | null
           email?: string
           expert_unlocked_until?: string | null
           id?: string
@@ -378,6 +384,7 @@ export type Database = {
         Returns: {
           attempts: number
           attempts_data: Json
+          avatar_url: string
           avg_score: number
           composite_score: number
           display_name: string

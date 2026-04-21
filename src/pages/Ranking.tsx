@@ -15,6 +15,7 @@ import { FlaskConical } from "lucide-react";
 interface Row {
   user_id: string;
   display_name: string;
+  avatar_url: string | null;
   total_score: number;
   hard_passed: number;
   attempts: number;
@@ -81,6 +82,7 @@ export default function Ranking() {
         return {
           user_id: r.user_id,
           display_name: r.display_name,
+          avatar_url: r.avatar_url ?? null,
           attempts,
           total_score,
           hard_passed,
@@ -172,6 +174,13 @@ export default function Ranking() {
                   }`}
                 >
                   <div className="w-8 flex justify-center">{rankIcon(i)}</div>
+                  {r.avatar_url ? (
+                    <img src={r.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-border shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
+                      {(r.display_name || "?").charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">
                       {r.display_name}

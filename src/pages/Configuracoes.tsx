@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -6,10 +6,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
 import { buildRenewalMailto, daysUntil, planLabel } from "@/lib/plans";
 import PlanBadge from "@/components/PlanBadge";
-import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw } from "lucide-react";
+import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Configuracoes() {
@@ -20,6 +21,69 @@ export default function Configuracoes() {
   const [confirmPwd, setConfirmPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [savingPwd, setSavingPwd] = useState(false);
+
+  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [savingNick, setSavingNick] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const saveDisplayName = async () => {
+    if (!profile) return;
+    const clean = displayName.trim().slice(0, 24);
+    setSavingNick(true);
+    const { error } = await supabase.from("profiles").update({ display_name: clean || null }).eq("id", profile.id);
+    setSavingNick(false);
+    if (error) {
+      toast({ title: "Erro ao salvar apelido", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Apelido atualizado!" });
+  };
+
+  const handleAvatarSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      toast({ title: "Formato inválido", description: "Use PNG, JPEG ou WebP.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Imagem muito grande", description: "Máximo 2 MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+    const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploadingAvatar(false);
+      toast({ title: "Erro ao enviar imagem", description: upErr.message, variant: "destructive" });
+      return;
+    }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl + `?t=${Date.now()}`;
+    const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", profile.id);
+    setUploadingAvatar(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (updErr) {
+      toast({ title: "Erro ao salvar imagem", description: updErr.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Imagem atualizada!" });
+  };
+
+  const removeAvatar = async () => {
+    if (!profile) return;
+    const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", profile.id);
+    if (error) {
+      toast({ title: "Erro ao remover imagem", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Imagem removida" });
+  };
 
   const changePassword = async () => {
     if (newPwd.length < 6) {
@@ -67,6 +131,43 @@ export default function Configuracoes() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><Settings className="text-primary shrink-0" /> Configurações</h1>
+
+      <Card className="p-6">
+        <h2 className="font-bold flex items-center gap-2 mb-4"><UserIcon className="w-4 h-4 text-primary" /> Meu Perfil</h2>
+        <div className="flex flex-col sm:flex-row items-start gap-5">
+          <div className="flex flex-col items-center gap-2">
+            <Avatar className="w-24 h-24 border-2 border-border">
+              <AvatarImage src={profile?.avatar_url ?? undefined} alt="Avatar" />
+              <AvatarFallback className="text-2xl">
+                {(profile?.display_name || profile?.email || "?").charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarSelected} />
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}>
+                <Upload className="w-3.5 h-3.5 mr-1" />
+                {uploadingAvatar ? "Enviando…" : "Trocar imagem"}
+              </Button>
+              {profile?.avatar_url && (
+                <Button size="sm" variant="ghost" onClick={removeAvatar} className="text-destructive hover:text-destructive">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
+            <p className="text-[10px] text-muted-foreground">PNG/JPEG/WebP · até 2 MB</p>
+          </div>
+          <div className="flex-1 w-full space-y-2">
+            <Label htmlFor="display-name" className="text-sm">Apelido</Label>
+            <Input id="display-name" value={displayName} maxLength={24} onChange={(e) => setDisplayName(e.target.value)} placeholder="Como você quer ser chamado" />
+            <p className="text-xs text-muted-foreground">
+              Aparece no ranking e no cabeçalho. Deixe em branco para usar a parte do email antes do @.
+            </p>
+            <Button onClick={saveDisplayName} disabled={savingNick} size="sm" className="gradient-primary text-primary-foreground">
+              {savingNick ? "Salvando…" : "Salvar apelido"}
+            </Button>
+          </div>
+        </div>
+      </Card>
 
       <Card className="p-6">
         <div className="flex items-start justify-between gap-4">
