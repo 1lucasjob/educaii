@@ -2,106 +2,70 @@
 
 ## Objetivo
 
-1. **Auditar e alinhar benefícios dos planos** com o que a aplicação realmente entrega (gating real no código), corrigindo discrepâncias entre o texto exibido em `Planos.tsx` / cadastro e o comportamento real do app.
-2. **Auditar regras do Simulado** (Fácil/Difícil/Expert) e fechar lacunas detectadas.
-3. **Moderação de avatar pelo admin** — a foto enviada só aparece publicamente após aprovação.
+Adicionar uma opção **"Retomar Simulado"** na página **Módulo de Estudos** (`Estudar.tsx`) para que o aluno consiga voltar ao simulado em andamento caso ele "suma" (saída acidental, refresh, troca de aba, navegação por engano).
+
+Hoje o `Simulado.tsx` mantém estado apenas em memória (`useState`). Qualquer saída da rota descarta tudo — daí a sensação de que o simulado "desaparece".
 
 ---
 
-## Parte 1 — Auditoria e correção de planos
+## Como vai funcionar
 
-### Discrepâncias detectadas (banco × código)
-
-| Plano | Texto atual no banco | O que o código realmente entrega |
-|---|---|---|
-| **free** | "Chat por 15 dias" + "Difícil por 15 dias" | ✅ correto (`computeFreeTrial`) — Chat depende de `chat_unlocked`, que é `false` para free. **BUG**: chat free nunca abre porque `handle_new_user` não setou `chat_unlocked=true` para free; o `ChatProfessor` precisa permitir free dentro de 15 dias mesmo com `chat_unlocked=false`. |
-| **days_30** | "Simulados Facil liberado" | ✅ Apenas Fácil. Difícil só após **2 renovações** (`planAllowsHard` em `Simulado.tsx`). Texto está incompleto — falta deixar explícito. |
-| **days_60** | "10 dias Difícil + 15 dias Chat" | ✅ janela de plano (`computePlanWindows`) entrega isso, **MAS** `handle_new_user` não marca `chat_unlocked=true` para days_60 — chat fica bloqueado. **BUG real.** |
-| **days_90** | "Chat por 20 dias" + "Expert por 10 dias" | ❌ Código entrega **chat ilimitado durante todo o plano** (`chat_unlocked=true` no trigger) e **Expert NÃO é liberado** (só 180/premium). Texto promete o que não existe. |
-| **days_180** | "Simulados ilimitados Expert" + "Chat IA" | ✅ trigger libera chat e expert até `access_expires_at`. OK. |
-| **premium** | "Expert liberado" + "Chat liberado" | ✅ OK. |
-
-### Ações
-
-**A. Corrigir `handle_new_user` e `admin_renew_user`** (migração SQL):
-- `chat_unlocked = true` também para `days_60` (gating fino fica por conta de `computePlanWindows`).
-- Definir política do `days_90`:
-  - **Opção escolhida no plano**: alinhar **código → texto comercial** (mais generoso para o aluno):
-    - days_90 mantém chat ilimitado (já é hoje).
-    - days_90 ganha **Expert por 10 dias** a partir da ativação → setar `expert_unlocked_until = now() + 10 days` no trigger e na renovação.
-
-**B. Atualizar `plan_settings` (UPDATE) com redação padronizada e fiel ao código real:**
-- `days_30`: "Resumos e Simulado Fácil ilimitados durante o plano · Simulado Difícil libera após 2 renovações consecutivas · Ranking e progresso · Sem Chat e sem Expert"
-- `days_60`: "Tudo do 30 DAYS · 60 dias de acesso · Simulado Difícil nos primeiros 10 dias · Chat com Professor Saraiva nos primeiros 15 dias · Sem Expert"
-- `days_90`: "Tudo do 30 DAYS · 90 dias de acesso · Simulado Difícil ilimitado · Chat com Professor Saraiva ilimitado · Simulado Expert nos primeiros 10 dias · Ranking e progresso completos"
-- `days_180`: "Acesso por 180 dias · Chat ilimitado · Simulados Fácil, Difícil e Expert ilimitados · Inclui um convite extra do Plano 30 DAYS"
-- `premium`: "1 ano de acesso · Tudo dos planos anteriores · Chat ilimitado · Simulado Expert ilimitado · Inclui um convite extra do Plano 60 DAYS · Prioridade em novos recursos"
-- `free`: deixar como está (já está correto).
-
-**C. Frontend `ChatProfessor.tsx`**: ajustar a condição `unlocked` para permitir **free** durante a janela de 15 dias (`trial.freeChatActive`) mesmo com `chat_unlocked=false`. Hoje a página depende só de `chat_unlocked` em alguns trechos — confirmar e corrigir se necessário.
+1. Ao iniciar/avançar um simulado, o `Simulado.tsx` **persiste o progresso em `localStorage`** (chave por usuário) automaticamente.
+2. A `Estudar.tsx` lê essa chave ao montar; se houver um simulado **não finalizado e não expirado**, mostra um **card de destaque "Retomar Simulado"** logo abaixo do cabeçalho com:
+   - Tema, dificuldade (badge colorido), questão atual (`3/10`), tempo restante e botão **"Retomar"** + botão secundário **"Descartar"**.
+3. Ao clicar em **Retomar**, navega para `/app/simulado?...&resume=1`. O `Simulado.tsx` detecta `resume=1`, restaura `questions/answers/current/timeLeft/timeSpent` da `localStorage` em vez de gerar um novo.
+4. Quando o simulado é **finalizado** (submit) ou **descartado**, a chave é apagada.
+5. **Expiração**: se `timeLeft` calculado já zerou (ex.: usuário voltou 1 dia depois), o card não aparece e a chave é limpa.
 
 ---
 
-## Parte 2 — Auditoria do Simulado
+## Detalhes técnicos
 
-### Regras esperadas vs. implementação atual em `Simulado.tsx`
+### Persistência (`localStorage`)
 
-| Regra | Status |
-|---|---|
-| Tempo: Fácil 15 min, Difícil 10 min, Expert 20 min | ✅ |
-| Difícil/Expert: sem voltar, sem alterar resposta | ✅ |
-| Anti-cheat: ≥ 120s e máx. 3 tentativas válidas/tema/dia | ✅ |
-| Difícil ≥ 80 pts libera novo tema | ✅ |
-| Gating Free: Fácil 30d, Difícil 15d | ✅ |
-| Gating Difícil para planos pagos | ⚠️ days_30 precisa de **2 renovações** (`days_30_renewals_count >= 2`). OK no código. |
-| Gating Expert | ⚠️ Hoje só `premium`/`days_90`/ADM. **Bug do plano**: o banco diz que `days_180` tem Expert mas `expertActive()` em `freeTrial.ts` NÃO inclui `days_180`. **Corrigir `expertActive` para incluir `days_180`**. |
-| Mín. caracteres para liberar dificuldade no Estudar | ✅ 500 / 1501 / 5000 |
+- Chave: `quiz_in_progress:${profile.id}` (um simulado ativo por usuário).
+- Payload:
+  ```ts
+  type SavedQuiz = {
+    topic: string;
+    difficulty: "easy" | "hard" | "expert";
+    questions: Question[];
+    answers: number[];
+    current: number;
+    timeLeft: number;       // segundos restantes salvos
+    timeSpent: number;
+    savedAt: number;        // Date.now() — usado para descontar tempo passado
+    timeLimit: number;      // limite original (para validar não-expirado)
+  };
+  ```
+- Helpers em **novo arquivo** `src/lib/quizPersistence.ts`: `saveQuiz`, `loadQuiz`, `clearQuiz`, `getResumableQuiz` (descarta automaticamente expirados).
 
-### Ações
-- `src/lib/freeTrial.ts` → `expertActive()`: incluir `days_180` na lista de planos com Expert sempre ativo.
-- `src/pages/Simulado.tsx`: revisar `planAllowsHard` para refletir a nova política do days_90 (já allowed) e days_60 (já allowed via janela).
-- Mensagem de bloqueio do Expert: atualizar para "exclusivo dos planos PREMIUM, 180 DAYS e 90 DAYS (10 dias iniciais)".
+### `src/pages/Simulado.tsx`
 
----
+- Após carregar as questões (e após cada `select`/tick do timer), chamar `saveQuiz(...)` com debounce simples (gravar a cada mudança de resposta e a cada ~5s do timer para não martelar o storage).
+- No `useEffect` inicial: se `params.get("resume") === "1"` e `loadQuiz()` retornar um payload válido para o mesmo `topic` + `difficulty`, restaurar todos os estados (incluindo `timeLeft` ajustado por `savedAt`) **em vez de** chamar `generate-quiz`.
+- No `submit()` e ao "voltar" pelo botão existente: chamar `clearQuiz()`.
 
-## Parte 3 — Moderação de avatar pelo admin
+### `src/pages/Estudar.tsx`
 
-### Banco (migração)
-- Adicionar em `public.profiles`:
-  - `avatar_pending_url text` — última imagem enviada aguardando revisão.
-  - `avatar_status text` default `'none'` com values: `none` | `pending` | `approved` | `rejected`.
-  - `avatar_reviewed_at timestamptz`, `avatar_reviewed_by uuid`.
-- Manter `avatar_url` apenas com a versão **aprovada** (única que aparece publicamente).
-- RPCs `SECURITY DEFINER`:
-  - `admin_approve_avatar(_user_id uuid)` → copia `avatar_pending_url` para `avatar_url`, marca `approved`.
-  - `admin_reject_avatar(_user_id uuid)` → limpa `avatar_pending_url`, marca `rejected`. Mantém `avatar_url` antigo (se existia).
-- Atualizar `get_leaderboard` para continuar usando `avatar_url` (já é o aprovado).
+- Novo componente inline (ou hook) que lê `getResumableQuiz()` no mount e em `focus` da janela.
+- Renderizar, **acima** do card "Pronto para um novo tema", um `Card` chamativo (border `primary`, ícone `RotateCcw`):
+  - Título "Simulado em andamento"
+  - Linha: badge da dificuldade · `Tema: …` · `Questão {current+1}/{total}` · `Tempo restante: mm:ss`
+  - Botões: **Retomar** (`gradient-primary`) → `navigate(`/app/simulado?topic=…&difficulty=…&resume=1`)` · **Descartar** (variant `ghost`) → `clearQuiz()` + re-render.
+- Se nada resumível, não renderiza nada (sem ruído).
 
-### Frontend
-- **`src/pages/Configuracoes.tsx`**:
-  - Upload agora salva em `avatar_pending_url` (não em `avatar_url`) e marca `avatar_status='pending'`.
-  - Mostrar bandeira: "Imagem em análise pelo administrador" / "Imagem rejeitada — envie outra" / "Imagem aprovada".
-  - Pré-visualização local do `avatar_pending_url` apenas para o próprio usuário; `Avatar` público usa `avatar_url`.
-- **`src/contexts/AuthContext.tsx`**: incluir os novos campos no tipo `Profile` e no `select`.
-- **`src/pages/Admin.tsx`**: nova seção **"Imagens de perfil pendentes"** com lista (email, prévia da imagem, botões "Aprovar" / "Rejeitar"). Carrega `profiles` onde `avatar_status='pending'`.
-- **Header (`AppLayout.tsx`)** e **Ranking**: continuam usando `avatar_url` (aprovada) — nada quebra.
-
-### Bypass para admin
-- Uploads feitos por usuários com role `admin` são auto-aprovados (RPC `admin_approve_avatar` é chamado logo após o upload no próprio Configurações quando `isAdmin === true`).
+### Edge cases tratados
+- Quiz expirado por tempo → auto-descarta na leitura.
+- Trocou de usuário → chave por `profile.id` evita vazamento entre contas.
+- Storage cheio/desabilitado → todos os acessos em `try/catch` (silencioso).
+- Modos `hard`/`expert` continuam com auto-advance e bloqueio de troca de resposta — a persistência apenas reflete o estado salvo, sem afrouxar regras anti-fraude (o tempo já gasto é preservado).
 
 ---
 
 ## Arquivos afetados
 
-### Banco
-- Migração: alterar `handle_new_user` (chat_unlocked + expert para days_60/days_90), alterar `admin_renew_user`, adicionar colunas `avatar_pending_url` / `avatar_status` / `avatar_reviewed_at` / `avatar_reviewed_by` em `profiles`, criar RPCs `admin_approve_avatar` e `admin_reject_avatar`.
-- INSERT/UPDATE em `plan_settings.benefits` com a redação nova.
-
-### Código
-- `src/lib/freeTrial.ts` — `expertActive()` inclui `days_180`.
-- `src/pages/Simulado.tsx` — mensagem de bloqueio do Expert.
-- `src/pages/ChatProfessor.tsx` — condição `unlocked` cobrindo free dentro da janela de 15d.
-- `src/contexts/AuthContext.tsx` — novos campos de avatar.
-- `src/pages/Configuracoes.tsx` — fluxo de upload pendente + status.
-- `src/pages/Admin.tsx` — fila de moderação de avatares.
+- **Novo**: `src/lib/quizPersistence.ts` — helpers de save/load/clear.
+- **Editado**: `src/pages/Simulado.tsx` — salvar progresso, restaurar quando `?resume=1`, limpar ao finalizar.
+- **Editado**: `src/pages/Estudar.tsx` — card "Retomar Simulado" no topo quando houver um em andamento.
 
