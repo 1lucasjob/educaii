@@ -67,6 +67,56 @@ export default function Simulado() {
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
   const [upgradeOpen, setUpgradeOpen] = useState(blocked);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisText, setAnalysisText] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  const canAnalyze = performanceAnalysisActive({
+    plan: profile?.plan,
+    createdAt: profile?.created_at,
+    isAdmin,
+  });
+
+  const generateAnalysis = async () => {
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-performance", {
+        body: {
+          topic,
+          difficulty,
+          score,
+          total_points: 100,
+          time_spent_seconds: timeSpent,
+          questions,
+          answers,
+        },
+      });
+      if (error || data?.error) {
+        const msg = data?.error ?? error?.message ?? "Falha ao gerar análise";
+        setAnalysisError(msg);
+        toast({ title: "Erro na análise", description: msg, variant: "destructive" });
+        return;
+      }
+      setAnalysisText(data?.analysis ?? "");
+    } catch (e: any) {
+      const msg = e?.message ?? "Falha ao gerar análise";
+      setAnalysisError(msg);
+      toast({ title: "Erro na análise", description: msg, variant: "destructive" });
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
+
+  const copyAnalysis = async () => {
+    if (!analysisText) return;
+    try {
+      await navigator.clipboard.writeText(analysisText);
+      toast({ title: "Análise copiada para a área de transferência." });
+    } catch {
+      toast({ title: "Não foi possível copiar.", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     if (blocked) {
