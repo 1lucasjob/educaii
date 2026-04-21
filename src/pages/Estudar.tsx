@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
+import FrameworkPicker from "@/components/FrameworkPicker";
+import type { Framework } from "@/lib/studyFrameworks";
 
 function stripMarkdown(s: string): string {
   return s
@@ -46,6 +48,20 @@ export default function Estudar() {
   const [loadingHighlights, setLoadingHighlights] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [resumable, setResumable] = useState<SavedQuiz | null>(null);
+  const topicRef = useRef<HTMLTextAreaElement>(null);
+
+  const handlePickFramework = (fw: Framework) => {
+    setTitle((prev) => (prev.trim() ? prev : fw.titleSuggestion));
+    setTopic(fw.template);
+    toast({
+      title: `Modelo ${fw.label} carregado`,
+      description: "Preencha os campos e clique em Gerar Estudo.",
+    });
+    setTimeout(() => {
+      topicRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      topicRef.current?.focus();
+    }, 80);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -295,6 +311,10 @@ export default function Estudar() {
         </Card>
       )}
 
+      {unlocked && !summary && (
+        <FrameworkPicker onPick={handlePickFramework} disabled={loadingSummary} />
+      )}
+
       <Card className="p-6 shadow-glow">
         <div className="flex items-start gap-4 mb-4">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${unlocked ? "bg-success/20" : "bg-warning/20 animate-pulse-glow"}`}>
@@ -336,6 +356,7 @@ export default function Estudar() {
           <div className="space-y-2">
             <Label htmlFor="study-topic">Descrição detalhada do tema</Label>
             <Textarea
+              ref={topicRef}
               id="study-topic"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}

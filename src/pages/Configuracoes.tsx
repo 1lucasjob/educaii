@@ -13,6 +13,7 @@ import PlanBadge from "@/components/PlanBadge";
 import LoyaltyBadge from "@/components/LoyaltyBadge";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AvatarCropDialog from "@/components/AvatarCropDialog";
 
 export default function Configuracoes() {
   const { profile, refreshProfile, isAdmin } = useAuth();
@@ -27,6 +28,8 @@ export default function Configuracoes() {
   const [savingNick, setSavingNick] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   const saveDisplayName = async () => {
     if (!profile) return;
@@ -42,23 +45,32 @@ export default function Configuracoes() {
     toast({ title: "Apelido atualizado!" });
   };
 
-  const handleAvatarSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
       toast({ title: "Formato inválido", description: "Use PNG, JPEG ou WebP.", variant: "destructive" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
       toast({ title: "Imagem muito grande", description: "Máximo 2 MB.", variant: "destructive" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
+    setCropFile(file);
+    setCropOpen(true);
+  };
+
+  const handleCroppedBlob = async (blob: Blob) => {
+    if (!profile) return;
     setUploadingAvatar(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+    const ext = blob.type === "image/png" ? "png" : "jpg";
     const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: blob.type });
     if (upErr) {
       setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       toast({ title: "Erro ao enviar imagem", description: upErr.message, variant: "destructive" });
       return;
     }
@@ -384,6 +396,20 @@ export default function Configuracoes() {
           {savingPwd ? "Salvando…" : "Alterar senha"}
         </Button>
       </Card>
+
+      <AvatarCropDialog
+        file={cropFile}
+        open={cropOpen}
+        onOpenChange={(o) => {
+          setCropOpen(o);
+          if (!o) {
+            setCropFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+          }
+        }}
+        onCropped={handleCroppedBlob}
+      />
     </div>
   );
 }
+
