@@ -2,92 +2,79 @@
 
 ## Objetivo
 
-Duas funcionalidades novas:
+Após o resultado final dos simulados **Difícil** e **Expert**, adicionar uma opção **"Análise de Desempenho"** que gera, via IA, uma análise personalizada do desempenho do aluno na tentativa (acertos, erros, padrões, recomendações de estudo).
 
-1. **Recorte de imagem de perfil** — antes de enviar o avatar, abrir um editor para o aluno cortar/posicionar a imagem em formato quadrado.
-2. **Modelos de Resumos (Frameworks)** — uma nova área na página **Estudar** com cards coloridos de assuntos pré-prontos (começando por **5W2H** e **SWOT**), cada um com sua cor temática. Ao clicar, preenche o formulário com um template do framework já estruturado, pronto para o aluno preencher e gerar o resumo.
-
----
-
-## Parte 1 — Recorte de avatar
-
-### Dependência
-- Adicionar **`react-easy-crop`** (~30 KB, MIT, mantém pinch/zoom/drag e funciona em mobile).
-
-### Novo componente `src/components/AvatarCropDialog.tsx`
-- Recebe `file: File`, `open`, `onOpenChange`, `onCropped(blob: Blob)`.
-- Usa `Dialog` (já existente) + `Cropper` do `react-easy-crop` em proporção **1:1**.
-- Controles: **slider de zoom**, arrastar imagem, botões **Cancelar** / **Cortar e enviar**.
-- Ao confirmar, gera um `Blob` PNG/JPEG quadrado de até **512×512** via `canvas.toBlob` (qualidade 0.9), preservando o `contentType` original quando possível.
-
-### Edição em `src/pages/Configuracoes.tsx`
-- `handleAvatarSelected`: em vez de enviar direto, **guarda o `File` em estado** e abre o `AvatarCropDialog`.
-- Novo handler `handleCroppedBlob(blob)` faz o upload para o bucket `avatars` (mesma lógica atual) e segue o fluxo: admin → `avatar_url` direto; aluno → `avatar_pending_url` + `avatar_status: pending`.
-- Mantém validação prévia de tipo (PNG/JPEG/WebP) e tamanho (≤ 2 MB) antes de abrir o crop.
-
-### Banco / Storage
-- **Sem mudanças** — o bucket `avatars` já existe e é público; o fluxo de aprovação já está implementado.
+**Regras de acesso:**
+- Liberado para planos **60 DAYS, 90 DAYS, 180 DAYS e PREMIUM** (sempre).
+- Incluso no plano **FREE pelos primeiros 30 dias** após o cadastro.
+- **ADMIN** sempre tem acesso.
+- Plano **30 DAYS** não inclui (precisa fazer upgrade).
 
 ---
 
-## Parte 2 — Modelos de Resumo (Frameworks)
+## Parte 1 — Lógica de acesso (`src/lib/freeTrial.ts`)
 
-### Novo arquivo `src/lib/studyFrameworks.ts`
-Define os modelos disponíveis com cor e template (texto inicial que vai para o `topic`):
+Nova função `performanceAnalysisActive`:
 
 ```ts
-export type Framework = {
-  id: "5w2h" | "swot";
-  label: string;
-  short: string;          // "5W2H", "SWOT"
-  description: string;    // "Plano de ação detalhado…"
-  color: string;          // hsl token (ex.: "210 90% 55%")
-  icon: LucideIcon;
-  titleSuggestion: string;
-  template: string;       // texto pré-formatado p/ o textarea
-};
-
-export const FRAMEWORKS: Framework[];
+export function performanceAnalysisActive(opts: {
+  plan: AccessPlan | null | undefined;
+  createdAt: string | null | undefined;
+  isAdmin?: boolean;
+}): boolean {
+  if (opts.isAdmin) return true;
+  if (opts.plan && ["days_60", "days_90", "days_180", "premium"].includes(opts.plan)) return true;
+  // FREE: primeiros 30 dias
+  if (opts.plan === "free" && opts.createdAt) {
+    const days = Math.floor((Date.now() - new Date(opts.createdAt).getTime()) / 86_400_000);
+    return days < 30;
+  }
+  return false;
+}
 ```
 
-Inicialmente:
-- **5W2H** — cor azul (`210 90% 55%`), ícone `ListChecks`. Template com seções: What, Why, Where, When, Who, How, How much.
-- **SWOT** — cor roxa (`280 75% 60%`), ícone `LayoutGrid`. Template com Forças, Fraquezas, Oportunidades, Ameaças.
+---
 
-Cada template é um texto plano (sem markdown) com placeholders, seguindo o padrão limpo do `stripMarkdown`. Estrutura para já entrar com bons separadores e instruções curtas para o aluno preencher.
+## Parte 2 — Edge Function `analyze-performance`
 
-### Novo componente `src/components/FrameworkPicker.tsx`
-- Grid responsivo (`grid-cols-2 sm:grid-cols-2 md:grid-cols-4`) de cards.
-- Cada card usa `style={{ borderColor: hsl(...), background: hsl(... / 0.08) }}` para a cor própria do framework, ícone colorido, título e descrição curta.
-- Hover: `shadow-glow` na cor do framework.
-- Prop `onPick(framework)`.
+Nova função `supabase/functions/analyze-performance/index.ts`:
 
-### Integração em `src/pages/Estudar.tsx`
-- Acima do card de criação de tema, nova `Card` "Modelos rápidos de resumo".
-- Texto de apoio: "Escolha um modelo para começar com a estrutura pronta — basta preencher os campos."
-- Ao clicar num framework:
-  - Preenche `setTitle(framework.titleSuggestion)` (se `title` estiver vazio) e `setTopic(framework.template)`.
-  - Faz scroll suave até o textarea e foca nele.
-  - Toast: "Modelo {label} carregado — preencha e clique em Gerar Estudo."
-- Não muda nada do fluxo de geração; o template apenas alimenta o `topic` e segue o caminho normal de `generate-summary`.
+- **Input** (POST JSON): `{ topic, difficulty, score, total_points, time_spent_seconds, questions, answers }`
+- **Modelo**: `google/gemini-2.5-flash` via Lovable AI Gateway (`LOVABLE_API_KEY`).
+- **System prompt**: texto plano (sem markdown), responde em PT-BR, estruturado em seções claras:
+  1. **Resumo geral** (1-2 parágrafos)
+  2. **Pontos fortes** (o que acertou e por quê)
+  3. **Pontos a melhorar** (padrões de erro, conceitos a revisar)
+  4. **Plano de estudo recomendado** (3-5 passos práticos)
+- Aplica `stripMarkdown` no servidor para garantir saída limpa.
+- `verify_jwt = true` (precisa autenticação).
+- Trata 429 e 402 com mensagem amigável (mesmo padrão de outras funções).
 
-### Estética
-- Reaproveita `Card`, `Badge` e tokens existentes (`shadow-glow`, `gradient-primary`).
-- Cores definidas inline via HSL para permitir adicionar novos frameworks (PDCA, 5 Porquês, Ishikawa, etc.) facilmente no futuro.
+`supabase/config.toml`: adiciona bloco para `analyze-performance` se necessário (default já é `verify_jwt = true`, então provavelmente sem config).
+
+---
+
+## Parte 3 — UI no `src/pages/Simulado.tsx`
+
+Apenas no estado **finalizado** (após `submit`), e apenas para `difficulty` em `["hard", "expert"]`:
+
+- Importar `performanceAnalysisActive` e usar com `profile.plan`, `profile.created_at`, `isAdmin`.
+- Novo card abaixo do resultado: **"Análise de Desempenho com IA"**.
+  - Se **liberado**: botão "Gerar Análise" → chama edge function → exibe resultado em `<div className="whitespace-pre-line leading-relaxed space-y-3">`. Inclui botão "Copiar análise".
+  - Se **bloqueado**: card com cadeado, texto explicativo ("Disponível a partir do plano 60 DAYS — incluso 30 dias grátis no FREE") e botão "Fazer upgrade" → `/app/planos`.
+- Estados: `analysisLoading`, `analysisText`, `analysisError`.
+- Não persiste no banco nesta primeira versão (geração sob demanda; pode ser regenerada).
 
 ---
 
 ## Arquivos afetados
 
 ### Novos
-- `src/components/AvatarCropDialog.tsx` — modal de recorte 1:1 com zoom.
-- `src/components/FrameworkPicker.tsx` — grid de cards coloridos.
-- `src/lib/studyFrameworks.ts` — definições + templates de 5W2H e SWOT.
+- `supabase/functions/analyze-performance/index.ts` — IA + system prompt em texto plano.
 
 ### Editados
-- `package.json` — adiciona `react-easy-crop`.
-- `src/pages/Configuracoes.tsx` — abre o crop antes do upload do avatar.
-- `src/pages/Estudar.tsx` — renderiza `FrameworkPicker` e preenche o formulário ao escolher.
+- `src/lib/freeTrial.ts` — adiciona `performanceAnalysisActive`.
+- `src/pages/Simulado.tsx` — novo card "Análise de Desempenho" no resultado final (hard/expert), com gating.
 
 ### Banco
 - Sem migrações.
