@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X, Quote } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +40,7 @@ interface StudentRow {
   current_topic: string | null;
   current_topic_unlocked: boolean;
   expert_unlocked_until: string | null;
+  highlights_unlocked_until: string | null;
 }
 
 export default function Admin() {
@@ -65,7 +66,7 @@ export default function Admin() {
     const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }, { data: pend }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until").order("access_expires_at", { ascending: true }),
+      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until,highlights_unlocked_until").order("access_expires_at", { ascending: true }),
       supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
       supabase.from("profiles").select("id,email,avatar_pending_url,avatar_url").eq("avatar_status", "pending").order("updated_at", { ascending: false }),

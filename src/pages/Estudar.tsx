@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock } from "lucide-react";
+import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock, ShieldCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { computeFreeTrial, expertActive } from "@/lib/freeTrial";
+import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
 
@@ -71,6 +71,14 @@ export default function Estudar() {
   const meetsExpert = topicLength >= MIN_CHARS_EXPERT;
   const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
   const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until });
+  const canExtractHighlights = highlightsActive({ plan: profile?.plan, highlightsUnlockedUntil: profile?.highlights_unlocked_until });
+  const highlightsViaAdmin =
+    canExtractHighlights &&
+    !!profile?.highlights_unlocked_until &&
+    !["days_60", "days_90", "days_180", "premium"].includes(profile?.plan ?? "");
+  const adminDaysLeft = profile?.highlights_unlocked_until
+    ? Math.max(0, Math.ceil((new Date(profile.highlights_unlocked_until).getTime() - Date.now()) / 86_400_000))
+    : 0;
 
   const generate = async () => {
     if (freeExpired) {
@@ -356,7 +364,7 @@ export default function Estudar() {
         </Card>
       )}
 
-      {summary && sourceText && (
+      {summary && sourceText && canExtractHighlights && (
         <Card className="p-6 animate-fade-in">
           <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
             <h3 className="text-xl font-bold flex items-center gap-2">
@@ -372,6 +380,12 @@ export default function Estudar() {
               {loadingHighlights ? "Extraindo…" : highlights.length ? "Extrair novamente" : "Extrair trechos"}
             </Button>
           </div>
+          {highlightsViaAdmin && (
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/10 border border-primary/30 rounded-full px-2 py-0.5 mb-3">
+              <ShieldCheck className="w-3 h-3" />
+              Liberado pelo admin · expira em {adminDaysLeft} dia(s)
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mb-4">
             Trechos extraídos diretamente do seu texto, sem modificações.
           </p>
@@ -405,6 +419,29 @@ export default function Estudar() {
               ))}
             </div>
           )}
+        </Card>
+      )}
+
+      {summary && sourceText && !canExtractHighlights && (
+        <Card className="p-6 border-2 border-dashed border-muted-foreground/30 bg-muted/20 animate-fade-in">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
+              <Lock className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-bold flex items-center gap-2 flex-wrap">
+                <Quote className="w-5 h-5 text-muted-foreground" /> Trechos-Chave (Pegar Nota)
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Disponível a partir do plano <strong className="text-foreground">60 DAYS</strong>. O administrador também pode liberar por 30 dias para o seu cadastro.
+              </p>
+              <Button asChild size="sm" className="gradient-primary text-primary-foreground shadow-glow mt-3">
+                <Link to="/app/planos">
+                  <Sparkles className="w-4 h-4 mr-1.5" /> Ver planos
+                </Link>
+              </Button>
+            </div>
+          </div>
         </Card>
       )}
     </div>
