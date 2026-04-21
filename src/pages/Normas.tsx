@@ -188,10 +188,10 @@ export default function Normas() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <BookOpen className="text-primary" /> Normas Principais
+        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+          <BookOpen className="text-primary shrink-0" /> Normas Principais
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Biblioteca completa: NR-01 a NR-38 (vigentes e revogadas com referência histórica).
         </p>
       </div>

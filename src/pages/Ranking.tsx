@@ -98,8 +98,8 @@ export default function Ranking() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold flex items-center gap-2">
-        <Trophy className="text-primary" /> Ranking
+      <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+        <Trophy className="text-primary shrink-0" /> Ranking
       </h1>
       {profile?.plan === "free" && !isAdmin && (
         <Card className="p-4 border-warning/40 bg-warning/5 flex items-start gap-3">

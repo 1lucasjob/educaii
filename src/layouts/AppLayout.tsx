@@ -157,12 +157,12 @@ export default function AppLayout() {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card/50 backdrop-blur sticky top-0 z-10">
-            <div className="flex items-center gap-2">
+          <header className="h-14 border-b border-border flex items-center justify-between px-3 sm:px-4 gap-2 bg-card/50 backdrop-blur sticky top-0 z-10">
+            <div className="flex items-center gap-2 min-w-0">
               <SidebarTrigger />
-              <span className="text-sm text-muted-foreground hidden sm:inline">EDUCA.I Academy</span>
+              <span className="text-sm text-muted-foreground hidden md:inline">EDUCA.I Academy</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {isAdmin && demoEnabled && (
                 <Button
                   variant="outline"
@@ -176,8 +176,8 @@ export default function AppLayout() {
                 </Button>
               )}
               {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} size="sm" className="hidden sm:inline-flex" />}
-              <span className="text-sm hidden sm:inline truncate max-w-[180px]">{profile?.email}</span>
-              <Button variant="ghost" size="sm" onClick={signOut}>
+              <span className="text-sm hidden md:inline truncate max-w-[180px]">{profile?.email}</span>
+              <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sair">
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>

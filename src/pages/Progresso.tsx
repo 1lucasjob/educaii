@@ -141,9 +141,9 @@ export default function Progresso() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold flex items-center gap-2">
-        <BarChart3 className="text-primary" />
-        {viewAsRow ? `Progresso de ${viewAsRow.display_name}` : "Meu Progresso"}
+      <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+        <BarChart3 className="text-primary shrink-0" />
+        <span className="truncate">{viewAsRow ? `Progresso de ${viewAsRow.display_name}` : "Meu Progresso"}</span>
       </h1>
       {demoEnabled && (
         <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-sm">

@@ -104,10 +104,10 @@ export default function Estudar() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Brain className="text-primary" /> Módulo de Estudos
+        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+          <Brain className="text-primary shrink-0" /> Módulo de Estudos
         </h1>
-        <p className="text-muted-foreground mt-1">Tema único por vez — desbloqueado ao dominar o difícil ≥ 80 pts.</p>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Tema único por vez — desbloqueado ao dominar o difícil ≥ 80 pts.</p>
       </div>
 
       {trial.isFree && trial.freeBaseActive && (
