@@ -188,6 +188,57 @@ export default function Estudar() {
         </Alert>
       )}
 
+      {resumable && (
+        <Card className="p-5 border-2 border-primary shadow-glow animate-fade-in">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 animate-pulse-glow">
+              <RotateCcw className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h3 className="font-semibold">Simulado em andamento</h3>
+                {resumable.difficulty === "expert" ? (
+                  <Badge
+                    className="border-0 text-white"
+                    style={{ background: "linear-gradient(135deg, hsl(280 80% 55%), hsl(320 80% 55%))" }}
+                  >
+                    EXPERT
+                  </Badge>
+                ) : (
+                  <Badge className="gradient-primary text-primary-foreground border-0">
+                    {resumable.difficulty === "hard" ? "DIFÍCIL" : "FÁCIL"}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                Tema: <span className="text-foreground font-medium">{resumable.topic}</span>
+              </p>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5 flex-wrap">
+                <span>
+                  Questão <strong className="text-foreground">{Math.min(resumable.current + 1, resumable.questions.length)}/{resumable.questions.length}</strong>
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Tempo restante:{" "}
+                  <strong className="text-foreground">{formatResumeTime(resumable.timeLeft)}</strong>
+                </span>
+              </div>
+              <div className="flex gap-2 mt-3 flex-wrap">
+                <Button
+                  size="sm"
+                  onClick={handleResume}
+                  className="gradient-primary text-primary-foreground shadow-glow"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1.5" /> Retomar
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleDiscardResumable}>
+                  <Trash2 className="w-4 h-4 mr-1.5" /> Descartar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Card className="p-6 shadow-glow">
         <div className="flex items-start gap-4 mb-4">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${unlocked ? "bg-success/20" : "bg-warning/20 animate-pulse-glow"}`}>
