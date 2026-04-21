@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award } from "lucide-react";
+import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { computeFreeTrial, expertActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,6 +25,10 @@ export default function Estudar() {
   const [hardUnlocked, setHardUnlocked] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [activeTopic, setActiveTopic] = useState<string | null>(profile?.current_topic ?? null);
+  const [sourceText, setSourceText] = useState<string | null>(null);
+  const [highlights, setHighlights] = useState<string[]>([]);
+  const [loadingHighlights, setLoadingHighlights] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
   const freeExpired = trial.isFree && !trial.freeBaseActive;
@@ -81,6 +85,8 @@ export default function Estudar() {
     }
     setSummary(data.summary);
     setHardUnlocked(isHard);
+    setSourceText(topic);
+    setHighlights([]);
 
     setActiveTopic(cleanTitle);
     // Persistir corpo do tema para uso pelo Simulado (Hard/Expert ancorado no texto)
@@ -94,6 +100,30 @@ export default function Estudar() {
     }
     setTitle("");
     setTopic("");
+  };
+
+  const extractHighlights = async () => {
+    if (!sourceText) return;
+    setLoadingHighlights(true);
+    const { data, error } = await supabase.functions.invoke("extract-highlights", {
+      body: { topic: sourceText, title: activeTopic ?? "", count: 6 },
+    });
+    setLoadingHighlights(false);
+    if (error || data?.error) {
+      toast({ title: "Erro ao extrair trechos", description: data?.error ?? error?.message, variant: "destructive" });
+      return;
+    }
+    setHighlights(Array.isArray(data?.highlights) ? data.highlights : []);
+  };
+
+  const copyHighlight = async (text: string, idx: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx((v) => (v === idx ? null : v)), 1500);
+    } catch {
+      toast({ title: "Não foi possível copiar", variant: "destructive" });
+    }
   };
 
   const startQuiz = (difficulty: "easy" | "hard" | "expert") => {
@@ -248,6 +278,58 @@ export default function Estudar() {
               </Button>
             )}
           </div>
+        </Card>
+      )}
+
+      {summary && sourceText && (
+        <Card className="p-6 animate-fade-in">
+          <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <Quote className="text-primary" /> Trechos-Chave (Pegar Nota)
+            </h3>
+            <Button
+              onClick={extractHighlights}
+              disabled={loadingHighlights}
+              size="sm"
+              variant={highlights.length ? "outline" : "default"}
+              className={highlights.length ? "" : "gradient-primary text-primary-foreground"}
+            >
+              {loadingHighlights ? "Extraindo…" : highlights.length ? "Extrair novamente" : "Extrair trechos"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Trechos extraídos diretamente do seu texto, sem modificações.
+          </p>
+
+          {highlights.length === 0 && !loadingHighlights && (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Clique em <strong>Extrair trechos</strong> para identificar os pontos mais importantes do texto que você colou.
+            </p>
+          )}
+
+          {highlights.length > 0 && (
+            <div className="space-y-3">
+              {highlights.map((h, i) => (
+                <div key={i} className="rounded-md bg-muted/40 border border-border p-3 flex items-start gap-3">
+                  <span className="text-[10px] font-mono text-muted-foreground shrink-0 mt-1">
+                    {i + 1}/{highlights.length}
+                  </span>
+                  <blockquote className="flex-1 border-l-2 border-primary pl-3 italic text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                    {h}
+                  </blockquote>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyHighlight(h, i)}
+                    className="shrink-0 h-7 px-2 text-xs"
+                    title="Copiar trecho"
+                  >
+                    {copiedIdx === i ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       )}
     </div>
