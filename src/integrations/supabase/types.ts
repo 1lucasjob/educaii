@@ -62,6 +62,45 @@ export type Database = {
         }
         Relationships: []
       }
+      expert_pack_settings: {
+        Row: {
+          benefits: Json
+          duration_days: number
+          duration_label: string
+          highlight: string | null
+          id: number
+          locked: boolean
+          old_price: string | null
+          price: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          benefits?: Json
+          duration_days?: number
+          duration_label?: string
+          highlight?: string | null
+          id?: number
+          locked?: boolean
+          old_price?: string | null
+          price?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          benefits?: Json
+          duration_days?: number
+          duration_label?: string
+          highlight?: string | null
+          id?: number
+          locked?: boolean
+          old_price?: string | null
+          price?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       invites: {
         Row: {
           access_expires_at: string | null
@@ -357,6 +396,10 @@ export type Database = {
       plan_duration: {
         Args: { _plan: Database["public"]["Enums"]["access_plan"] }
         Returns: string
+      }
+      purchase_expert_pack: {
+        Args: { _days?: number; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
