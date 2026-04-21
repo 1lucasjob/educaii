@@ -13,7 +13,7 @@ import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchieve
 import { computeFreeTrial, computePlanWindows, expertActive } from "@/lib/freeTrial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
-import { saveQuiz, clearQuiz, loadQuiz } from "@/lib/quizPersistence";
+import { saveQuiz, clearQuiz, loadQuiz, loadQuizRemote, clearQuizRemote } from "@/lib/quizPersistence";
 
 interface Question {
   question: string;
@@ -72,15 +72,17 @@ export default function Simulado() {
     if (blocked) {
       setUpgradeOpen(true);
       setLoading(false);
+      if (profile?.id) void clearQuizRemote(profile.id);
       return;
     }
     const wantResume = params.get("resume") === "1";
-    if (wantResume && profile?.id) {
-      const saved = loadQuiz(profile.id);
+
+    const tryResumeFrom = (saved: any): boolean => {
       if (
         saved &&
         saved.topic === topic &&
         saved.difficulty === difficulty &&
+        Array.isArray(saved.questions) &&
         saved.questions.length > 0
       ) {
         const elapsed = Math.max(0, Math.floor((Date.now() - saved.savedAt) / 1000));
@@ -91,10 +93,20 @@ export default function Simulado() {
         setTimeLeft(adjusted);
         setTimeSpent(saved.timeSpent + elapsed);
         setLoading(false);
-        return;
+        return true;
       }
-    }
-    const load = async () => {
+      return false;
+    };
+
+    const init = async () => {
+      if (wantResume && profile?.id) {
+        // Tenta local primeiro (instantâneo)
+        const local = loadQuiz(profile.id);
+        if (tryResumeFrom(local)) return;
+        // Fallback: banco (outro dispositivo / cache limpo)
+        const remote = await loadQuizRemote(profile.id);
+        if (tryResumeFrom(remote)) return;
+      }
       let sourceText: string | undefined;
       try {
         sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
@@ -111,7 +123,7 @@ export default function Simulado() {
       setAnswers(new Array(data.questions.length).fill(-1));
       setLoading(false);
     };
-    load();
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
