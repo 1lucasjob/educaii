@@ -22,14 +22,14 @@ const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crow
   },
   days_90: {
     label: "90 DAYS",
-    // Prata escuro
-    cls: "bg-gradient-to-r from-zinc-300 to-zinc-500 text-zinc-900 border-zinc-500 dark:from-zinc-300 dark:to-zinc-500 dark:text-zinc-900 dark:border-zinc-500",
+    // Dourado
+    cls: "bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border-amber-500 dark:from-amber-300 dark:to-amber-500 dark:text-amber-950 dark:border-amber-500",
     Icon: Star,
   },
   days_180: {
     label: "180 DAYS",
-    // Dourado
-    cls: "bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border-amber-500 dark:from-amber-300 dark:to-amber-500 dark:text-amber-950 dark:border-amber-500",
+    // Dourado com bordas roxas
+    cls: "bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border-2 border-purple-600 dark:from-amber-300 dark:to-amber-500 dark:text-amber-950 dark:border-purple-500",
     Icon: Star,
   },
   premium: {
