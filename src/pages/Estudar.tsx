@@ -15,6 +15,21 @@ import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTria
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
 
+function stripMarkdown(s: string): string {
+  return s
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,;:!?)\n]|$)/g, "$1$2")
+    .replace(/`{1,3}([^`]+)`{1,3}/g, "$1")
+    .replace(/^\s*[-*•]\s+/gm, "")
+    .replace(/^\s*>\s?/gm, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export default function Estudar() {
   const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -317,8 +332,8 @@ export default function Estudar() {
       {summary && (
         <Card className="p-6 animate-fade-in">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain className="text-primary" /> Resumo Técnico</h3>
-          <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-            {summary}
+          <div className="max-w-none whitespace-pre-line text-sm leading-relaxed text-foreground space-y-1">
+            {stripMarkdown(summary)}
           </div>
 
           <div className={`grid ${hardUnlocked && userHasExpertAccess ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-3 mt-6`}>
