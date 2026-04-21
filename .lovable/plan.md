@@ -2,53 +2,65 @@
 
 ## Objetivo
 
-Remover marcadores Markdown (`#`, `*`, `**`, `_`, etc.) do **resumo gerado** na área de estudos, deixando o texto limpo para leitura por IA de TTS (text-to-speech), e melhorar o espaçamento entre seções para que não fiquem visualmente colados.
-
----
-
-## Diagnóstico
-
-O resumo é gerado pela edge function `supabase/functions/generate-summary/index.ts`, que instrui o modelo a responder em **Markdown** com `**negrito**`, `#` títulos e bullets `-`. Esse texto é depois renderizado em `Estudar.tsx` (provavelmente via `whitespace-pre-wrap` ou um renderer Markdown) e também é o mesmo texto que o usuário copia/escuta na IA de leitura — daí a poluição com `#` e `*`.
+Garantir que **admins** tenham acesso completo a todas as funcionalidades, independentemente do plano (ou falta dele). Atualmente as funções `expertActive()` e `highlightsActive()` só verificam o plano e liberações temporárias, ignorando o status de admin.
 
 ---
 
 ## Mudanças
 
-### 1. `supabase/functions/generate-summary/index.ts`
-Reescrever o `SYSTEM_PROMPT` para produzir **texto plano estruturado**, sem qualquer sintaxe Markdown:
-- Proibir explicitamente `#`, `*`, `**`, `_`, `` ` ``, `>`, tabelas e bullets `-`/`•`.
-- Substituir títulos de seção por linhas em CAIXA ALTA seguidas de dois-pontos (ex.: `VISÃO GERAL DO TEMA:`).
-- Itens de lista viram parágrafos curtos numerados (`1) …`, `2) …`) ou frases independentes — sem marcadores.
-- Exigir **uma linha em branco entre cada seção** e entre cada item, garantindo respiro visual e pausas naturais na leitura por TTS.
-- Manter a mesma estrutura pedagógica (Visão geral, Conceitos-chave, Aplicação prática, Riscos, Pontos críticos, NRs aplicáveis, Observações do Professor).
+### 1. `src/lib/freeTrial.ts` — ignorados de acesso para admin
 
-### 2. `src/pages/Estudar.tsx` — sanitização defensiva
-Mesmo com o prompt novo, modelos LLM eventualmente "vazam" Markdown. Adicionar um sanitizador aplicado ao `summary` antes de exibir e antes de enviar para a IA de leitura:
+Adicionar parâmetro `isAdmin?: boolean` (default `false`) em ambas as funções de verificação:
 
 ```ts
-function stripMarkdown(s: string): string {
-  return s
-    .replace(/^#{1,6}\s+/gm, "")          // # títulos
-    .replace(/\*\*(.+?)\*\*/g, "$1")      // **negrito**
-    .replace(/\*(.+?)\*/g, "$1")          // *itálico*
-    .replace(/__(.+?)__/g, "$1")          // __negrito__
-    .replace(/_(.+?)_/g, "$1")            // _itálico_
-    .replace(/`{1,3}([^`]+)`{1,3}/g, "$1")// `código`
-    .replace(/^\s*[-*•]\s+/gm, "")        // bullets
-    .replace(/^\s*>\s?/gm, "")            // blockquote
-    .replace(/\n{3,}/g, "\n\n")           // colapsa quebras excessivas
-    .replace(/[ \t]+\n/g, "\n")           // trim por linha
-    .trim();
+export function expertActive(opts: {
+  plan: AccessPlan | null | undefined;
+  expertUnlockedUntil: string | null | undefined;
+  isAdmin?: boolean;
+}): boolean {
+  if (opts.isAdmin) return true;
+  // ... resto existente
+}
+
+export function highlightsActive(opts: {
+  plan: AccessPlan | null | undefined;
+  highlightsUnlockedUntil: string | null | undefined;
+  isAdmin?: boolean;
+}): boolean {
+  if (opts.isAdmin) return true;
+  // ... resto existente
 }
 ```
 
-- Aplicar `stripMarkdown(summary)` no momento da exibição e ao copiar/enviar para TTS.
-- Renderizar com `whitespace-pre-line` (ou `pre-wrap`) e `leading-relaxed` + `space-y-3` no container para garantir espaçamento confortável entre parágrafos.
+### 2. `src/pages/Estudar.tsx` e `src/pages/Simulado.tsx`
+
+Atualizar as chamadas para incluir `isAdmin`:
+
+```ts
+const userHasExpertAccess = expertActive({
+  plan: profile?.plan,
+  expertUnlockedUntil: profile?.expert_unlocked_until,
+  isAdmin         // novo
+});
+
+const canExtractHighlights = highlightsActive({
+  plan: profile?.plan,
+  highlightsUnlockedUntil: profile?.highlights_unlocked_until,
+  isAdmin         // novo
+});
+```
+
+No `Estudar.tsx`, linhas 88-89 e uso do `highlightsViaAdmin` (linhas 90-96) também deve ser ajustado: se `isAdmin`, não mostrar o badge "Liberado pelo admin" porque é o acesso nativo da função.
+
+### 3. `src/pages/Admin.tsx` (opcional/consistência)
+
+O painel admin **não precisa** dessas verificações (já vê tudo), mas para consistência pode ser bom passar `isAdmin: true` nas chamadas onde o contexto faz gating.
 
 ---
 
 ## Arquivos afetados
 
-- **Editado**: `supabase/functions/generate-summary/index.ts` — novo `SYSTEM_PROMPT` em texto plano com regras explícitas de espaçamento.
-- **Editado**: `src/pages/Estudar.tsx` — função `stripMarkdown` + aplicação no render do resumo e nas ações de cópia/leitura por IA, ajuste de classes de espaçamento (`whitespace-pre-line leading-relaxed`).
+- `src/lib/freeTrial.ts` — adicionar `isAdmin` nas funções `expertActive` e `highlightsActive`.
+- `src/pages/Estudar.tsx` — passar `isAdmin` nas chamadas + ajuste no badge condicional.
+- `src/pages/Simulado.tsx` — passar `isAdmin` na verificação de Expert.
 
