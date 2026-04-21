@@ -70,8 +70,8 @@ export default function Estudar() {
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
-  const freeExpired = trial.isFree && !trial.freeBaseActive;
-  const unlocked = (profile?.current_topic_unlocked ?? true) && !freeExpired;
+  const freeExpired = trial.isFree && !trial.freeBaseActive && !isAdmin;
+  const unlocked = isAdmin || ((profile?.current_topic_unlocked ?? true) && !freeExpired);
   const lastScore = profile?.last_score ?? 0;
 
   const MIN_CHARS_EASY = 500;
@@ -82,8 +82,8 @@ export default function Estudar() {
   const topicLength = topic.trim().length;
   const titleLength = title.trim().length;
   const meetsEasy = topicLength >= MIN_CHARS_EASY;
-  const meetsHard = topicLength >= MIN_CHARS_HARD;
-  const meetsExpert = topicLength >= MIN_CHARS_EXPERT;
+  const meetsHard = topicLength >= MIN_CHARS_HARD || isAdmin;
+  const meetsExpert = topicLength >= MIN_CHARS_EXPERT || isAdmin;
   const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
   const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
   const canExtractHighlights = highlightsActive({ plan: profile?.plan, highlightsUnlockedUntil: profile?.highlights_unlocked_until, isAdmin });
