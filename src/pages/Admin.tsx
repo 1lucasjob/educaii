@@ -627,6 +627,7 @@ export default function Admin() {
               <TableHead>Expira</TableHead>
               <TableHead>Estudo</TableHead>
               <TableHead>Expert 24h</TableHead>
+              <TableHead>Trechos (30d)</TableHead>
               <TableHead>Renovar</TableHead>
             </TableRow>
           </TableHeader>
@@ -635,6 +636,7 @@ export default function Admin() {
               const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
               const isAdminRow = adminIds.has(s.id);
               const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
+              const highlightsActiveNow = s.highlights_unlocked_until && new Date(s.highlights_unlocked_until) > new Date();
               return (
                 <TableRow key={s.id}>
                   <TableCell className="text-xs truncate max-w-[180px]">{s.email}</TableCell>
@@ -709,6 +711,17 @@ export default function Admin() {
                           <Award className="w-3 h-3 mr-1" /> +30d Pacote
                         </Button>
                       </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {highlightsActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success" title={new Date(s.highlights_unlocked_until!).toLocaleString("pt-BR")}>
+                        <Quote className="w-3 h-3" /> Até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => unlockHighlights(s.id, s.email)}>
+                        <Quote className="w-3 h-3 mr-1" /> Liberar 30d
+                      </Button>
                     )}
                   </TableCell>
                   <TableCell>
