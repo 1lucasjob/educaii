@@ -491,6 +491,7 @@ export default function Simulado() {
         )}
 
         <Card className="p-6">
+          <h2 className="font-bold mb-4">Gabarito comentado</h2>
           <div className="space-y-4">
             {questions.map((q, i) => {
               const ok = answers[i] === q.correct_index;
