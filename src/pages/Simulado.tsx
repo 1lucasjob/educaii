@@ -28,7 +28,7 @@ export default function Simulado() {
   const topic = params.get("topic") ?? "";
   const difficulty = (params.get("difficulty") as "easy" | "hard" | "expert") ?? "easy";
   const navigate = useNavigate();
-  const { profile, refreshProfile } = useAuth();
+  const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
 
   const TIME_LIMIT =
@@ -37,9 +37,10 @@ export default function Simulado() {
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
   const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
-  const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until });
+  const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
 
   const freeBlocked =
+    !isAdmin &&
     trial.isFree &&
     ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
 
@@ -50,7 +51,7 @@ export default function Simulado() {
     (profile?.plan === "days_30" && (profile?.days_30_renewals_count ?? 0) >= 2) ||
     (profile?.plan === "days_60" && planWindow.hardActive);
   const planBlockedHard =
-    !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
+    !isAdmin && !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
 
   // Expert gating: somente premium, days_90 ou liberação ADM ativa.
   const expertBlocked = difficulty === "expert" && !userHasExpert;
