@@ -84,7 +84,7 @@ export default function Admin() {
       return;
     }
     toast({ title: "Acesso liberado!", description: `Plano ${planLabel(plan)} · link copiado.` });
-    const link = `${window.location.origin}/cadastro?token=${data.token}`;
+    const link = `${getPublicOrigin()}/cadastro?token=${data.token}`;
     navigator.clipboard.writeText(link).catch(() => {});
     setOpen(false);
     setPin("");
