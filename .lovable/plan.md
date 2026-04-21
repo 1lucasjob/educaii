@@ -2,79 +2,90 @@
 
 ## Objetivo
 
-Após o resultado final dos simulados **Difícil** e **Expert**, adicionar uma opção **"Análise de Desempenho"** que gera, via IA, uma análise personalizada do desempenho do aluno na tentativa (acertos, erros, padrões, recomendações de estudo).
+Tirar os cards 5W2H e SWOT da área principal de estudo e mover para uma **página dedicada** ("Modelos de Estudo"), onde cada framework tem:
 
-**Regras de acesso:**
-- Liberado para planos **60 DAYS, 90 DAYS, 180 DAYS e PREMIUM** (sempre).
-- Incluso no plano **FREE pelos primeiros 30 dias** após o cadastro.
-- **ADMIN** sempre tem acesso.
-- Plano **30 DAYS** não inclui (precisa fazer upgrade).
-
----
-
-## Parte 1 — Lógica de acesso (`src/lib/freeTrial.ts`)
-
-Nova função `performanceAnalysisActive`:
-
-```ts
-export function performanceAnalysisActive(opts: {
-  plan: AccessPlan | null | undefined;
-  createdAt: string | null | undefined;
-  isAdmin?: boolean;
-}): boolean {
-  if (opts.isAdmin) return true;
-  if (opts.plan && ["days_60", "days_90", "days_180", "premium"].includes(opts.plan)) return true;
-  // FREE: primeiros 30 dias
-  if (opts.plan === "free" && opts.createdAt) {
-    const days = Math.floor((Date.now() - new Date(opts.createdAt).getTime()) / 86_400_000);
-    return days < 30;
-  }
-  return false;
-}
-```
+1. **Resumo explicativo** do que é, para que serve e quando usar.
+2. **Exemplo prático** preenchido (caso real).
+3. **Modo de treino interativo** — o aluno preenche cada campo do framework e a IA dá feedback.
+4. **Botão "Usar este modelo no Estudar"** — leva para `/app/estudar` com o template já carregado (mantém o vínculo).
 
 ---
 
-## Parte 2 — Edge Function `analyze-performance`
+## Parte 1 — Nova rota `/app/modelos`
 
-Nova função `supabase/functions/analyze-performance/index.ts`:
+### Novo arquivo `src/pages/Modelos.tsx`
+- Lista os frameworks de `studyFrameworks.ts` em cards coloridos (mesmo visual atual do `FrameworkPicker`).
+- Ao clicar num card, abre a **visão detalhada** do framework (mesma página, troca de seção via state — sem nova rota).
 
-- **Input** (POST JSON): `{ topic, difficulty, score, total_points, time_spent_seconds, questions, answers }`
-- **Modelo**: `google/gemini-2.5-flash` via Lovable AI Gateway (`LOVABLE_API_KEY`).
-- **System prompt**: texto plano (sem markdown), responde em PT-BR, estruturado em seções claras:
-  1. **Resumo geral** (1-2 parágrafos)
-  2. **Pontos fortes** (o que acertou e por quê)
-  3. **Pontos a melhorar** (padrões de erro, conceitos a revisar)
-  4. **Plano de estudo recomendado** (3-5 passos práticos)
-- Aplica `stripMarkdown` no servidor para garantir saída limpa.
-- `verify_jwt = true` (precisa autenticação).
-- Trata 429 e 402 com mensagem amigável (mesmo padrão de outras funções).
+### Visão detalhada do framework
+Estrutura em 3 abas (`Tabs` do shadcn):
 
-`supabase/config.toml`: adiciona bloco para `analyze-performance` se necessário (default já é `verify_jwt = true`, então provavelmente sem config).
+**Aba 1 — "O que é"**
+- Título grande com cor do framework + ícone.
+- Texto explicativo (2-3 parágrafos): origem, para que serve, quando aplicar, benefícios.
+- Exemplo prático curto já preenchido (ex.: 5W2H aplicado a "Implantar EPI no canteiro").
+
+**Aba 2 — "Treinar"**
+- Campo "Tema do exercício" (input curto) — ex.: "Reduzir acidentes na obra X".
+- Para cada item do framework (What, Why, etc. ou Forças, Fraquezas, etc.) um `Textarea` separado com label colorida e placeholder de ajuda.
+- Botão **"Receber feedback da IA"** → chama edge function `framework-feedback` (nova) → exibe análise em texto plano abaixo, no padrão atual (sem markdown).
+- Botão **"Limpar"** zera os campos.
+
+**Aba 3 — "Usar no Estudar"**
+- Texto curto: "Quer gerar um resumo completo usando este modelo?"
+- Botão grande → navega para `/app/estudar?framework=5w2h` (ou `swot`) e a página Estudar lê o query param e auto-aplica o template.
+
+### Novo arquivo `supabase/functions/framework-feedback/index.ts`
+- Input: `{ frameworkId: "5w2h" | "swot", topic: string, fields: Record<string, string> }`.
+- Modelo: `google/gemini-2.5-flash` via Lovable AI Gateway.
+- System prompt em PT-BR, texto plano (sem markdown), avalia cada campo: o que está bom, o que falta, sugestões de melhoria, e dá uma nota geral de 0 a 10 sobre a qualidade do preenchimento.
+- `verify_jwt = true` (default).
+- Trata 429 e 402 com mensagem amigável.
 
 ---
 
-## Parte 3 — UI no `src/pages/Simulado.tsx`
+## Parte 2 — Atualizar áreas existentes
 
-Apenas no estado **finalizado** (após `submit`), e apenas para `difficulty` em `["hard", "expert"]`:
+### `src/lib/studyFrameworks.ts`
+- Adicionar dois novos campos por framework:
+  - `explanation: string` — texto longo explicando o que é.
+  - `example: string` — exemplo prático preenchido.
+  - `fields: { key: string; label: string; placeholder: string }[]` — definição estruturada dos campos para o modo treino (substitui o template plano para a UI de treino, mas o `template` continua existindo para uso no Estudar).
 
-- Importar `performanceAnalysisActive` e usar com `profile.plan`, `profile.created_at`, `isAdmin`.
-- Novo card abaixo do resultado: **"Análise de Desempenho com IA"**.
-  - Se **liberado**: botão "Gerar Análise" → chama edge function → exibe resultado em `<div className="whitespace-pre-line leading-relaxed space-y-3">`. Inclui botão "Copiar análise".
-  - Se **bloqueado**: card com cadeado, texto explicativo ("Disponível a partir do plano 60 DAYS — incluso 30 dias grátis no FREE") e botão "Fazer upgrade" → `/app/planos`.
-- Estados: `analysisLoading`, `analysisText`, `analysisError`.
-- Não persiste no banco nesta primeira versão (geração sob demanda; pode ser regenerada).
+### `src/pages/Estudar.tsx`
+- **Remover** o componente `FrameworkPicker` da página (não fica mais junto com a área de estudo).
+- **Adicionar** suporte a query param `?framework=5w2h|swot`: ao detectar, busca o framework, aplica `setTitle` + `setTopic` (mesma lógica atual do `handlePickFramework`) e limpa o param da URL.
+- **Adicionar** um link discreto acima do form: "Conheça os Modelos de Estudo (5W2H, SWOT)" → `/app/modelos`.
+
+### `src/components/FrameworkPicker.tsx`
+- Mantido (será reutilizado dentro de `Modelos.tsx` como a grid inicial de seleção).
+
+### `src/layouts/AppLayout.tsx`
+- Adicionar item de menu **"Modelos de Estudo"** (ícone `Sparkles` ou `BookOpen`) no grupo "Aluno", logo abaixo de "Estudar".
+
+### `src/App.tsx`
+- Registrar nova rota `<Route path="modelos" element={<Modelos />} />` dentro de `/app`.
+
+---
+
+## Acesso
+
+- Liberado para **todos os planos** (incluindo FREE) — é material educativo introdutório.
+- Modo de treino com IA também livre (consumo baixo, conteúdo educativo).
 
 ---
 
 ## Arquivos afetados
 
 ### Novos
-- `supabase/functions/analyze-performance/index.ts` — IA + system prompt em texto plano.
+- `src/pages/Modelos.tsx` — página com lista + detalhe + abas (O que é / Treinar / Usar no Estudar).
+- `supabase/functions/framework-feedback/index.ts` — IA para feedback do treino.
 
 ### Editados
-- `src/lib/freeTrial.ts` — adiciona `performanceAnalysisActive`.
-- `src/pages/Simulado.tsx` — novo card "Análise de Desempenho" no resultado final (hard/expert), com gating.
+- `src/lib/studyFrameworks.ts` — adiciona `explanation`, `example`, `fields[]`.
+- `src/pages/Estudar.tsx` — remove `FrameworkPicker`, adiciona query param + link para `/app/modelos`.
+- `src/layouts/AppLayout.tsx` — novo item "Modelos de Estudo" no menu.
+- `src/App.tsx` — nova rota.
 
 ### Banco
 - Sem migrações.
