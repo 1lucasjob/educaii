@@ -396,6 +396,20 @@ export default function Configuracoes() {
           {savingPwd ? "Salvando…" : "Alterar senha"}
         </Button>
       </Card>
+
+      <AvatarCropDialog
+        file={cropFile}
+        open={cropOpen}
+        onOpenChange={(o) => {
+          setCropOpen(o);
+          if (!o) {
+            setCropFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+          }
+        }}
+        onCropped={handleCroppedBlob}
+      />
     </div>
   );
 }
+
