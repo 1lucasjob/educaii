@@ -741,7 +741,7 @@ export default function Admin() {
               );
             })}
             {students.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
