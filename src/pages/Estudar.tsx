@@ -70,8 +70,8 @@ export default function Estudar() {
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
-  const freeExpired = trial.isFree && !trial.freeBaseActive;
-  const unlocked = (profile?.current_topic_unlocked ?? true) && !freeExpired;
+  const freeExpired = trial.isFree && !trial.freeBaseActive && !isAdmin;
+  const unlocked = isAdmin || ((profile?.current_topic_unlocked ?? true) && !freeExpired);
   const lastScore = profile?.last_score ?? 0;
 
   const MIN_CHARS_EASY = 500;
