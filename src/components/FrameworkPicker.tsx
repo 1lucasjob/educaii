@@ -32,12 +32,14 @@ export default function FrameworkPicker({ onPick, disabled }: FrameworkPickerPro
               key={fw.id}
               type="button"
               disabled={disabled}
-              onClick={() => onPick(fw)}
-              className="text-left p-4 rounded-lg border-2 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              onClick={() => {
+                console.log("[FrameworkPicker] click:", fw.id);
+                onPick(fw);
+              }}
+              className="text-left p-4 rounded-lg border-2 transition-all hover:-translate-y-0.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               style={{
                 borderColor: colorVar,
                 background: bgVar,
-                boxShadow: disabled ? undefined : `0 0 0 0 ${colorVar}`,
               }}
               onMouseEnter={(e) => {
                 if (disabled) return;
