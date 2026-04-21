@@ -47,13 +47,27 @@ export default function Planos() {
   const [draft, setDraft] = useState<PlanSetting | null>(null);
   const [saving, setSaving] = useState(false);
   const [pixOpen, setPixOpen] = useState(false);
-  const [pixData, setPixData] = useState<{ amount: number; plan: AccessPlan } | null>(null);
+  const [pixData, setPixData] = useState<
+    | { amount: number; plan: AccessPlan; label: string; mailto: string }
+    | null
+  >(null);
+  const [expertPack, setExpertPack] = useState<ExpertPackSetting | null>(null);
+  const [editingPack, setEditingPack] = useState(false);
+  const [packDraft, setPackDraft] = useState<ExpertPackSetting | null>(null);
+  const [savingPack, setSavingPack] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("plan_settings")
-      .select("plan,price,old_price,duration_label,highlight,benefits,locked");
+    const [{ data, error }, { data: packData, error: packErr }] = await Promise.all([
+      supabase
+        .from("plan_settings")
+        .select("plan,price,old_price,duration_label,highlight,benefits,locked"),
+      (supabase as any)
+        .from("expert_pack_settings")
+        .select("price,old_price,duration_days,duration_label,benefits,highlight,locked")
+        .eq("id", 1)
+        .maybeSingle(),
+    ]);
     if (error) {
       toast({ title: "Erro ao carregar planos", description: error.message, variant: "destructive" });
     } else if (data) {
@@ -68,6 +82,18 @@ export default function Planos() {
       }));
       normalized.sort((a, b) => PLAN_ORDER.indexOf(a.plan) - PLAN_ORDER.indexOf(b.plan));
       setPlans(normalized);
+    }
+    if (!packErr && packData) {
+      const d: any = packData;
+      setExpertPack({
+        price: d.price,
+        old_price: d.old_price,
+        duration_days: d.duration_days,
+        duration_label: d.duration_label,
+        benefits: Array.isArray(d.benefits) ? (d.benefits as string[]) : [],
+        highlight: d.highlight,
+        locked: !!d.locked,
+      });
     }
     setLoading(false);
   };
