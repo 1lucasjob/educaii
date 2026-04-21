@@ -40,6 +40,7 @@ export default function Simulado() {
   const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
 
   const freeBlocked =
+    !isAdmin &&
     trial.isFree &&
     ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
 
@@ -50,7 +51,7 @@ export default function Simulado() {
     (profile?.plan === "days_30" && (profile?.days_30_renewals_count ?? 0) >= 2) ||
     (profile?.plan === "days_60" && planWindow.hardActive);
   const planBlockedHard =
-    !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
+    !isAdmin && !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
 
   // Expert gating: somente premium, days_90 ou liberação ADM ativa.
   const expertBlocked = difficulty === "expert" && !userHasExpert;
