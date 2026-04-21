@@ -296,11 +296,23 @@ export default function Admin() {
                 <TableCell className="text-xs">{new Date(i.created_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell className="text-xs">{new Date(i.expires_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell>
-                  {!i.used && new Date(i.expires_at) > new Date() && (
-                    <Button size="sm" variant="outline" onClick={() => copyLink(i.token)}>
-                      <Copy className="w-3 h-3 mr-1" /> Copiar link
-                    </Button>
-                  )}
+                  <div className="flex gap-1">
+                    {!i.used && new Date(i.expires_at) > new Date() && (
+                      <Button size="sm" variant="outline" onClick={() => copyLink(i.token)}>
+                        <Copy className="w-3 h-3 mr-1" /> Copiar
+                      </Button>
+                    )}
+                    {!i.used && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                        onClick={() => { setDeleteTarget(i); setDeletePin(""); }}
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
