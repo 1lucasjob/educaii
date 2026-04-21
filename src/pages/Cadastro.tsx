@@ -8,7 +8,17 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { sha256 } from "@/lib/crypto";
-import { KeyRound, HardHat } from "lucide-react";
+import { KeyRound, HardHat, Sparkles } from "lucide-react";
+
+type InvitePlan = "free" | "days_30" | "days_60" | "days_90" | "premium";
+
+const PLAN_LABEL: Record<InvitePlan, string> = {
+  free: "Gratuito (30 dias)",
+  days_30: "30 dias",
+  days_60: "60 dias",
+  days_90: "90 dias",
+  premium: "Premium (1 ano)",
+};
 
 export default function Cadastro() {
   const [params] = useSearchParams();
@@ -18,6 +28,7 @@ export default function Cadastro() {
 
   const [validating, setValidating] = useState(true);
   const [valid, setValid] = useState(false);
+  const [invitePlan, setInvitePlan] = useState<InvitePlan | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [email, setEmail] = useState("");
