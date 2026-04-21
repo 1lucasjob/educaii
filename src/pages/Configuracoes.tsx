@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
 import { buildRenewalMailto, daysUntil, planLabel } from "@/lib/plans";
 import PlanBadge from "@/components/PlanBadge";
+import LoyaltyBadge from "@/components/LoyaltyBadge";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -157,7 +158,10 @@ export default function Configuracoes() {
             <p className="text-[10px] text-muted-foreground">PNG/JPEG/WebP · até 2 MB</p>
           </div>
           <div className="flex-1 w-full space-y-2">
-            <Label htmlFor="display-name" className="text-sm">Apelido</Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="display-name" className="text-sm">Apelido</Label>
+              <LoyaltyBadge startDate={profile?.created_at} size="sm" />
+            </div>
             <Input id="display-name" value={displayName} maxLength={24} onChange={(e) => setDisplayName(e.target.value)} placeholder="Como você quer ser chamado" />
             <p className="text-xs text-muted-foreground">
               Aparece no ranking e no cabeçalho. Deixe em branco para usar a parte do email antes do @.

@@ -19,6 +19,7 @@ import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trop
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
+import LoyaltyBadge from "@/components/LoyaltyBadge";
 import TermsGate from "@/components/TermsGate";
 import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
 
@@ -187,6 +188,7 @@ export default function AppLayout() {
                 <span className="text-sm truncate max-w-[160px]">
                   {profile?.display_name?.trim() || profile?.email?.split("@")[0]}
                 </span>
+                <LoyaltyBadge startDate={profile?.created_at} size="xs" />
               </div>
               <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sair">
                 <LogOut className="w-4 h-4" />

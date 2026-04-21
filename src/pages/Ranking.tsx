@@ -9,6 +9,7 @@ import { Trophy, Medal, Award, Crown, EyeOff, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { computeAchievements, AttemptLite } from "@/lib/achievements";
 import { AchievementsGrid } from "@/components/AchievementsGrid";
+import LoyaltyBadge from "@/components/LoyaltyBadge";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { FlaskConical } from "lucide-react";
 
@@ -16,6 +17,7 @@ interface Row {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
+  created_at?: string | null;
   total_score: number;
   hard_passed: number;
   attempts: number;
@@ -83,6 +85,7 @@ export default function Ranking() {
           user_id: r.user_id,
           display_name: r.display_name,
           avatar_url: r.avatar_url ?? null,
+          created_at: r.created_at ?? null,
           attempts,
           total_score,
           hard_passed,
@@ -182,9 +185,10 @@ export default function Ranking() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {r.display_name}
-                      {isMe && <Badge variant="outline" className="ml-2 text-xs">Você</Badge>}
+                    <p className="font-medium truncate flex items-center gap-1.5">
+                      <span className="truncate">{r.display_name}</span>
+                      <LoyaltyBadge startDate={r.created_at} size="xs" />
+                      {isMe && <Badge variant="outline" className="ml-1 text-xs shrink-0">Você</Badge>}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {r.attempts} simulados · {r.hard_passed} aprovações · média {r.avg_score}
@@ -226,9 +230,10 @@ export default function Ranking() {
             return (
               <>
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
+                  <DialogTitle className="flex items-center gap-2 flex-wrap">
                     <Trophy className="w-5 h-5 text-primary" />
-                    {sel.display_name}
+                    <span>{sel.display_name}</span>
+                    <LoyaltyBadge startDate={sel.created_at} size="sm" />
                     {sel.user_id === user?.id && <Badge variant="outline" className="text-xs">Você</Badge>}
                   </DialogTitle>
                   <DialogDescription>
