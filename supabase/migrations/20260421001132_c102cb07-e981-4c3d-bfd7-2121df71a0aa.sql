@@ -1,0 +1,1 @@
+CREATE POLICY "Admin delete invites" ON public.invites FOR DELETE USING (public.has_role(auth.uid(), 'admin'));
