@@ -108,6 +108,7 @@ export default function Estudar() {
     const fw = getFrameworkById(fwId);
     if (!fw) return;
     handlePickFramework(fw);
+    enableFrameworkBypass();
     const next = new URLSearchParams(searchParams);
     next.delete("framework");
     setSearchParams(next, { replace: true });
