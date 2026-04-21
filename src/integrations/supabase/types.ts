@@ -302,6 +302,51 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_in_progress: {
+        Row: {
+          answers: Json
+          created_at: string
+          current_index: number
+          difficulty: Database["public"]["Enums"]["quiz_difficulty"]
+          id: string
+          questions: Json
+          saved_at: string
+          time_left: number
+          time_limit: number
+          time_spent: number
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          current_index?: number
+          difficulty: Database["public"]["Enums"]["quiz_difficulty"]
+          id?: string
+          questions: Json
+          saved_at?: string
+          time_left?: number
+          time_limit?: number
+          time_spent?: number
+          topic: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          current_index?: number
+          difficulty?: Database["public"]["Enums"]["quiz_difficulty"]
+          id?: string
+          questions?: Json
+          saved_at?: string
+          time_left?: number
+          time_limit?: number
+          time_spent?: number
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_sessions: {
         Row: {
           created_at: string
