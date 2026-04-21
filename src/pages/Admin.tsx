@@ -140,6 +140,17 @@ export default function Admin() {
     load();
   };
 
+  const unlockHighlights = async (userId: string, email: string) => {
+    if (!confirm(`Liberar Extração de Trechos-Chave (Pegar Nota) por 30 dias para ${email}?`)) return;
+    const { error } = await (supabase as any).rpc("admin_unlock_highlights", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Trechos-Chave liberados!", description: `${email} pode usar Pegar Nota por 30 dias.` });
+    load();
+  };
+
   const approveAvatar = async (userId: string, email: string) => {
     const { error } = await (supabase as any).rpc("admin_approve_avatar", { _user_id: userId });
     if (error) {
