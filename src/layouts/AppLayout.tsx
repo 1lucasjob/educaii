@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock, Sparkles, FileText, Library } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock, Sparkles, FileText, Library, Headset } from "lucide-react";
+import CreuzaFab from "@/components/CreuzaFab";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
@@ -126,6 +127,14 @@ function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
+                  <NavLink to="/app/suporte" className={cls("/app/suporte")}>
+                    <Headset className="mr-2 h-4 w-4" />
+                    {!collapsed && <span>Suporte (Creuza)</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
                   <NavLink to="/app/configuracoes" className={cls("/app/configuracoes")}>
                     <Settings className="mr-2 h-4 w-4" />
                     {!collapsed && <span>Configurações</span>}
@@ -215,6 +224,7 @@ export default function AppLayout() {
           </main>
         </div>
       </div>
+      <CreuzaFab />
       <TermsGate />
     </SidebarProvider>
   );
