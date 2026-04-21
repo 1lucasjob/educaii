@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -6,10 +6,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
 import { buildRenewalMailto, daysUntil, planLabel } from "@/lib/plans";
 import PlanBadge from "@/components/PlanBadge";
-import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw } from "lucide-react";
+import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Configuracoes() {
