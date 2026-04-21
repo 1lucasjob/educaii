@@ -15,6 +15,7 @@ import { FlaskConical } from "lucide-react";
 interface Row {
   user_id: string;
   display_name: string;
+  avatar_url: string | null;
   total_score: number;
   hard_passed: number;
   attempts: number;
