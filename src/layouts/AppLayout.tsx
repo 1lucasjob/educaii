@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock, Sparkles, FileText } from "lucide-react";
+import { GraduationCap, BookOpen, BarChart3, ShieldCheck, Settings, LogOut, Trophy, FlaskConical, HardHat, MessageCircle, Lock, Sparkles, FileText, Library } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
@@ -25,6 +25,7 @@ import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
 
 const items = [
   { title: "Estudar", url: "/app/estudar", icon: GraduationCap },
+  { title: "Modelos de Estudo", url: "/app/modelos", icon: Library },
   { title: "Chat com Professor", url: "/app/chat", icon: MessageCircle },
   { title: "Normas Principais", url: "/app/normas", icon: BookOpen },
   { title: "Meu Progresso", url: "/app/progresso", icon: BarChart3 },

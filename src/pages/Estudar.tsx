@@ -10,12 +10,11 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock, ShieldCheck } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
-import FrameworkPicker from "@/components/FrameworkPicker";
-import type { Framework } from "@/lib/studyFrameworks";
+import { getFrameworkById, type Framework } from "@/lib/studyFrameworks";
 
 function stripMarkdown(s: string): string {
   return s
@@ -36,6 +35,7 @@ export default function Estudar() {
   const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState("");
@@ -71,6 +71,19 @@ export default function Estudar() {
       }
     }, 120);
   };
+
+  // Auto-aplica template ao chegar com ?framework=5w2h|swot
+  useEffect(() => {
+    const fwId = searchParams.get("framework");
+    if (!fwId) return;
+    const fw = getFrameworkById(fwId);
+    if (!fw) return;
+    handlePickFramework(fw);
+    const next = new URLSearchParams(searchParams);
+    next.delete("framework");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -321,7 +334,11 @@ export default function Estudar() {
       )}
 
       {unlocked && !summary && (
-        <FrameworkPicker onPick={handlePickFramework} disabled={loadingSummary} />
+        <div className="text-sm text-muted-foreground">
+          <Link to="/app/modelos" className="text-primary underline underline-offset-2 inline-flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5" /> Conheça os Modelos de Estudo (5W2H, SWOT)
+          </Link>
+        </div>
       )}
 
       <Card className="p-6 shadow-glow">
