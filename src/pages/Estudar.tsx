@@ -280,6 +280,58 @@ export default function Estudar() {
           </div>
         </Card>
       )}
+
+      {summary && sourceText && (
+        <Card className="p-6 animate-fade-in">
+          <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <Quote className="text-primary" /> Trechos-Chave (Pegar Nota)
+            </h3>
+            <Button
+              onClick={extractHighlights}
+              disabled={loadingHighlights}
+              size="sm"
+              variant={highlights.length ? "outline" : "default"}
+              className={highlights.length ? "" : "gradient-primary text-primary-foreground"}
+            >
+              {loadingHighlights ? "Extraindo…" : highlights.length ? "Extrair novamente" : "Extrair trechos"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Trechos extraídos diretamente do seu texto, sem modificações.
+          </p>
+
+          {highlights.length === 0 && !loadingHighlights && (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              Clique em <strong>Extrair trechos</strong> para identificar os pontos mais importantes do texto que você colou.
+            </p>
+          )}
+
+          {highlights.length > 0 && (
+            <div className="space-y-3">
+              {highlights.map((h, i) => (
+                <div key={i} className="rounded-md bg-muted/40 border border-border p-3 flex items-start gap-3">
+                  <span className="text-[10px] font-mono text-muted-foreground shrink-0 mt-1">
+                    {i + 1}/{highlights.length}
+                  </span>
+                  <blockquote className="flex-1 border-l-2 border-primary pl-3 italic text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                    {h}
+                  </blockquote>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyHighlight(h, i)}
+                    className="shrink-0 h-7 px-2 text-xs"
+                    title="Copiar trecho"
+                  >
+                    {copiedIdx === i ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 }
