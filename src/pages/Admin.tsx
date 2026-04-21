@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2 } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";

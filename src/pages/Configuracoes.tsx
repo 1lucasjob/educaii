@@ -184,6 +184,21 @@ export default function Configuracoes() {
               )}
             </div>
             <p className="text-[10px] text-muted-foreground">PNG/JPEG/WebP · até 2 MB</p>
+            {!isAdmin && profile?.avatar_status === "pending" && (
+              <p className="text-[10px] text-amber-500 font-medium text-center max-w-[160px]">
+                ⏳ Imagem em análise pelo administrador
+              </p>
+            )}
+            {!isAdmin && profile?.avatar_status === "rejected" && (
+              <p className="text-[10px] text-destructive font-medium text-center max-w-[160px]">
+                ✕ Imagem rejeitada — envie outra
+              </p>
+            )}
+            {!isAdmin && profile?.avatar_status === "approved" && profile?.avatar_url && (
+              <p className="text-[10px] text-success font-medium text-center max-w-[160px]">
+                ✓ Imagem aprovada
+              </p>
+            )}
           </div>
           <div className="flex-1 w-full space-y-2">
             <div className="flex items-center gap-2">
