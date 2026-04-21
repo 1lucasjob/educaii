@@ -179,6 +179,10 @@ export type Database = {
       profiles: {
         Row: {
           access_expires_at: string | null
+          avatar_pending_url: string | null
+          avatar_reviewed_at: string | null
+          avatar_reviewed_by: string | null
+          avatar_status: string
           avatar_url: string | null
           chat_unlocked: boolean
           created_at: string
@@ -201,6 +205,10 @@ export type Database = {
         }
         Insert: {
           access_expires_at?: string | null
+          avatar_pending_url?: string | null
+          avatar_reviewed_at?: string | null
+          avatar_reviewed_by?: string | null
+          avatar_status?: string
           avatar_url?: string | null
           chat_unlocked?: boolean
           created_at?: string
@@ -223,6 +231,10 @@ export type Database = {
         }
         Update: {
           access_expires_at?: string | null
+          avatar_pending_url?: string | null
+          avatar_reviewed_at?: string | null
+          avatar_reviewed_by?: string | null
+          avatar_status?: string
           avatar_url?: string | null
           chat_unlocked?: boolean
           created_at?: string
@@ -370,6 +382,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_approve_avatar: { Args: { _user_id: string }; Returns: undefined }
+      admin_reject_avatar: { Args: { _user_id: string }; Returns: undefined }
       admin_renew_user: {
         Args: {
           _plan: Database["public"]["Enums"]["access_plan"]

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2 } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -52,6 +52,7 @@ export default function Admin() {
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [unlockLogs, setUnlockLogs] = useState<Array<{ id: string; created_at: string; admin_email: string | null; student_email: string; previous_topic: string | null }>>([]);
   const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
+  const [pendingAvatars, setPendingAvatars] = useState<Array<{ id: string; email: string; avatar_pending_url: string | null; avatar_url: string | null }>>([]);
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [plan, setPlan] = useState<AccessPlan>("free");
@@ -61,18 +62,20 @@ export default function Admin() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = async () => {
-    const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }] = await Promise.all([
+    const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }, { data: pend }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until").order("access_expires_at", { ascending: true }),
       supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
+      supabase.from("profiles").select("id,email,avatar_pending_url,avatar_url").eq("avatar_status", "pending").order("updated_at", { ascending: false }),
     ]);
     setSlots(s?.count ?? 0);
     setInvites((i as Invite[]) ?? []);
     setStudents((st as StudentRow[]) ?? []);
     setUnlockLogs((logs as any) ?? []);
     setAdminIds(new Set(((roles as any[]) ?? []).map((r) => r.user_id)));
+    setPendingAvatars((pend as any) ?? []);
   };
 
   useEffect(() => { load(); }, []);
@@ -133,6 +136,27 @@ export default function Admin() {
       return;
     }
     toast({ title: "Pacote Expert liberado!", description: `${email} tem acesso Expert por +30 dias.` });
+    load();
+  };
+
+  const approveAvatar = async (userId: string, email: string) => {
+    const { error } = await (supabase as any).rpc("admin_approve_avatar", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro ao aprovar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Imagem aprovada!", description: `Imagem de ${email} agora está visível no app.` });
+    load();
+  };
+
+  const rejectAvatar = async (userId: string, email: string) => {
+    if (!confirm(`Rejeitar a imagem enviada por ${email}? A imagem pendente será descartada.`)) return;
+    const { error } = await (supabase as any).rpc("admin_reject_avatar", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro ao rejeitar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Imagem rejeitada", description: `${email} foi notificado e pode enviar outra.` });
     load();
   };
 
@@ -337,6 +361,54 @@ export default function Admin() {
         <Button onClick={() => setOpen(true)} className="gradient-primary text-primary-foreground shadow-glow mt-2">
           <Plus className="mr-2" /> Liberar +1 acesso
         </Button>
+      </Card>
+
+      <Card className="p-4 sm:p-6 border-amber-500/30 bg-amber-500/5">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <ImageIcon className="w-4 h-4 text-amber-500" />
+          <h2 className="font-bold">Imagens de perfil pendentes</h2>
+          {pendingAvatars.length > 0 && (
+            <Badge className="bg-amber-500 text-white border-0">{pendingAvatars.length}</Badge>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Imagens enviadas pelos alunos só ficam visíveis no app depois que você aprovar.
+        </p>
+        {pendingAvatars.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma imagem aguardando aprovação.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingAvatars.map((p) => (
+              <div key={p.id} className="rounded-md border border-border p-3 flex gap-3 items-start">
+                <img
+                  src={p.avatar_pending_url ?? ""}
+                  alt={`Pendente — ${p.email}`}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-amber-500/60 shrink-0"
+                />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <p className="text-xs font-medium break-all leading-snug">{p.email}</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs bg-success text-success-foreground hover:bg-success/90"
+                      onClick={() => approveAvatar(p.id, p.email)}
+                    >
+                      <Check className="w-3 h-3 mr-1" /> Aprovar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
+                      onClick={() => rejectAvatar(p.id, p.email)}
+                    >
+                      <X className="w-3 h-3 mr-1" /> Rejeitar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
       <Card className="p-4 sm:p-6">

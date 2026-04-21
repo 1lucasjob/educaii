@@ -64,7 +64,29 @@ export default function Configuracoes() {
     }
     const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
     const url = pub.publicUrl + `?t=${Date.now()}`;
-    const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", profile.id);
+
+    if (isAdmin) {
+      // Admin: bypass — vai direto para avatar_url
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: url, avatar_pending_url: null, avatar_status: "approved", avatar_reviewed_at: new Date().toISOString() })
+        .eq("id", profile.id);
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (updErr) {
+        toast({ title: "Erro ao salvar imagem", description: updErr.message, variant: "destructive" });
+        return;
+      }
+      await refreshProfile();
+      toast({ title: "Imagem atualizada!" });
+      return;
+    }
+
+    // Aluno: salva como pendente, aguarda aprovação
+    const { error: updErr } = await supabase
+      .from("profiles")
+      .update({ avatar_pending_url: url, avatar_status: "pending" })
+      .eq("id", profile.id);
     setUploadingAvatar(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (updErr) {
@@ -72,12 +94,18 @@ export default function Configuracoes() {
       return;
     }
     await refreshProfile();
-    toast({ title: "Imagem atualizada!" });
+    toast({
+      title: "Imagem enviada para análise",
+      description: "Sua nova imagem só ficará visível depois que o administrador aprovar.",
+    });
   };
 
   const removeAvatar = async () => {
     if (!profile) return;
-    const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", profile.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: null, avatar_pending_url: null, avatar_status: "none" })
+      .eq("id", profile.id);
     if (error) {
       toast({ title: "Erro ao remover imagem", description: error.message, variant: "destructive" });
       return;
@@ -156,6 +184,21 @@ export default function Configuracoes() {
               )}
             </div>
             <p className="text-[10px] text-muted-foreground">PNG/JPEG/WebP · até 2 MB</p>
+            {!isAdmin && profile?.avatar_status === "pending" && (
+              <p className="text-[10px] text-amber-500 font-medium text-center max-w-[160px]">
+                ⏳ Imagem em análise pelo administrador
+              </p>
+            )}
+            {!isAdmin && profile?.avatar_status === "rejected" && (
+              <p className="text-[10px] text-destructive font-medium text-center max-w-[160px]">
+                ✕ Imagem rejeitada — envie outra
+              </p>
+            )}
+            {!isAdmin && profile?.avatar_status === "approved" && profile?.avatar_url && (
+              <p className="text-[10px] text-success font-medium text-center max-w-[160px]">
+                ✓ Imagem aprovada
+              </p>
+            )}
           </div>
           <div className="flex-1 w-full space-y-2">
             <div className="flex items-center gap-2">
