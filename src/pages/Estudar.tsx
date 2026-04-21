@@ -72,6 +72,19 @@ export default function Estudar() {
     }, 120);
   };
 
+  // Auto-aplica template ao chegar com ?framework=5w2h|swot
+  useEffect(() => {
+    const fwId = searchParams.get("framework");
+    if (!fwId) return;
+    const fw = getFrameworkById(fwId);
+    if (!fw) return;
+    handlePickFramework(fw);
+    const next = new URLSearchParams(searchParams);
+    next.delete("framework");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     // Cada chamada de refresh recebe um id crescente; só o mais recente pode aplicar.
@@ -321,7 +334,11 @@ export default function Estudar() {
       )}
 
       {unlocked && !summary && (
-        <FrameworkPicker onPick={handlePickFramework} disabled={loadingSummary} />
+        <div className="text-sm text-muted-foreground">
+          <Link to="/app/modelos" className="text-primary underline underline-offset-2 inline-flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5" /> Conheça os Modelos de Estudo (5W2H, SWOT)
+          </Link>
+        </div>
       )}
 
       <Card className="p-6 shadow-glow">
