@@ -228,7 +228,7 @@ export default function Estudar() {
     setSummary(null);
     const cleanTitle = title.trim();
     const isHard = meetsHard;
-    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle } });
+    const { data, error } = await supabase.functions.invoke("generate-summary", { body: { topic, title: cleanTitle, from_framework: fromFramework } });
     setLoadingSummary(false);
     if (error || data?.error) {
       toast({ title: "Erro ao gerar resumo", description: data?.error ?? error?.message, variant: "destructive" });
