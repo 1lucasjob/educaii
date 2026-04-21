@@ -22,6 +22,69 @@ export default function Configuracoes() {
   const [showPwd, setShowPwd] = useState(false);
   const [savingPwd, setSavingPwd] = useState(false);
 
+  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [savingNick, setSavingNick] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const saveDisplayName = async () => {
+    if (!profile) return;
+    const clean = displayName.trim().slice(0, 24);
+    setSavingNick(true);
+    const { error } = await supabase.from("profiles").update({ display_name: clean || null }).eq("id", profile.id);
+    setSavingNick(false);
+    if (error) {
+      toast({ title: "Erro ao salvar apelido", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Apelido atualizado!" });
+  };
+
+  const handleAvatarSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      toast({ title: "Formato inválido", description: "Use PNG, JPEG ou WebP.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Imagem muito grande", description: "Máximo 2 MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+    const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploadingAvatar(false);
+      toast({ title: "Erro ao enviar imagem", description: upErr.message, variant: "destructive" });
+      return;
+    }
+    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = pub.publicUrl + `?t=${Date.now()}`;
+    const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", profile.id);
+    setUploadingAvatar(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (updErr) {
+      toast({ title: "Erro ao salvar imagem", description: updErr.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Imagem atualizada!" });
+  };
+
+  const removeAvatar = async () => {
+    if (!profile) return;
+    const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", profile.id);
+    if (error) {
+      toast({ title: "Erro ao remover imagem", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Imagem removida" });
+  };
+
   const changePassword = async () => {
     if (newPwd.length < 6) {
       toast({ title: "Senha muito curta", description: "Use no mínimo 6 caracteres.", variant: "destructive" });
