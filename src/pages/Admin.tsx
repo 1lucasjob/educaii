@@ -16,6 +16,8 @@ import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
 import { PLANS, planLabel } from "@/lib/plans";
 import PlanBadge from "@/components/PlanBadge";
+import { LOYALTY_TIERS } from "@/components/LoyaltyProgram";
+import { cn } from "@/lib/utils";
 import type { AccessPlan } from "@/contexts/AuthContext";
 
 interface Invite {
