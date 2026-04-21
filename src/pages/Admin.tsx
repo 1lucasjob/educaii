@@ -417,9 +417,23 @@ export default function Admin() {
                         <Unlock className="w-3 h-3" /> Liberado
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockStudy(s.id, s.email)}>
-                        <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
-                      </Button>
+                      <div className="space-y-2">
+                        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-[11px] space-y-1">
+                          <div className="flex items-center gap-1 font-semibold text-destructive">
+                            <Lock className="w-3 h-3" /> Motivo do bloqueio
+                          </div>
+                          <p className="text-muted-foreground leading-snug">
+                            Aguardando aprovação no Simulado Difícil (≥ 80 pts) do tema atual.
+                          </p>
+                          <div className="text-muted-foreground">
+                            <span className="block"><strong className="text-foreground">Tema:</strong> {s.current_topic ?? "—"}</span>
+                            <span className="block"><strong className="text-foreground">Última nota:</strong> {s.last_score} pts</span>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockStudy(s.id, s.email)}>
+                          <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <div>
@@ -501,15 +515,32 @@ export default function Admin() {
                         <Unlock className="w-3 h-3" /> Liberado
                       </span>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 text-xs"
-                        onClick={() => unlockStudy(s.id, s.email)}
-                        title={`Tópico atual: ${s.current_topic ?? "—"} · Pontos: ${s.last_score}`}
-                      >
-                        <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
-                      </Button>
+                      <div className="space-y-2 min-w-[220px]">
+                        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-[11px] space-y-1">
+                          <div className="flex items-center gap-1 font-semibold text-destructive">
+                            <Lock className="w-3 h-3" /> Motivo do bloqueio
+                          </div>
+                          <p className="text-muted-foreground leading-snug">
+                            Aguardando ≥ 80 pts no Simulado Difícil.
+                          </p>
+                          <div className="text-muted-foreground">
+                            <span className="block truncate" title={s.current_topic ?? ""}>
+                              <strong className="text-foreground">Tema:</strong> {s.current_topic ?? "—"}
+                            </span>
+                            <span className="block">
+                              <strong className="text-foreground">Última nota:</strong> {s.last_score} pts
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs w-full"
+                          onClick={() => unlockStudy(s.id, s.email)}
+                        >
+                          <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
