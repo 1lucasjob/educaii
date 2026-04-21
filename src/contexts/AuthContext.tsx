@@ -20,6 +20,8 @@ interface Profile {
   days_30_renewals_count: number;
   terms_accepted_at: string | null;
   expert_unlocked_until: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
 }
 
 interface AuthCtx {
