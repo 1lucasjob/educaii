@@ -123,6 +123,17 @@ export default function Admin() {
     load();
   };
 
+  const purchaseExpertPack = async (userId: string, email: string) => {
+    if (!confirm(`Liberar Pacote Expert de 30 dias para ${email}? Estende o acesso Expert sem alterar o plano principal.`)) return;
+    const { error } = await (supabase as any).rpc("purchase_expert_pack", { _user_id: userId, _days: 30 });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Pacote Expert liberado!", description: `${email} tem acesso Expert por +30 dias.` });
+    load();
+  };
+
   const copyLink = (token: string) => {
     const link = `${getPublicOrigin()}/cadastro?token=${token}`;
     navigator.clipboard.writeText(link);
