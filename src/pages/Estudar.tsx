@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -14,7 +14,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { computeFreeTrial, expertActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
-import { useEffect } from "react";
 
 export default function Estudar() {
   const { profile, refreshProfile } = useAuth();
