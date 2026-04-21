@@ -331,6 +331,8 @@ export default function Estudar() {
           </AlertDescription>
         </Alert>
       )}
+
+      {resumable && (
         <Card className="p-5 border-2 border-primary shadow-glow animate-fade-in">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 animate-pulse-glow">
