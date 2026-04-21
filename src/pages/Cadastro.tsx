@@ -46,11 +46,12 @@ export default function Cadastro() {
       }
       const { data } = await supabase
         .from("invites")
-        .select("id, used, expires_at")
+        .select("id, used, expires_at, plan")
         .eq("token", token)
         .maybeSingle();
       const ok = !!data && !data.used && new Date(data.expires_at) > new Date();
       setValid(ok);
+      if (ok && data) setInvitePlan(data.plan as InvitePlan);
       setValidating(false);
     };
     validate();
