@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2 } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -54,6 +54,9 @@ export default function Admin() {
   const [pin, setPin] = useState("");
   const [plan, setPlan] = useState<AccessPlan>("free");
   const [loading, setLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Invite | null>(null);
+  const [deletePin, setDeletePin] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = async () => {
     const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }] = await Promise.all([
@@ -124,6 +127,23 @@ export default function Admin() {
     const link = `${window.location.origin}/cadastro?token=${token}`;
     navigator.clipboard.writeText(link);
     toast({ title: "Link copiado!" });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    const { data, error } = await supabase.functions.invoke("delete-invite", {
+      body: { pin: deletePin, inviteId: deleteTarget.id },
+    });
+    setDeleteLoading(false);
+    if (error || data?.error) {
+      toast({ title: "Erro ao excluir", description: data?.error ?? error?.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Convite excluído!", description: "O link não pode mais ser usado." });
+    setDeleteTarget(null);
+    setDeletePin("");
+    load();
   };
 
   const statusOf = (i: Invite) => {
@@ -276,11 +296,23 @@ export default function Admin() {
                 <TableCell className="text-xs">{new Date(i.created_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell className="text-xs">{new Date(i.expires_at).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell>
-                  {!i.used && new Date(i.expires_at) > new Date() && (
-                    <Button size="sm" variant="outline" onClick={() => copyLink(i.token)}>
-                      <Copy className="w-3 h-3 mr-1" /> Copiar link
-                    </Button>
-                  )}
+                  <div className="flex gap-1">
+                    {!i.used && new Date(i.expires_at) > new Date() && (
+                      <Button size="sm" variant="outline" onClick={() => copyLink(i.token)}>
+                        <Copy className="w-3 h-3 mr-1" /> Copiar
+                      </Button>
+                    )}
+                    {!i.used && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                        onClick={() => { setDeleteTarget(i); setDeletePin(""); }}
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -443,6 +475,45 @@ export default function Admin() {
           <Button onClick={release} disabled={loading || pin.length !== 4} className="gradient-primary text-primary-foreground">
             {loading ? "Liberando…" : `Confirmar — ${planLabel(plan)}`}
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setDeletePin(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 /> Excluir convite
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            Tem certeza que deseja excluir este convite? <strong>Esta ação não pode ser desfeita</strong> e o link gerado deixará de funcionar.
+          </p>
+          {deleteTarget && (
+            <div className="rounded-md border border-border bg-muted/30 p-3 text-xs space-y-1">
+              <p><strong>Plano:</strong> {planLabel(deleteTarget.plan)}</p>
+              <p><strong>Criado em:</strong> {new Date(deleteTarget.created_at).toLocaleString("pt-BR")}</p>
+              <p className="truncate"><strong>Token:</strong> {deleteTarget.token.slice(0, 12)}…</p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label>PIN do administrador</Label>
+            <Input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={deletePin}
+              onChange={(e) => setDeletePin(e.target.value.replace(/\D/g, ""))}
+              placeholder="••••"
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeletePin(""); }}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteLoading || deletePin.length !== 4}>
+              {deleteLoading ? "Excluindo…" : "Sim, excluir"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
