@@ -266,9 +266,9 @@ export default function Admin() {
         )}
       </Card>
 
-      <Card className="p-8 shadow-glow text-center">
+      <Card className="p-6 sm:p-8 shadow-glow text-center">
         <p className="text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>
-        <p className="text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
+        <p className="text-5xl sm:text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
           {slots}
         </p>
         <Button onClick={() => setOpen(true)} className="gradient-primary text-primary-foreground shadow-glow mt-2">
