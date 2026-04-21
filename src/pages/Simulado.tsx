@@ -37,7 +37,7 @@ export default function Simulado() {
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
   const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
-  const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until });
+  const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
 
   const freeBlocked =
     trial.isFree &&
