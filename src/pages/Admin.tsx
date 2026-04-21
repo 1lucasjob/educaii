@@ -124,10 +124,19 @@ export default function Admin() {
   };
 
   const copyLink = (token: string) => {
-    const link = `${window.location.origin}/cadastro?token=${token}`;
+    const link = `${getPublicOrigin()}/cadastro?token=${token}`;
     navigator.clipboard.writeText(link);
     toast({ title: "Link copiado!" });
   };
+
+  function getPublicOrigin() {
+    const origin = window.location.origin;
+    // Sandbox/preview do editor não é acessível publicamente — usar domínio publicado
+    if (origin.includes("lovableproject.com") || origin.includes("id-preview--")) {
+      return "https://educaii.lovable.app";
+    }
+    return origin;
+  }
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
