@@ -1,0 +1,1 @@
+ALTER TYPE public.access_plan ADD VALUE IF NOT EXISTS 'days_180';
