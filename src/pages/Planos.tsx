@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import PlanBadge from "@/components/PlanBadge";
 import PixPaymentDialog from "@/components/PixPaymentDialog";
-import { buildPurchaseMailto, planLabel } from "@/lib/plans";
+import { buildPurchaseMailto, buildExpertPackPurchaseMailto, planLabel } from "@/lib/plans";
 import { parsePriceToNumber } from "@/lib/pix";
 import { Check, Sparkles, Mail, ShieldCheck, Pencil, Save, X, Loader2, Lock, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,17 @@ interface PlanSetting {
   locked: boolean;
 }
 
-const PLAN_ORDER: AccessPlan[] = ["days_30", "days_60", "days_90", "premium"];
+const PLAN_ORDER: AccessPlan[] = ["days_30", "days_60", "days_90", "days_180", "premium"];
+
+interface ExpertPackSetting {
+  price: string;
+  old_price: string | null;
+  duration_days: number;
+  duration_label: string;
+  benefits: string[];
+  highlight: string | null;
+  locked: boolean;
+}
 
 export default function Planos() {
   const { profile, isAdmin } = useAuth();

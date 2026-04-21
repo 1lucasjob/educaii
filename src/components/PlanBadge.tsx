@@ -26,6 +26,12 @@ const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crow
     cls: "bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border-amber-500 dark:from-amber-300 dark:to-amber-500 dark:text-amber-950 dark:border-amber-500",
     Icon: Star,
   },
+  days_180: {
+    label: "180 DAYS",
+    // Azul/ciano — destaque "intermediário longo"
+    cls: "bg-gradient-to-r from-sky-300 to-cyan-500 text-sky-950 border-cyan-600 dark:from-sky-400 dark:to-cyan-600 dark:text-sky-50 dark:border-cyan-700",
+    Icon: Star,
+  },
   premium: {
     label: "PREMIUM",
     // Roxo
