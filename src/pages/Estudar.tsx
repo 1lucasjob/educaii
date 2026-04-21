@@ -85,9 +85,10 @@ export default function Estudar() {
   const meetsHard = topicLength >= MIN_CHARS_HARD;
   const meetsExpert = topicLength >= MIN_CHARS_EXPERT;
   const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
-  const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until });
-  const canExtractHighlights = highlightsActive({ plan: profile?.plan, highlightsUnlockedUntil: profile?.highlights_unlocked_until });
+  const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
+  const canExtractHighlights = highlightsActive({ plan: profile?.plan, highlightsUnlockedUntil: profile?.highlights_unlocked_until, isAdmin });
   const highlightsViaAdmin =
+    !isAdmin &&
     canExtractHighlights &&
     !!profile?.highlights_unlocked_until &&
     !["days_60", "days_90", "days_180", "premium"].includes(profile?.plan ?? "");
