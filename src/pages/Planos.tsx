@@ -287,6 +287,22 @@ export default function Planos() {
                         <Lock className="w-4 h-4" /> Indisponível no momento
                       </Button>
                     )}
+                    {isAdmin && !p.locked && (() => {
+                      const amount = parsePriceToNumber(p.price);
+                      if (!amount) return null;
+                      return (
+                        <Button
+                          onClick={() => {
+                            setPixData({ amount, plan: p.plan });
+                            setPixOpen(true);
+                          }}
+                          variant="outline"
+                          className="w-full gap-2 border-dashed"
+                        >
+                          <QrCode className="w-4 h-4" /> Visualizar PIX (modo teste)
+                        </Button>
+                      );
+                    })()}
                     {isAdmin && p.locked && (
                       <div className="text-xs text-center text-muted-foreground border border-dashed border-border rounded-md p-2 flex items-center justify-center gap-1">
                         <Lock className="w-3 h-3" /> Travado — alunos verão "Indisponível"
