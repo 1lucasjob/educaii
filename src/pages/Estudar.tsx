@@ -257,7 +257,7 @@ export default function Estudar() {
     if (!sourceText) return;
     setLoadingHighlights(true);
     const { data, error } = await supabase.functions.invoke("extract-highlights", {
-      body: { topic: sourceText, title: activeTopic ?? "", count: 6 },
+      body: { topic: sourceText, title: activeTopic ?? "", count: 6, from_framework: fromFramework },
     });
     setLoadingHighlights(false);
     if (error || data?.error) {
