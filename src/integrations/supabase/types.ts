@@ -387,6 +387,7 @@ export type Database = {
           avatar_url: string
           avg_score: number
           composite_score: number
+          created_at: string
           display_name: string
           hard_passed: number
           total_score: number
