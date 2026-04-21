@@ -54,6 +54,9 @@ export default function Admin() {
   const [pin, setPin] = useState("");
   const [plan, setPlan] = useState<AccessPlan>("free");
   const [loading, setLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Invite | null>(null);
+  const [deletePin, setDeletePin] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = async () => {
     const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }] = await Promise.all([
