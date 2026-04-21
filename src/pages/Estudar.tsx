@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check } from "lucide-react";
+import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { computeFreeTrial, expertActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getResumableQuiz, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
 
 export default function Estudar() {
   const { profile, refreshProfile } = useAuth();
@@ -29,6 +30,29 @@ export default function Estudar() {
   const [highlights, setHighlights] = useState<string[]>([]);
   const [loadingHighlights, setLoadingHighlights] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [resumable, setResumable] = useState<SavedQuiz | null>(null);
+
+  useEffect(() => {
+    const refresh = () => setResumable(getResumableQuiz(profile?.id));
+    refresh();
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, [profile?.id]);
+
+  const handleResume = () => {
+    if (!resumable) return;
+    navigate(
+      `/app/simulado?topic=${encodeURIComponent(resumable.topic)}&difficulty=${resumable.difficulty}&resume=1`,
+    );
+  };
+
+  const handleDiscardResumable = () => {
+    clearQuiz(profile?.id);
+    setResumable(null);
+  };
+
+  const formatResumeTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
   const freeExpired = trial.isFree && !trial.freeBaseActive;
@@ -161,6 +185,57 @@ export default function Estudar() {
             </Link>.
           </AlertDescription>
         </Alert>
+      )}
+
+      {resumable && (
+        <Card className="p-5 border-2 border-primary shadow-glow animate-fade-in">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 animate-pulse-glow">
+              <RotateCcw className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h3 className="font-semibold">Simulado em andamento</h3>
+                {resumable.difficulty === "expert" ? (
+                  <Badge
+                    className="border-0 text-white"
+                    style={{ background: "linear-gradient(135deg, hsl(280 80% 55%), hsl(320 80% 55%))" }}
+                  >
+                    EXPERT
+                  </Badge>
+                ) : (
+                  <Badge className="gradient-primary text-primary-foreground border-0">
+                    {resumable.difficulty === "hard" ? "DIFÍCIL" : "FÁCIL"}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                Tema: <span className="text-foreground font-medium">{resumable.topic}</span>
+              </p>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5 flex-wrap">
+                <span>
+                  Questão <strong className="text-foreground">{Math.min(resumable.current + 1, resumable.questions.length)}/{resumable.questions.length}</strong>
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Tempo restante:{" "}
+                  <strong className="text-foreground">{formatResumeTime(resumable.timeLeft)}</strong>
+                </span>
+              </div>
+              <div className="flex gap-2 mt-3 flex-wrap">
+                <Button
+                  size="sm"
+                  onClick={handleResume}
+                  className="gradient-primary text-primary-foreground shadow-glow"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1.5" /> Retomar
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleDiscardResumable}>
+                  <Trash2 className="w-4 h-4 mr-1.5" /> Descartar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
       )}
 
       <Card className="p-6 shadow-glow">
