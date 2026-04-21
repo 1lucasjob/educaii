@@ -363,8 +363,53 @@ export default function Admin() {
         </Button>
       </Card>
 
-      <Card className="p-4 sm:p-6">
-        <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
+      <Card className="p-4 sm:p-6 border-amber-500/30 bg-amber-500/5">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <ImageIcon className="w-4 h-4 text-amber-500" />
+          <h2 className="font-bold">Imagens de perfil pendentes</h2>
+          {pendingAvatars.length > 0 && (
+            <Badge className="bg-amber-500 text-white border-0">{pendingAvatars.length}</Badge>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Imagens enviadas pelos alunos só ficam visíveis no app depois que você aprovar.
+        </p>
+        {pendingAvatars.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma imagem aguardando aprovação.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingAvatars.map((p) => (
+              <div key={p.id} className="rounded-md border border-border p-3 flex gap-3 items-start">
+                <img
+                  src={p.avatar_pending_url ?? ""}
+                  alt={`Pendente — ${p.email}`}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-amber-500/60 shrink-0"
+                />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <p className="text-xs font-medium break-all leading-snug">{p.email}</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs bg-success text-success-foreground hover:bg-success/90"
+                      onClick={() => approveAvatar(p.id, p.email)}
+                    >
+                      <Check className="w-3 h-3 mr-1" /> Aprovar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
+                      onClick={() => rejectAvatar(p.id, p.email)}
+                    >
+                      <X className="w-3 h-3 mr-1" /> Rejeitar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
         {/* Mobile: cards */}
         <div className="md:hidden space-y-3">
