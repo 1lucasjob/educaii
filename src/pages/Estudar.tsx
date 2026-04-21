@@ -51,6 +51,7 @@ export default function Estudar() {
   const topicRef = useRef<HTMLTextAreaElement>(null);
 
   const handlePickFramework = (fw: Framework) => {
+    console.log("[FrameworkPicker] picked:", fw.id);
     setTitle((prev) => (prev.trim() ? prev : fw.titleSuggestion));
     setTopic(fw.template);
     toast({
@@ -58,9 +59,17 @@ export default function Estudar() {
       description: "Preencha os campos e clique em Gerar Estudo.",
     });
     setTimeout(() => {
-      topicRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      topicRef.current?.focus();
-    }, 80);
+      const el = topicRef.current;
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus();
+        // Posiciona o cursor no fim do texto inserido
+        try {
+          const len = el.value.length;
+          el.setSelectionRange(len, len);
+        } catch {}
+      }
+    }, 120);
   };
 
   useEffect(() => {
