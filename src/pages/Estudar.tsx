@@ -31,7 +31,7 @@ function stripMarkdown(s: string): string {
 }
 
 export default function Estudar() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
