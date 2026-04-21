@@ -278,7 +278,45 @@ export default function Admin() {
 
       <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+
+        {/* Mobile: cards */}
+        <div className="md:hidden space-y-3">
+          {invites.map((i) => (
+            <div key={i.id} className="rounded-md border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                {statusOf(i)}
+                <Badge variant="outline">{planLabel(i.plan)}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div><span className="block text-[10px] uppercase">Criado</span>{new Date(i.created_at).toLocaleDateString("pt-BR")}</div>
+                <div><span className="block text-[10px] uppercase">Expira link</span>{new Date(i.expires_at).toLocaleDateString("pt-BR")}</div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {!i.used && new Date(i.expires_at) > new Date() && (
+                  <Button size="sm" variant="outline" onClick={() => copyLink(i.token)} className="flex-1">
+                    <Copy className="w-3 h-3 mr-1" /> Copiar
+                  </Button>
+                )}
+                {!i.used && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-destructive border-destructive/40 hover:bg-destructive/10"
+                    onClick={() => { setDeleteTarget(i); setDeletePin(""); }}
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+          {invites.length === 0 && (
+            <p className="text-center text-muted-foreground py-6 text-sm">Nenhum convite ainda.</p>
+          )}
+        </div>
+
+        {/* Desktop: tabela */}
+        <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -327,7 +365,80 @@ export default function Admin() {
 
       <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Alunos cadastrados ({students.length})</h2>
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+
+        {/* Mobile: cards */}
+        <div className="md:hidden space-y-3">
+          {students.map((s) => {
+            const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
+            const isAdminRow = adminIds.has(s.id);
+            const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
+            return (
+              <div key={s.id} className="rounded-md border border-border p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2 flex-wrap">
+                  <p className="text-xs font-medium break-all flex-1 min-w-0">{s.email}</p>
+                  <PlanBadge plan={s.plan} isAdmin={isAdminRow} size="sm" />
+                </div>
+                <div className="text-xs">
+                  <span className="text-[10px] uppercase text-muted-foreground block">Expira</span>
+                  {isAdminRow ? (
+                    <span className="text-primary font-semibold">Vitalício</span>
+                  ) : s.access_expires_at ? (
+                    <span className={expired ? "text-destructive font-semibold" : ""}>
+                      {new Date(s.access_expires_at).toLocaleDateString("pt-BR")}
+                      {expired && " (expirado)"}
+                    </span>
+                  ) : "—"}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Estudo</span>
+                    {s.current_topic_unlocked ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
+                        <Unlock className="w-3 h-3" /> Liberado
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockStudy(s.id, s.email)}>
+                        <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Expert 24h</span>
+                    {expertActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: "hsl(280 80% 65%)" }}>
+                        <Award className="w-3 h-3" /> Ativo até {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" style={{ borderColor: "hsl(280 80% 55% / 0.4)" }} onClick={() => unlockExpert(s.id, s.email)}>
+                        <Award className="w-3 h-3 mr-1" /> Liberar 24h
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Renovar</span>
+                    <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
+                      <SelectTrigger className="h-8 text-xs w-full">
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        <SelectValue placeholder="Renovar plano" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PLANS.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.label} · {p.days}d</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {students.length === 0 && (
+            <p className="text-center text-muted-foreground py-6 text-sm">Nenhum aluno cadastrado.</p>
+          )}
+        </div>
+
+        {/* Desktop: tabela */}
+        <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -421,7 +532,25 @@ export default function Admin() {
         <h2 className="font-bold mb-4 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" /> Histórico de liberações de estudo ({unlockLogs.length})
         </h2>
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+        {/* Mobile: cards */}
+        <div className="md:hidden space-y-3">
+          {unlockLogs.map((l) => (
+            <div key={l.id} className="rounded-md border border-border p-3 space-y-1 text-xs">
+              <p className="text-muted-foreground text-[11px]">
+                {new Date(l.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+              </p>
+              <p className="break-all"><span className="text-[10px] uppercase text-muted-foreground">Admin: </span>{l.admin_email ?? "—"}</p>
+              <p className="break-all"><span className="text-[10px] uppercase text-muted-foreground">Aluno: </span>{l.student_email}</p>
+              <p className="text-muted-foreground"><span className="text-[10px] uppercase">Tópico anterior: </span>{l.previous_topic ?? "—"}</p>
+            </div>
+          ))}
+          {unlockLogs.length === 0 && (
+            <p className="text-center text-muted-foreground py-6 text-sm">Nenhuma liberação manual ainda.</p>
+          )}
+        </div>
+
+        {/* Desktop: tabela */}
+        <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
