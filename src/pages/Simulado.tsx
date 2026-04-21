@@ -28,7 +28,7 @@ export default function Simulado() {
   const topic = params.get("topic") ?? "";
   const difficulty = (params.get("difficulty") as "easy" | "hard" | "expert") ?? "easy";
   const navigate = useNavigate();
-  const { profile, refreshProfile } = useAuth();
+  const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
 
   const TIME_LIMIT =
