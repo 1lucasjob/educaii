@@ -82,6 +82,7 @@ export default function Ranking() {
         return {
           user_id: r.user_id,
           display_name: r.display_name,
+          avatar_url: r.avatar_url ?? null,
           attempts,
           total_score,
           hard_passed,
