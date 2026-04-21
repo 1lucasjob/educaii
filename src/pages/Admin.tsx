@@ -477,6 +477,45 @@ export default function Admin() {
           </Button>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setDeletePin(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 /> Excluir convite
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            Tem certeza que deseja excluir este convite? <strong>Esta ação não pode ser desfeita</strong> e o link gerado deixará de funcionar.
+          </p>
+          {deleteTarget && (
+            <div className="rounded-md border border-border bg-muted/30 p-3 text-xs space-y-1">
+              <p><strong>Plano:</strong> {planLabel(deleteTarget.plan)}</p>
+              <p><strong>Criado em:</strong> {new Date(deleteTarget.created_at).toLocaleString("pt-BR")}</p>
+              <p className="truncate"><strong>Token:</strong> {deleteTarget.token.slice(0, 12)}…</p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label>PIN do administrador</Label>
+            <Input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={deletePin}
+              onChange={(e) => setDeletePin(e.target.value.replace(/\D/g, ""))}
+              placeholder="••••"
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeletePin(""); }}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteLoading || deletePin.length !== 4}>
+              {deleteLoading ? "Excluindo…" : "Sim, excluir"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
