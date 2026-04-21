@@ -8,7 +8,17 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { sha256 } from "@/lib/crypto";
-import { KeyRound, HardHat } from "lucide-react";
+import { KeyRound, HardHat, Sparkles } from "lucide-react";
+
+type InvitePlan = "free" | "days_30" | "days_60" | "days_90" | "premium";
+
+const PLAN_LABEL: Record<InvitePlan, string> = {
+  free: "Gratuito (30 dias)",
+  days_30: "30 dias",
+  days_60: "60 dias",
+  days_90: "90 dias",
+  premium: "Premium (1 ano)",
+};
 
 export default function Cadastro() {
   const [params] = useSearchParams();
@@ -18,6 +28,7 @@ export default function Cadastro() {
 
   const [validating, setValidating] = useState(true);
   const [valid, setValid] = useState(false);
+  const [invitePlan, setInvitePlan] = useState<InvitePlan | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [email, setEmail] = useState("");
@@ -35,11 +46,12 @@ export default function Cadastro() {
       }
       const { data } = await supabase
         .from("invites")
-        .select("id, used, expires_at")
+        .select("id, used, expires_at, plan")
         .eq("token", token)
         .maybeSingle();
       const ok = !!data && !data.used && new Date(data.expires_at) > new Date();
       setValid(ok);
+      if (ok && data) setInvitePlan(data.plan as InvitePlan);
       setValidating(false);
     };
     validate();
@@ -112,6 +124,12 @@ export default function Cadastro() {
           </div>
           <h1 className="text-2xl font-bold">Criar conta</h1>
           <p className="text-muted-foreground text-sm">Preencha os dados do seu acesso</p>
+          {invitePlan && (
+            <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-medium">
+              <Sparkles className="w-4 h-4" />
+              Plano: {PLAN_LABEL[invitePlan]}
+            </div>
+          )}
         </div>
 
         <Card className="p-6 animate-scale-in">
