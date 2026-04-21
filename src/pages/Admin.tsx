@@ -123,6 +123,17 @@ export default function Admin() {
     load();
   };
 
+  const purchaseExpertPack = async (userId: string, email: string) => {
+    if (!confirm(`Liberar Pacote Expert de 30 dias para ${email}? Estende o acesso Expert sem alterar o plano principal.`)) return;
+    const { error } = await (supabase as any).rpc("purchase_expert_pack", { _user_id: userId, _days: 30 });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Pacote Expert liberado!", description: `${email} tem acesso Expert por +30 dias.` });
+    load();
+  };
+
   const copyLink = (token: string) => {
     const link = `${getPublicOrigin()}/cadastro?token=${token}`;
     navigator.clipboard.writeText(link);
@@ -424,6 +435,12 @@ export default function Admin() {
                     )}
                   </div>
                   <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Pacote Expert (30d)</span>
+                    <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                      <Award className="w-3 h-3 mr-1" /> Liberar +30 dias
+                    </Button>
+                  </div>
+                  <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Renovar</span>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-8 text-xs w-full">
@@ -497,20 +514,30 @@ export default function Admin() {
                   </TableCell>
                   <TableCell>
                     {expertActiveNow ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: "hsl(280 80% 65%)" }} title={new Date(s.expert_unlocked_until!).toLocaleString("pt-BR")}>
-                        <Award className="w-3 h-3" /> Ativo até{" "}
-                        {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: "hsl(280 80% 65%)" }} title={new Date(s.expert_unlocked_until!).toLocaleString("pt-BR")}>
+                          <Award className="w-3 h-3" /> Até{" "}
+                          {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                        </span>
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                          <Award className="w-3 h-3 mr-1" /> +30d Pacote
+                        </Button>
+                      </div>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 text-xs"
-                        style={{ borderColor: "hsl(280 80% 55% / 0.4)" }}
-                        onClick={() => unlockExpert(s.id, s.email)}
-                      >
-                        <Award className="w-3 h-3 mr-1" /> Liberar 24h
-                      </Button>
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs"
+                          style={{ borderColor: "hsl(280 80% 55% / 0.4)" }}
+                          onClick={() => unlockExpert(s.id, s.email)}
+                        >
+                          <Award className="w-3 h-3 mr-1" /> Liberar 24h
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                          <Award className="w-3 h-3 mr-1" /> +30d Pacote
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>

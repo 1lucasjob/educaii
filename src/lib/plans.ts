@@ -5,6 +5,7 @@ export const PLANS: { id: AccessPlan; label: string; days: number; description: 
   { id: "days_30", label: "30 DAYS", days: 30, description: "30 dias · renovável" },
   { id: "days_60", label: "60 DAYS", days: 60, description: "60 dias · renovável" },
   { id: "days_90", label: "90 DAYS", days: 90, description: "90 dias · renovável" },
+  { id: "days_180", label: "180 DAYS", days: 180, description: "180 dias · renovável" },
   { id: "premium", label: "PREMIUM", days: 366, description: "366 dias · renovável" },
 ];
 
@@ -58,6 +59,26 @@ export function buildPurchaseMailto(opts: {
     ``,
     `Email da conta: ${opts.userEmail}`,
     `Plano desejado: ${planLabel(opts.plan)}`,
+    ``,
+    `Aguardo instruções para pagamento.`,
+    ``,
+    `Obrigado!`,
+  ].join("\n");
+  return `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+export function buildExpertPackPurchaseMailto(opts: {
+  userEmail: string;
+  durationLabel?: string;
+}): string {
+  const dur = opts.durationLabel ?? "30 dias";
+  const subject = `Quero contratar o Pacote Simulados Expert (${dur}) — EDUCA.I`;
+  const body = [
+    `Olá,`,
+    ``,
+    `Tenho interesse em contratar o Pacote Simulados Expert do EDUCA.I (${dur}).`,
+    ``,
+    `Email da conta: ${opts.userEmail}`,
     ``,
     `Aguardo instruções para pagamento.`,
     ``,

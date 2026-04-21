@@ -7,11 +7,15 @@ const corsHeaders = {
 };
 
 const ADMIN_PIN = "1631";
-const VALID_PLANS = ["free", "days_30", "days_60", "days_90", "premium"] as const;
+const VALID_PLANS = ["free", "days_30", "days_60", "days_90", "days_180", "premium"] as const;
 type Plan = typeof VALID_PLANS[number];
 
 const planDays = (p: Plan) =>
-  p === "premium" ? 366 : p === "days_90" ? 90 : p === "days_60" ? 60 : 30;
+  p === "premium" ? 366
+    : p === "days_180" ? 180
+    : p === "days_90" ? 90
+    : p === "days_60" ? 60
+    : 30;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
