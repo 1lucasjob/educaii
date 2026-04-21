@@ -14,7 +14,9 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
-import { getFrameworkById, type Framework } from "@/lib/studyFrameworks";
+import { getFrameworkById, topicMatchesFrameworkTemplate, type Framework } from "@/lib/studyFrameworks";
+
+const FROM_FRAMEWORK_KEY = "estudar:from-framework";
 
 function stripMarkdown(s: string): string {
   return s
