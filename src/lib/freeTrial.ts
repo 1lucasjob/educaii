@@ -90,6 +90,26 @@ export function expertActive(opts: {
 }
 
 /**
+ * Acesso à Análise de Desempenho (após simulado difícil/expert).
+ * Liberado para planos days_60, days_90, days_180 e premium.
+ * No plano FREE, incluso pelos primeiros 30 dias após o cadastro.
+ * Admin sempre tem acesso.
+ */
+export function performanceAnalysisActive(opts: {
+  plan: AccessPlan | null | undefined;
+  createdAt: string | null | undefined;
+  isAdmin?: boolean;
+}): boolean {
+  if (opts.isAdmin) return true;
+  if (opts.plan && ["days_60", "days_90", "days_180", "premium"].includes(opts.plan)) return true;
+  if (opts.plan === "free" && opts.createdAt) {
+    const days = Math.floor((Date.now() - new Date(opts.createdAt).getTime()) / DAY_MS);
+    return days < 30;
+  }
+  return false;
+}
+
+/**
  * Acesso à Extração de Trechos-Chave ("Pegar Nota").
  * Liberado para planos days_60, days_90, days_180 e premium,
  * ou se houver liberação ADM temporária ativa (30 dias).

@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap } from "lucide-react";
+import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap, Sparkles, Copy } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
-import { computeFreeTrial, computePlanWindows, expertActive } from "@/lib/freeTrial";
+import { computeFreeTrial, computePlanWindows, expertActive, performanceAnalysisActive } from "@/lib/freeTrial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { saveQuiz, clearQuiz, loadQuiz, loadQuizRemote, clearQuizRemote } from "@/lib/quizPersistence";
@@ -67,6 +67,56 @@ export default function Simulado() {
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
   const [upgradeOpen, setUpgradeOpen] = useState(blocked);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisText, setAnalysisText] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  const canAnalyze = performanceAnalysisActive({
+    plan: profile?.plan,
+    createdAt: profile?.created_at,
+    isAdmin,
+  });
+
+  const generateAnalysis = async () => {
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-performance", {
+        body: {
+          topic,
+          difficulty,
+          score,
+          total_points: 100,
+          time_spent_seconds: timeSpent,
+          questions,
+          answers,
+        },
+      });
+      if (error || data?.error) {
+        const msg = data?.error ?? error?.message ?? "Falha ao gerar análise";
+        setAnalysisError(msg);
+        toast({ title: "Erro na análise", description: msg, variant: "destructive" });
+        return;
+      }
+      setAnalysisText(data?.analysis ?? "");
+    } catch (e: any) {
+      const msg = e?.message ?? "Falha ao gerar análise";
+      setAnalysisError(msg);
+      toast({ title: "Erro na análise", description: msg, variant: "destructive" });
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
+
+  const copyAnalysis = async () => {
+    if (!analysisText) return;
+    try {
+      await navigator.clipboard.writeText(analysisText);
+      toast({ title: "Análise copiada para a área de transferência." });
+    } catch {
+      toast({ title: "Não foi possível copiar.", variant: "destructive" });
+    }
+  };
 
   useEffect(() => {
     if (blocked) {
@@ -378,6 +428,67 @@ export default function Simulado() {
             </p>
           )}
         </Card>
+
+        {(difficulty === "hard" || difficulty === "expert") && (
+          <Card className="p-6">
+            <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+              <div className="flex items-start gap-2">
+                <Sparkles className="w-5 h-5 text-primary mt-0.5" />
+                <div>
+                  <h2 className="font-bold">Análise de Desempenho com IA</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Receba uma análise personalizada com pontos fortes, erros recorrentes e plano de estudo.
+                  </p>
+                </div>
+              </div>
+              {canAnalyze && analysisText && (
+                <Button variant="outline" size="sm" onClick={copyAnalysis}>
+                  <Copy className="w-4 h-4 mr-1.5" /> Copiar
+                </Button>
+              )}
+            </div>
+
+            {!canAnalyze ? (
+              <div className="rounded-lg border border-warning/40 bg-warning/5 p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                  <p className="text-sm">
+                    Disponível a partir do plano <strong>60 DAYS</strong>. Está incluso por <strong>30 dias grátis</strong> no plano FREE após o cadastro.
+                  </p>
+                </div>
+                <Button asChild size="sm" className="gradient-primary text-primary-foreground shadow-glow">
+                  <Link to="/app/planos">Fazer upgrade</Link>
+                </Button>
+              </div>
+            ) : analysisText ? (
+              <div className="whitespace-pre-line leading-relaxed text-sm space-y-3 bg-muted/30 rounded-lg p-4">
+                {analysisText}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {analysisError && (
+                  <p className="text-sm text-destructive">{analysisError}</p>
+                )}
+                <Button
+                  onClick={generateAnalysis}
+                  disabled={analysisLoading}
+                  className="gradient-primary text-primary-foreground shadow-glow"
+                >
+                  {analysisLoading ? (
+                    <>
+                      <span className="inline-block w-4 h-4 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin mr-2" />
+                      Analisando…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" /> Gerar Análise
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </Card>
+        )}
 
         <Card className="p-6">
           <h2 className="font-bold mb-4">Gabarito comentado</h2>
