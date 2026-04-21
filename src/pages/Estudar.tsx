@@ -48,6 +48,20 @@ export default function Estudar() {
   const [loadingHighlights, setLoadingHighlights] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [resumable, setResumable] = useState<SavedQuiz | null>(null);
+  const topicRef = useRef<HTMLTextAreaElement>(null);
+
+  const handlePickFramework = (fw: Framework) => {
+    setTitle((prev) => (prev.trim() ? prev : fw.titleSuggestion));
+    setTopic(fw.template);
+    toast({
+      title: `Modelo ${fw.label} carregado`,
+      description: "Preencha os campos e clique em Gerar Estudo.",
+    });
+    setTimeout(() => {
+      topicRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      topicRef.current?.focus();
+    }, 80);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -338,6 +352,7 @@ export default function Estudar() {
           <div className="space-y-2">
             <Label htmlFor="study-topic">Descrição detalhada do tema</Label>
             <Textarea
+              ref={topicRef}
               id="study-topic"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
