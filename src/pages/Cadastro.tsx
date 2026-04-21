@@ -10,13 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { sha256 } from "@/lib/crypto";
 import { KeyRound, HardHat, Sparkles } from "lucide-react";
 
-type InvitePlan = "free" | "days_30" | "days_60" | "days_90" | "premium";
+type InvitePlan = "free" | "days_30" | "days_60" | "days_90" | "days_180" | "premium";
 
 const PLAN_LABEL: Record<InvitePlan, string> = {
   free: "Gratuito (30 dias)",
   days_30: "30 dias",
   days_60: "60 dias",
   days_90: "90 dias",
+  days_180: "180 dias",
   premium: "Premium (1 ano)",
 };
 
