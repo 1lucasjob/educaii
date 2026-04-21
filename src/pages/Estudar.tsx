@@ -10,12 +10,11 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock, ShieldCheck } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
-import FrameworkPicker from "@/components/FrameworkPicker";
-import type { Framework } from "@/lib/studyFrameworks";
+import { getFrameworkById, type Framework } from "@/lib/studyFrameworks";
 
 function stripMarkdown(s: string): string {
   return s
@@ -36,6 +35,7 @@ export default function Estudar() {
   const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState("");
