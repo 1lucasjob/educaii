@@ -311,6 +311,10 @@ export default function Estudar() {
         </Card>
       )}
 
+      {unlocked && !summary && (
+        <FrameworkPicker onPick={handlePickFramework} disabled={loadingSummary} />
+      )}
+
       <Card className="p-6 shadow-glow">
         <div className="flex items-start gap-4 mb-4">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${unlocked ? "bg-success/20" : "bg-warning/20 animate-pulse-glow"}`}>
