@@ -306,8 +306,18 @@ export default function Planos() {
       )}
 
       <p className="text-xs text-center text-muted-foreground">
-        Ao clicar em "Quero este plano", abriremos seu cliente de e-mail para você enviar a solicitação ao administrador. A ativação é manual após confirmação do pagamento.
+        Após o pagamento via PIX, envie o comprovante ao administrador para ativarmos seu acesso. A liberação é manual.
       </p>
+
+      {pixData && profile && (
+        <PixPaymentDialog
+          open={pixOpen}
+          onOpenChange={setPixOpen}
+          amount={pixData.amount}
+          planLabel={planLabel(pixData.plan)}
+          notifyMailto={buildPurchaseMailto({ userEmail: profile.email, plan: pixData.plan })}
+        />
+      )}
     </div>
   );
 }
