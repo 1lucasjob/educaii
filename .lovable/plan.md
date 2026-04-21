@@ -2,65 +2,85 @@
 
 ## Objetivo
 
-Garantir que **admins** tenham acesso completo a todas as funcionalidades, independentemente do plano (ou falta dele). Atualmente as funções `expertActive()` e `highlightsActive()` só verificam o plano e liberações temporárias, ignorando o status de admin.
+Garantir que o botão **"Retomar Simulado"** apareça de forma confiável mesmo após refresh, troca de dispositivo ou limpeza do `localStorage`, persistindo o progresso do simulado em andamento também no **banco de dados**.
+
+Hoje a persistência vive apenas em `localStorage` (`src/lib/quizPersistence.ts`), o que falha quando o usuário troca de navegador/dispositivo, limpa cache, ou usa modo anônimo.
 
 ---
 
-## Mudanças
+## Parte 1 — Banco de dados
 
-### 1. `src/lib/freeTrial.ts` — ignorados de acesso para admin
+### Nova tabela `quiz_in_progress`
+Uma linha por usuário (UNIQUE em `user_id`) com o progresso ativo:
 
-Adicionar parâmetro `isAdmin?: boolean` (default `false`) em ambas as funções de verificação:
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `id` | uuid PK | `gen_random_uuid()` |
+| `user_id` | uuid | UNIQUE, NOT NULL |
+| `topic` | text | NOT NULL |
+| `difficulty` | quiz_difficulty | NOT NULL |
+| `questions` | jsonb | NOT NULL |
+| `answers` | jsonb | NOT NULL |
+| `current_index` | int | default 0 |
+| `time_left` | int | segundos restantes |
+| `time_spent` | int | segundos gastos |
+| `time_limit` | int | total original |
+| `saved_at` | timestamptz | default `now()` |
+| `created_at` | timestamptz | default `now()` |
+
+**RLS**:
+- SELECT/INSERT/UPDATE/DELETE: `auth.uid() = user_id`
+- Admin pode SELECT (consistente com outras tabelas).
+
+**Trigger**: `update_updated_at_column` em `saved_at` (ou atualizar manualmente no upsert).
+
+---
+
+## Parte 2 — Helpers em `src/lib/quizPersistence.ts`
+
+Adicionar versões assíncronas que usam Supabase, mantendo compatibilidade com as funções existentes (que continuam usando `localStorage` como cache rápido):
 
 ```ts
-export function expertActive(opts: {
-  plan: AccessPlan | null | undefined;
-  expertUnlockedUntil: string | null | undefined;
-  isAdmin?: boolean;
-}): boolean {
-  if (opts.isAdmin) return true;
-  // ... resto existente
-}
-
-export function highlightsActive(opts: {
-  plan: AccessPlan | null | undefined;
-  highlightsUnlockedUntil: string | null | undefined;
-  isAdmin?: boolean;
-}): boolean {
-  if (opts.isAdmin) return true;
-  // ... resto existente
-}
+export async function saveQuizRemote(userId: string, payload: SavedQuiz): Promise<void>
+export async function loadQuizRemote(userId: string): Promise<SavedQuiz | null>
+export async function clearQuizRemote(userId: string): Promise<void>
+export async function getResumableQuizRemote(userId: string): Promise<SavedQuiz | null>
 ```
 
-### 2. `src/pages/Estudar.tsx` e `src/pages/Simulado.tsx`
+Estratégia **híbrida**:
+- `saveQuiz` continua salvando local (rápido, sem latência) **e** dispara `saveQuizRemote` em background (debounced ~3s para não martelar o banco).
+- `getResumableQuiz` (sync) verifica local primeiro; em paralelo a página chama `getResumableQuizRemote` para hidratar quando o local estiver vazio.
+- `clearQuiz` limpa ambos.
 
-Atualizar as chamadas para incluir `isAdmin`:
+`getResumableQuizRemote` aplica a mesma lógica de ajuste de `timeLeft` por `saved_at` e descarta se zerado ou totalmente respondido.
 
-```ts
-const userHasExpertAccess = expertActive({
-  plan: profile?.plan,
-  expertUnlockedUntil: profile?.expert_unlocked_until,
-  isAdmin         // novo
-});
+---
 
-const canExtractHighlights = highlightsActive({
-  plan: profile?.plan,
-  highlightsUnlockedUntil: profile?.highlights_unlocked_until,
-  isAdmin         // novo
-});
-```
+## Parte 3 — `src/pages/Estudar.tsx`
 
-No `Estudar.tsx`, linhas 88-89 e uso do `highlightsViaAdmin` (linhas 90-96) também deve ser ajustado: se `isAdmin`, não mostrar o badge "Liberado pelo admin" porque é o acesso nativo da função.
+- Após carregar `profile`, disparar `getResumableQuizRemote(profile.id)` em `useEffect`.
+- Mesclar resultado com o que veio do `localStorage`: prioriza o **mais recente** (maior `savedAt`).
+- Se houver `resumable`, mostrar o card "Retomar Simulado" (já existe na UI atual).
+- Botão **"Descartar"** chama `clearQuizRemote` além do local.
 
-### 3. `src/pages/Admin.tsx` (opcional/consistência)
+---
 
-O painel admin **não precisa** dessas verificações (já vê tudo), mas para consistência pode ser bom passar `isAdmin: true` nas chamadas onde o contexto faz gating.
+## Parte 4 — `src/pages/Simulado.tsx`
+
+- Quando `?resume=1`: tentar `loadQuiz` (local) → se vazio, `await loadQuizRemote`.
+- A cada save (efeitos já existentes em `questions/answers/current` e a cada 5s do timer): chamar `saveQuiz` (local imediato) **+** `saveQuizRemote` (debounced).
+- Em `submit()` e ao finalizar: chamar `clearQuiz` **+** `clearQuizRemote`.
+- Em `blocked`: limpar remoto também (consistência).
 
 ---
 
 ## Arquivos afetados
 
-- `src/lib/freeTrial.ts` — adicionar `isAdmin` nas funções `expertActive` e `highlightsActive`.
-- `src/pages/Estudar.tsx` — passar `isAdmin` nas chamadas + ajuste no badge condicional.
-- `src/pages/Simulado.tsx` — passar `isAdmin` na verificação de Expert.
+### Banco
+- **Migração**: criar tabela `quiz_in_progress` com RLS por usuário.
+
+### Código
+- **Editado**: `src/lib/quizPersistence.ts` — adicionar funções `*Remote` e debouncer para upsert.
+- **Editado**: `src/pages/Estudar.tsx` — hidratar resumable do banco no mount, mesclar com local.
+- **Editado**: `src/pages/Simulado.tsx` — fallback de carregamento via banco quando `?resume=1` e local estiver vazio; sincronizar saves/clears com remoto.
 
