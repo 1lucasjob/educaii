@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import LoyaltyProgram from "@/components/LoyaltyProgram";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
