@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
+import FrameworkPicker from "@/components/FrameworkPicker";
+import type { Framework } from "@/lib/studyFrameworks";
 
 function stripMarkdown(s: string): string {
   return s
