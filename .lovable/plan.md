@@ -2,85 +2,93 @@
 
 ## Objetivo
 
-Garantir que o botão **"Retomar Simulado"** apareça de forma confiável mesmo após refresh, troca de dispositivo ou limpeza do `localStorage`, persistindo o progresso do simulado em andamento também no **banco de dados**.
+Duas funcionalidades novas:
 
-Hoje a persistência vive apenas em `localStorage` (`src/lib/quizPersistence.ts`), o que falha quando o usuário troca de navegador/dispositivo, limpa cache, ou usa modo anônimo.
-
----
-
-## Parte 1 — Banco de dados
-
-### Nova tabela `quiz_in_progress`
-Uma linha por usuário (UNIQUE em `user_id`) com o progresso ativo:
-
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `id` | uuid PK | `gen_random_uuid()` |
-| `user_id` | uuid | UNIQUE, NOT NULL |
-| `topic` | text | NOT NULL |
-| `difficulty` | quiz_difficulty | NOT NULL |
-| `questions` | jsonb | NOT NULL |
-| `answers` | jsonb | NOT NULL |
-| `current_index` | int | default 0 |
-| `time_left` | int | segundos restantes |
-| `time_spent` | int | segundos gastos |
-| `time_limit` | int | total original |
-| `saved_at` | timestamptz | default `now()` |
-| `created_at` | timestamptz | default `now()` |
-
-**RLS**:
-- SELECT/INSERT/UPDATE/DELETE: `auth.uid() = user_id`
-- Admin pode SELECT (consistente com outras tabelas).
-
-**Trigger**: `update_updated_at_column` em `saved_at` (ou atualizar manualmente no upsert).
+1. **Recorte de imagem de perfil** — antes de enviar o avatar, abrir um editor para o aluno cortar/posicionar a imagem em formato quadrado.
+2. **Modelos de Resumos (Frameworks)** — uma nova área na página **Estudar** com cards coloridos de assuntos pré-prontos (começando por **5W2H** e **SWOT**), cada um com sua cor temática. Ao clicar, preenche o formulário com um template do framework já estruturado, pronto para o aluno preencher e gerar o resumo.
 
 ---
 
-## Parte 2 — Helpers em `src/lib/quizPersistence.ts`
+## Parte 1 — Recorte de avatar
 
-Adicionar versões assíncronas que usam Supabase, mantendo compatibilidade com as funções existentes (que continuam usando `localStorage` como cache rápido):
+### Dependência
+- Adicionar **`react-easy-crop`** (~30 KB, MIT, mantém pinch/zoom/drag e funciona em mobile).
+
+### Novo componente `src/components/AvatarCropDialog.tsx`
+- Recebe `file: File`, `open`, `onOpenChange`, `onCropped(blob: Blob)`.
+- Usa `Dialog` (já existente) + `Cropper` do `react-easy-crop` em proporção **1:1**.
+- Controles: **slider de zoom**, arrastar imagem, botões **Cancelar** / **Cortar e enviar**.
+- Ao confirmar, gera um `Blob` PNG/JPEG quadrado de até **512×512** via `canvas.toBlob` (qualidade 0.9), preservando o `contentType` original quando possível.
+
+### Edição em `src/pages/Configuracoes.tsx`
+- `handleAvatarSelected`: em vez de enviar direto, **guarda o `File` em estado** e abre o `AvatarCropDialog`.
+- Novo handler `handleCroppedBlob(blob)` faz o upload para o bucket `avatars` (mesma lógica atual) e segue o fluxo: admin → `avatar_url` direto; aluno → `avatar_pending_url` + `avatar_status: pending`.
+- Mantém validação prévia de tipo (PNG/JPEG/WebP) e tamanho (≤ 2 MB) antes de abrir o crop.
+
+### Banco / Storage
+- **Sem mudanças** — o bucket `avatars` já existe e é público; o fluxo de aprovação já está implementado.
+
+---
+
+## Parte 2 — Modelos de Resumo (Frameworks)
+
+### Novo arquivo `src/lib/studyFrameworks.ts`
+Define os modelos disponíveis com cor e template (texto inicial que vai para o `topic`):
 
 ```ts
-export async function saveQuizRemote(userId: string, payload: SavedQuiz): Promise<void>
-export async function loadQuizRemote(userId: string): Promise<SavedQuiz | null>
-export async function clearQuizRemote(userId: string): Promise<void>
-export async function getResumableQuizRemote(userId: string): Promise<SavedQuiz | null>
+export type Framework = {
+  id: "5w2h" | "swot";
+  label: string;
+  short: string;          // "5W2H", "SWOT"
+  description: string;    // "Plano de ação detalhado…"
+  color: string;          // hsl token (ex.: "210 90% 55%")
+  icon: LucideIcon;
+  titleSuggestion: string;
+  template: string;       // texto pré-formatado p/ o textarea
+};
+
+export const FRAMEWORKS: Framework[];
 ```
 
-Estratégia **híbrida**:
-- `saveQuiz` continua salvando local (rápido, sem latência) **e** dispara `saveQuizRemote` em background (debounced ~3s para não martelar o banco).
-- `getResumableQuiz` (sync) verifica local primeiro; em paralelo a página chama `getResumableQuizRemote` para hidratar quando o local estiver vazio.
-- `clearQuiz` limpa ambos.
+Inicialmente:
+- **5W2H** — cor azul (`210 90% 55%`), ícone `ListChecks`. Template com seções: What, Why, Where, When, Who, How, How much.
+- **SWOT** — cor roxa (`280 75% 60%`), ícone `LayoutGrid`. Template com Forças, Fraquezas, Oportunidades, Ameaças.
 
-`getResumableQuizRemote` aplica a mesma lógica de ajuste de `timeLeft` por `saved_at` e descarta se zerado ou totalmente respondido.
+Cada template é um texto plano (sem markdown) com placeholders, seguindo o padrão limpo do `stripMarkdown`. Estrutura para já entrar com bons separadores e instruções curtas para o aluno preencher.
 
----
+### Novo componente `src/components/FrameworkPicker.tsx`
+- Grid responsivo (`grid-cols-2 sm:grid-cols-2 md:grid-cols-4`) de cards.
+- Cada card usa `style={{ borderColor: hsl(...), background: hsl(... / 0.08) }}` para a cor própria do framework, ícone colorido, título e descrição curta.
+- Hover: `shadow-glow` na cor do framework.
+- Prop `onPick(framework)`.
 
-## Parte 3 — `src/pages/Estudar.tsx`
+### Integração em `src/pages/Estudar.tsx`
+- Acima do card de criação de tema, nova `Card` "Modelos rápidos de resumo".
+- Texto de apoio: "Escolha um modelo para começar com a estrutura pronta — basta preencher os campos."
+- Ao clicar num framework:
+  - Preenche `setTitle(framework.titleSuggestion)` (se `title` estiver vazio) e `setTopic(framework.template)`.
+  - Faz scroll suave até o textarea e foca nele.
+  - Toast: "Modelo {label} carregado — preencha e clique em Gerar Estudo."
+- Não muda nada do fluxo de geração; o template apenas alimenta o `topic` e segue o caminho normal de `generate-summary`.
 
-- Após carregar `profile`, disparar `getResumableQuizRemote(profile.id)` em `useEffect`.
-- Mesclar resultado com o que veio do `localStorage`: prioriza o **mais recente** (maior `savedAt`).
-- Se houver `resumable`, mostrar o card "Retomar Simulado" (já existe na UI atual).
-- Botão **"Descartar"** chama `clearQuizRemote` além do local.
-
----
-
-## Parte 4 — `src/pages/Simulado.tsx`
-
-- Quando `?resume=1`: tentar `loadQuiz` (local) → se vazio, `await loadQuizRemote`.
-- A cada save (efeitos já existentes em `questions/answers/current` e a cada 5s do timer): chamar `saveQuiz` (local imediato) **+** `saveQuizRemote` (debounced).
-- Em `submit()` e ao finalizar: chamar `clearQuiz` **+** `clearQuizRemote`.
-- Em `blocked`: limpar remoto também (consistência).
+### Estética
+- Reaproveita `Card`, `Badge` e tokens existentes (`shadow-glow`, `gradient-primary`).
+- Cores definidas inline via HSL para permitir adicionar novos frameworks (PDCA, 5 Porquês, Ishikawa, etc.) facilmente no futuro.
 
 ---
 
 ## Arquivos afetados
 
-### Banco
-- **Migração**: criar tabela `quiz_in_progress` com RLS por usuário.
+### Novos
+- `src/components/AvatarCropDialog.tsx` — modal de recorte 1:1 com zoom.
+- `src/components/FrameworkPicker.tsx` — grid de cards coloridos.
+- `src/lib/studyFrameworks.ts` — definições + templates de 5W2H e SWOT.
 
-### Código
-- **Editado**: `src/lib/quizPersistence.ts` — adicionar funções `*Remote` e debouncer para upsert.
-- **Editado**: `src/pages/Estudar.tsx` — hidratar resumable do banco no mount, mesclar com local.
-- **Editado**: `src/pages/Simulado.tsx` — fallback de carregamento via banco quando `?resume=1` e local estiver vazio; sincronizar saves/clears com remoto.
+### Editados
+- `package.json` — adiciona `react-easy-crop`.
+- `src/pages/Configuracoes.tsx` — abre o crop antes do upload do avatar.
+- `src/pages/Estudar.tsx` — renderiza `FrameworkPicker` e preenche o formulário ao escolher.
+
+### Banco
+- Sem migrações.
 
