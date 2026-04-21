@@ -313,8 +313,24 @@ export default function Estudar() {
           </AlertDescription>
         </Alert>
       )}
-
-      {resumable && (
+      {fromFramework && (
+        <Alert className="border-primary/40 bg-primary/5">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <AlertDescription className="text-sm flex items-center justify-between gap-3 flex-wrap">
+            <span>
+              Você está usando um <strong>Modelo de Estudo</strong> — bloqueios de plano temporariamente liberados nesta sessão.
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={() => { disableFrameworkBypass(); setTitle(""); setTopic(""); }}
+            >
+              Sair do modo modelo
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
         <Card className="p-5 border-2 border-primary shadow-glow animate-fade-in">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 animate-pulse-glow">
