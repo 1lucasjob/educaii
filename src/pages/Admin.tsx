@@ -411,6 +411,9 @@ export default function Admin() {
         )}
       </Card>
 
+      <Card className="p-4 sm:p-6">
+        <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
+
         {/* Mobile: cards */}
         <div className="md:hidden space-y-3">
           {invites.map((i) => (
