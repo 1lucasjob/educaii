@@ -155,8 +155,8 @@ export default function Admin() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary" /> Gestão de Cadastros</h1>
-        <p className="text-muted-foreground mt-1">Libere acessos individuais protegidos por PIN.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary shrink-0" /> Gestão de Cadastros</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Libere acessos individuais protegidos por PIN.</p>
       </div>
 
       <Card className="p-6 border-primary/30 bg-primary/5">
@@ -276,8 +276,9 @@ export default function Admin() {
         </Button>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -321,10 +322,12 @@ export default function Admin() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Alunos cadastrados ({students.length})</h2>
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -411,12 +414,14 @@ export default function Admin() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" /> Histórico de liberações de estudo ({unlockLogs.length})
         </h2>
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -442,6 +447,7 @@ export default function Admin() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
