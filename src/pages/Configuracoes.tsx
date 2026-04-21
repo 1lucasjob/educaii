@@ -133,6 +133,43 @@ export default function Configuracoes() {
       <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><Settings className="text-primary shrink-0" /> Configurações</h1>
 
       <Card className="p-6">
+        <h2 className="font-bold flex items-center gap-2 mb-4"><UserIcon className="w-4 h-4 text-primary" /> Meu Perfil</h2>
+        <div className="flex flex-col sm:flex-row items-start gap-5">
+          <div className="flex flex-col items-center gap-2">
+            <Avatar className="w-24 h-24 border-2 border-border">
+              <AvatarImage src={profile?.avatar_url ?? undefined} alt="Avatar" />
+              <AvatarFallback className="text-2xl">
+                {(profile?.display_name || profile?.email || "?").charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarSelected} />
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}>
+                <Upload className="w-3.5 h-3.5 mr-1" />
+                {uploadingAvatar ? "Enviando…" : "Trocar imagem"}
+              </Button>
+              {profile?.avatar_url && (
+                <Button size="sm" variant="ghost" onClick={removeAvatar} className="text-destructive hover:text-destructive">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
+            <p className="text-[10px] text-muted-foreground">PNG/JPEG/WebP · até 2 MB</p>
+          </div>
+          <div className="flex-1 w-full space-y-2">
+            <Label htmlFor="display-name" className="text-sm">Apelido</Label>
+            <Input id="display-name" value={displayName} maxLength={24} onChange={(e) => setDisplayName(e.target.value)} placeholder="Como você quer ser chamado" />
+            <p className="text-xs text-muted-foreground">
+              Aparece no ranking e no cabeçalho. Deixe em branco para usar a parte do email antes do @.
+            </p>
+            <Button onClick={saveDisplayName} disabled={savingNick} size="sm" className="gradient-primary text-primary-foreground">
+              {savingNick ? "Salvando…" : "Salvar apelido"}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="font-bold flex items-center gap-2"><Trophy className="w-4 h-4 text-primary" /> Privacidade do Ranking</h2>
