@@ -2,91 +2,47 @@
 
 ## Objetivo
 
-Tirar os cards 5W2H e SWOT da área principal de estudo e mover para uma **página dedicada** ("Modelos de Estudo"), onde cada framework tem:
-
-1. **Resumo explicativo** do que é, para que serve e quando usar.
-2. **Exemplo prático** preenchido (caso real).
-3. **Modo de treino interativo** — o aluno preenche cada campo do framework e a IA dá feedback.
-4. **Botão "Usar este modelo no Estudar"** — leva para `/app/estudar` com o template já carregado (mantém o vínculo).
+Quando o aluno clicar em **"Usar [Modelo] no Estudar"** dentro da aba **Modelos de Estudo**, a página `/app/estudar` deve **ignorar todos os bloqueios de plano** (FREE expirado, sem chat, sem highlights etc.) **apenas para essa sessão de uso do modelo**. Os bloqueios continuam valendo normalmente para o uso direto do Estudar.
 
 ---
 
-## Parte 1 — Nova rota `/app/modelos`
+## Como vai funcionar
 
-### Novo arquivo `src/pages/Modelos.tsx`
-- Lista os frameworks de `studyFrameworks.ts` em cards coloridos (mesmo visual atual do `FrameworkPicker`).
-- Ao clicar num card, abre a **visão detalhada** do framework (mesma página, troca de seção via state — sem nova rota).
+1. Em `src/pages/Modelos.tsx`, o botão **"Usar [X] no Estudar"** já navega para `/app/estudar?framework=ID`. Vamos manter esse comportamento (o próprio query param `framework` é o "passe livre").
 
-### Visão detalhada do framework
-Estrutura em 3 abas (`Tabs` do shadcn):
+2. Em `src/pages/Estudar.tsx`:
+   - Detectar se a entrada veio de um modelo (`searchParams.get("framework")` presente **OU** uma flag de sessão `estudar:from-framework` setada).
+   - Quando vier de modelo: definir `fromFramework = true` em estado local **e** gravar `sessionStorage.setItem("estudar:from-framework", "1")` para manter o bypass mesmo após o `setSearchParams` limpar a URL e durante a geração.
+   - Em **todos os checks de bloqueio** da página (cadeado de FREE expirado, gating de resumos/highlights, banners de upgrade que impedem clicar em "Gerar"), adicionar a condição: `if (fromFramework) ignorar bloqueio`.
+   - A flag é limpa quando: o usuário troca o tema manualmente para algo que não corresponde mais ao template do framework **OU** ao desmontar a página **OU** ao clicar num botão "Sair do modo modelo" (pequeno aviso no topo: "Você está usando o modelo 5W2H — bloqueios temporariamente liberados").
 
-**Aba 1 — "O que é"**
-- Título grande com cor do framework + ícone.
-- Texto explicativo (2-3 parágrafos): origem, para que serve, quando aplicar, benefícios.
-- Exemplo prático curto já preenchido (ex.: 5W2H aplicado a "Implantar EPI no canteiro").
+3. **Importante — apenas a UI da página Estudar é liberada**. As edge functions (`generate-summary`, `extract-highlights`) continuam com sua própria validação de plano no servidor. Para que o bypass funcione de ponta a ponta, vamos:
+   - Passar uma flag `from_framework: true` no payload das chamadas a `generate-summary` (e `extract-highlights` se aplicável) **quando** `fromFramework === true`.
+   - Atualizar essas edge functions para aceitar `from_framework` e, quando `true`, pular a checagem de plano (mantendo apenas autenticação JWT, rate limiting natural e o conteúdo restrito ao template do framework — validamos no servidor que o `topic` começa com um marcador conhecido de framework para evitar abuso).
 
-**Aba 2 — "Treinar"**
-- Campo "Tema do exercício" (input curto) — ex.: "Reduzir acidentes na obra X".
-- Para cada item do framework (What, Why, etc. ou Forças, Fraquezas, etc.) um `Textarea` separado com label colorida e placeholder de ajuda.
-- Botão **"Receber feedback da IA"** → chama edge function `framework-feedback` (nova) → exibe análise em texto plano abaixo, no padrão atual (sem markdown).
-- Botão **"Limpar"** zera os campos.
-
-**Aba 3 — "Usar no Estudar"**
-- Texto curto: "Quer gerar um resumo completo usando este modelo?"
-- Botão grande → navega para `/app/estudar?framework=5w2h` (ou `swot`) e a página Estudar lê o query param e auto-aplica o template.
-
-### Novo arquivo `supabase/functions/framework-feedback/index.ts`
-- Input: `{ frameworkId: "5w2h" | "swot", topic: string, fields: Record<string, string> }`.
-- Modelo: `google/gemini-2.5-flash` via Lovable AI Gateway.
-- System prompt em PT-BR, texto plano (sem markdown), avalia cada campo: o que está bom, o que falta, sugestões de melhoria, e dá uma nota geral de 0 a 10 sobre a qualidade do preenchimento.
-- `verify_jwt = true` (default).
-- Trata 429 e 402 com mensagem amigável.
-
----
-
-## Parte 2 — Atualizar áreas existentes
-
-### `src/lib/studyFrameworks.ts`
-- Adicionar dois novos campos por framework:
-  - `explanation: string` — texto longo explicando o que é.
-  - `example: string` — exemplo prático preenchido.
-  - `fields: { key: string; label: string; placeholder: string }[]` — definição estruturada dos campos para o modo treino (substitui o template plano para a UI de treino, mas o `template` continua existindo para uso no Estudar).
-
-### `src/pages/Estudar.tsx`
-- **Remover** o componente `FrameworkPicker` da página (não fica mais junto com a área de estudo).
-- **Adicionar** suporte a query param `?framework=5w2h|swot`: ao detectar, busca o framework, aplica `setTitle` + `setTopic` (mesma lógica atual do `handlePickFramework`) e limpa o param da URL.
-- **Adicionar** um link discreto acima do form: "Conheça os Modelos de Estudo (5W2H, SWOT)" → `/app/modelos`.
-
-### `src/components/FrameworkPicker.tsx`
-- Mantido (será reutilizado dentro de `Modelos.tsx` como a grid inicial de seleção).
-
-### `src/layouts/AppLayout.tsx`
-- Adicionar item de menu **"Modelos de Estudo"** (ícone `Sparkles` ou `BookOpen`) no grupo "Aluno", logo abaixo de "Estudar".
-
-### `src/App.tsx`
-- Registrar nova rota `<Route path="modelos" element={<Modelos />} />` dentro de `/app`.
-
----
-
-## Acesso
-
-- Liberado para **todos os planos** (incluindo FREE) — é material educativo introdutório.
-- Modo de treino com IA também livre (consumo baixo, conteúdo educativo).
+4. **Marcador de validação no servidor**: cada template em `studyFrameworks.ts` já começa com um cabeçalho único (ex.: `"# Modelo 5W2H\n"`). A edge function checa se o `topic` recebido começa com um desses cabeçalhos conhecidos antes de aceitar `from_framework: true`. Caso contrário, ignora a flag e aplica gating normal.
 
 ---
 
 ## Arquivos afetados
 
-### Novos
-- `src/pages/Modelos.tsx` — página com lista + detalhe + abas (O que é / Treinar / Usar no Estudar).
-- `supabase/functions/framework-feedback/index.ts` — IA para feedback do treino.
-
 ### Editados
-- `src/lib/studyFrameworks.ts` — adiciona `explanation`, `example`, `fields[]`.
-- `src/pages/Estudar.tsx` — remove `FrameworkPicker`, adiciona query param + link para `/app/modelos`.
-- `src/layouts/AppLayout.tsx` — novo item "Modelos de Estudo" no menu.
-- `src/App.tsx` — nova rota.
+- `src/pages/Estudar.tsx` — detectar origem do framework (query param + sessionStorage), bypass dos bloqueios da UI, banner "modo modelo ativo", passar `from_framework` no payload das chamadas IA.
+- `src/lib/studyFrameworks.ts` — exportar lista de cabeçalhos/marcadores únicos por framework para validação servidor (`FRAMEWORK_TEMPLATE_MARKERS`).
+- `supabase/functions/generate-summary/index.ts` — aceitar `from_framework`; validar que o `topic` inicia com um marcador conhecido; quando válido, pular checagem de plano.
+- `supabase/functions/extract-highlights/index.ts` — mesma lógica de bypass condicional (caso o aluno queira extrair trechos do resumo gerado pelo modelo).
+
+### Novos
+- Nenhum.
 
 ### Banco
 - Sem migrações.
+
+---
+
+## Acesso
+
+- Bypass aplica-se a **qualquer plano** (incluindo FREE expirado), mas **somente** quando a entrada vier de um modelo da página Modelos de Estudo (validado por marcador no template).
+- Admin continua com acesso total como hoje.
+- Nenhum outro fluxo do Estudar é afetado.
 
