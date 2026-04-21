@@ -124,6 +124,12 @@ export default function Cadastro() {
           </div>
           <h1 className="text-2xl font-bold">Criar conta</h1>
           <p className="text-muted-foreground text-sm">Preencha os dados do seu acesso</p>
+          {invitePlan && (
+            <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-medium">
+              <Sparkles className="w-4 h-4" />
+              Plano: {PLAN_LABEL[invitePlan]}
+            </div>
+          )}
         </div>
 
         <Card className="p-6 animate-scale-in">
