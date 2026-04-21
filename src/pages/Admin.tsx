@@ -519,6 +519,7 @@ export default function Admin() {
             const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
             const isAdminRow = adminIds.has(s.id);
             const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
+            const highlightsActiveNow = s.highlights_unlocked_until && new Date(s.highlights_unlocked_until) > new Date();
             return (
               <div key={s.id} className="rounded-md border border-border p-3 space-y-2">
                 <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -580,6 +581,18 @@ export default function Admin() {
                     <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => purchaseExpertPack(s.id, s.email)}>
                       <Award className="w-3 h-3 mr-1" /> Liberar +30 dias
                     </Button>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Trechos-Chave (30d)</span>
+                    {highlightsActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
+                        <Quote className="w-3 h-3" /> Liberado até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockHighlights(s.id, s.email)}>
+                        <Quote className="w-3 h-3 mr-1" /> Liberar Trechos (30d)
+                      </Button>
+                    )}
                   </div>
                   <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Renovar</span>
