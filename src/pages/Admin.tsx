@@ -278,7 +278,45 @@ export default function Admin() {
 
       <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+
+        {/* Mobile: cards */}
+        <div className="md:hidden space-y-3">
+          {invites.map((i) => (
+            <div key={i.id} className="rounded-md border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                {statusOf(i)}
+                <Badge variant="outline">{planLabel(i.plan)}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div><span className="block text-[10px] uppercase">Criado</span>{new Date(i.created_at).toLocaleDateString("pt-BR")}</div>
+                <div><span className="block text-[10px] uppercase">Expira link</span>{new Date(i.expires_at).toLocaleDateString("pt-BR")}</div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {!i.used && new Date(i.expires_at) > new Date() && (
+                  <Button size="sm" variant="outline" onClick={() => copyLink(i.token)} className="flex-1">
+                    <Copy className="w-3 h-3 mr-1" /> Copiar
+                  </Button>
+                )}
+                {!i.used && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-destructive border-destructive/40 hover:bg-destructive/10"
+                    onClick={() => { setDeleteTarget(i); setDeletePin(""); }}
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+          {invites.length === 0 && (
+            <p className="text-center text-muted-foreground py-6 text-sm">Nenhum convite ainda.</p>
+          )}
+        </div>
+
+        {/* Desktop: tabela */}
+        <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
