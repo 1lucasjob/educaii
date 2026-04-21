@@ -22,20 +22,20 @@ const STYLES: Record<AccessPlan, { label: string; cls: string; Icon: typeof Crow
   },
   days_90: {
     label: "90 DAYS",
-    // Gold/dourado
-    cls: "bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border-amber-500 dark:from-amber-300 dark:to-amber-500 dark:text-amber-950 dark:border-amber-500",
+    // Prata escuro
+    cls: "bg-gradient-to-r from-zinc-300 to-zinc-500 text-zinc-900 border-zinc-500 dark:from-zinc-300 dark:to-zinc-500 dark:text-zinc-900 dark:border-zinc-500",
     Icon: Star,
   },
   days_180: {
     label: "180 DAYS",
-    // Azul/ciano — destaque "intermediário longo"
-    cls: "bg-gradient-to-r from-sky-300 to-cyan-500 text-sky-950 border-cyan-600 dark:from-sky-400 dark:to-cyan-600 dark:text-sky-50 dark:border-cyan-700",
+    // Dourado
+    cls: "bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border-amber-500 dark:from-amber-300 dark:to-amber-500 dark:text-amber-950 dark:border-amber-500",
     Icon: Star,
   },
   premium: {
     label: "PREMIUM",
-    // Roxo
-    cls: "bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white border-purple-600",
+    // Roxo com borda dourada
+    cls: "bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white border-2 border-amber-400 shadow-[0_0_0_1px_hsl(45_90%_55%/0.4)]",
     Icon: Crown,
   },
 };
