@@ -302,7 +302,12 @@ export default function Planos() {
                           {amount && (
                             <Button
                               onClick={() => {
-                                setPixData({ amount, plan: p.plan });
+                                setPixData({
+                                  amount,
+                                  plan: p.plan,
+                                  label: planLabel(p.plan),
+                                  mailto: profile ? buildPurchaseMailto({ userEmail: profile.email, plan: p.plan }) : "#",
+                                });
                                 setPixOpen(true);
                               }}
                               className="gradient-primary text-primary-foreground shadow-glow w-full"
@@ -329,7 +334,12 @@ export default function Planos() {
                       return (
                         <Button
                           onClick={() => {
-                            setPixData({ amount, plan: p.plan });
+                            setPixData({
+                              amount,
+                              plan: p.plan,
+                              label: planLabel(p.plan),
+                              mailto: profile ? buildPurchaseMailto({ userEmail: profile.email, plan: p.plan }) : "#",
+                            });
                             setPixOpen(true);
                           }}
                           variant="outline"
