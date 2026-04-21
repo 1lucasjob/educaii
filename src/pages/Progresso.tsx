@@ -159,6 +159,10 @@ export default function Progresso() {
         </Card>
       )}
 
+      {profile?.created_at && !viewAsRow && (
+        <LoyaltyProgram startDate={profile.created_at} />
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="p-5">
           <p className="text-sm text-muted-foreground">Simulados</p>
