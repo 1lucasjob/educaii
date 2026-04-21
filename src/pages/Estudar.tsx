@@ -9,10 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check } from "lucide-react";
+import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { computeFreeTrial, expertActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getResumableQuiz, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
+import { useEffect } from "react";
 
 export default function Estudar() {
   const { profile, refreshProfile } = useAuth();
