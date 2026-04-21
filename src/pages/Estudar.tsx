@@ -13,7 +13,7 @@ import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, 
 import { Link, useNavigate } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getResumableQuiz, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
+import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
 
 function stripMarkdown(s: string): string {
   return s
@@ -48,10 +48,22 @@ export default function Estudar() {
   const [resumable, setResumable] = useState<SavedQuiz | null>(null);
 
   useEffect(() => {
-    const refresh = () => setResumable(getResumableQuiz(profile?.id));
+    let cancelled = false;
+    const refresh = async () => {
+      // Local imediato
+      const local = getResumableQuiz(profile?.id);
+      if (!cancelled) setResumable(local);
+      // Hidrata do banco (pode ser mais recente em outro dispositivo)
+      const merged = await getResumableQuizMerged(profile?.id);
+      if (!cancelled) setResumable(merged);
+    };
     refresh();
-    window.addEventListener("focus", refresh);
-    return () => window.removeEventListener("focus", refresh);
+    const onFocus = () => { void refresh(); };
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+    };
   }, [profile?.id]);
 
   const handleResume = () => {
