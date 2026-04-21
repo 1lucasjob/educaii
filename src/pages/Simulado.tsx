@@ -188,6 +188,7 @@ export default function Simulado() {
     });
     setScore(total);
     setFinished(true);
+    clearQuiz(profile?.id);
 
     if (profile) {
       const { data: prevAttempts } = await supabase
