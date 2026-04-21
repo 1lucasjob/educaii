@@ -49,13 +49,34 @@ export default function Estudar() {
 
   useEffect(() => {
     let cancelled = false;
+    // Cada chamada de refresh recebe um id crescente; só o mais recente pode aplicar.
+    let refreshSeq = 0;
+    // savedAt do resumable atualmente exibido — evita que uma resposta tardia
+    // (do banco ou do local) sobrescreva um resume mais novo já aplicado.
+    let appliedSavedAt = 0;
+
+    const apply = (next: SavedQuiz | null, mySeq: number) => {
+      if (cancelled || mySeq !== refreshSeq) return;
+      const nextSavedAt = next?.savedAt ?? 0;
+      // Só aplica se for mais recente OU se for null (limpeza explícita do mais recente).
+      if (next === null) {
+        if (appliedSavedAt === 0) setResumable(null);
+        return;
+      }
+      if (nextSavedAt >= appliedSavedAt) {
+        appliedSavedAt = nextSavedAt;
+        setResumable(next);
+      }
+    };
+
     const refresh = async () => {
+      const mySeq = ++refreshSeq;
+      appliedSavedAt = 0;
       // Local imediato
-      const local = getResumableQuiz(profile?.id);
-      if (!cancelled) setResumable(local);
+      apply(getResumableQuiz(profile?.id), mySeq);
       // Hidrata do banco (pode ser mais recente em outro dispositivo)
       const merged = await getResumableQuizMerged(profile?.id);
-      if (!cancelled) setResumable(merged);
+      apply(merged, mySeq);
     };
     refresh();
     const onFocus = () => { void refresh(); };
