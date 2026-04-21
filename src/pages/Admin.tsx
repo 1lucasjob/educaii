@@ -52,6 +52,7 @@ export default function Admin() {
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [unlockLogs, setUnlockLogs] = useState<Array<{ id: string; created_at: string; admin_email: string | null; student_email: string; previous_topic: string | null }>>([]);
   const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
+  const [pendingAvatars, setPendingAvatars] = useState<Array<{ id: string; email: string; avatar_pending_url: string | null; avatar_url: string | null }>>([]);
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [plan, setPlan] = useState<AccessPlan>("free");
@@ -61,18 +62,20 @@ export default function Admin() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const load = async () => {
-    const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }] = await Promise.all([
+    const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }, { data: pend }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until").order("access_expires_at", { ascending: true }),
       supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
+      supabase.from("profiles").select("id,email,avatar_pending_url,avatar_url").eq("avatar_status", "pending").order("updated_at", { ascending: false }),
     ]);
     setSlots(s?.count ?? 0);
     setInvites((i as Invite[]) ?? []);
     setStudents((st as StudentRow[]) ?? []);
     setUnlockLogs((logs as any) ?? []);
     setAdminIds(new Set(((roles as any[]) ?? []).map((r) => r.user_id)));
+    setPendingAvatars((pend as any) ?? []);
   };
 
   useEffect(() => { load(); }, []);
@@ -136,7 +139,27 @@ export default function Admin() {
     load();
   };
 
-  const copyLink = (token: string) => {
+  const approveAvatar = async (userId: string, email: string) => {
+    const { error } = await (supabase as any).rpc("admin_approve_avatar", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro ao aprovar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Imagem aprovada!", description: `Imagem de ${email} agora está visível no app.` });
+    load();
+  };
+
+  const rejectAvatar = async (userId: string, email: string) => {
+    if (!confirm(`Rejeitar a imagem enviada por ${email}? A imagem pendente será descartada.`)) return;
+    const { error } = await (supabase as any).rpc("admin_reject_avatar", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro ao rejeitar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Imagem rejeitada", description: `${email} foi notificado e pode enviar outra.` });
+    load();
+  };
+
     const link = `${getPublicOrigin()}/cadastro?token=${token}`;
     navigator.clipboard.writeText(link);
     toast({ title: "Link copiado!" });
