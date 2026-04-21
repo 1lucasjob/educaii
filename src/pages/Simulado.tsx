@@ -225,7 +225,7 @@ export default function Simulado() {
     const isExpert = difficulty === "expert";
     const renewals = profile?.days_30_renewals_count ?? 0;
     const description = isExpert
-      ? "O Simulado Expert (nível acadêmico) é exclusivo dos planos PREMIUM e 90 DAYS. O administrador também pode liberar acesso temporário (24h) sob solicitação."
+      ? "O Simulado Expert (nível acadêmico) é exclusivo dos planos PREMIUM, 180 DAYS e 90 DAYS (10 dias iniciais). O administrador também pode liberar acesso temporário (24h) sob solicitação."
       : freeBlocked
         ? (isHard
             ? "Seus 15 dias gratuitos de Simulado Difícil acabaram. Faça upgrade para continuar treinando com o nível avançado."
