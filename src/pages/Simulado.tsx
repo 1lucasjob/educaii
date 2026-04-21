@@ -429,8 +429,68 @@ export default function Simulado() {
           )}
         </Card>
 
+        {(difficulty === "hard" || difficulty === "expert") && (
+          <Card className="p-6">
+            <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+              <div className="flex items-start gap-2">
+                <Sparkles className="w-5 h-5 text-primary mt-0.5" />
+                <div>
+                  <h2 className="font-bold">Análise de Desempenho com IA</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Receba uma análise personalizada com pontos fortes, erros recorrentes e plano de estudo.
+                  </p>
+                </div>
+              </div>
+              {canAnalyze && analysisText && (
+                <Button variant="outline" size="sm" onClick={copyAnalysis}>
+                  <Copy className="w-4 h-4 mr-1.5" /> Copiar
+                </Button>
+              )}
+            </div>
+
+            {!canAnalyze ? (
+              <div className="rounded-lg border border-warning/40 bg-warning/5 p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                  <p className="text-sm">
+                    Disponível a partir do plano <strong>60 DAYS</strong>. Está incluso por <strong>30 dias grátis</strong> no plano FREE após o cadastro.
+                  </p>
+                </div>
+                <Button asChild size="sm" className="gradient-primary text-primary-foreground shadow-glow">
+                  <Link to="/app/planos">Fazer upgrade</Link>
+                </Button>
+              </div>
+            ) : analysisText ? (
+              <div className="whitespace-pre-line leading-relaxed text-sm space-y-3 bg-muted/30 rounded-lg p-4">
+                {analysisText}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {analysisError && (
+                  <p className="text-sm text-destructive">{analysisError}</p>
+                )}
+                <Button
+                  onClick={generateAnalysis}
+                  disabled={analysisLoading}
+                  className="gradient-primary text-primary-foreground shadow-glow"
+                >
+                  {analysisLoading ? (
+                    <>
+                      <span className="inline-block w-4 h-4 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin mr-2" />
+                      Analisando…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" /> Gerar Análise
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </Card>
+        )}
+
         <Card className="p-6">
-          <h2 className="font-bold mb-4">Gabarito comentado</h2>
           <div className="space-y-4">
             {questions.map((q, i) => {
               const ok = answers[i] === q.correct_index;
