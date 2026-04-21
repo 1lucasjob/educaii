@@ -532,7 +532,25 @@ export default function Admin() {
         <h2 className="font-bold mb-4 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" /> Histórico de liberações de estudo ({unlockLogs.length})
         </h2>
-        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+        {/* Mobile: cards */}
+        <div className="md:hidden space-y-3">
+          {unlockLogs.map((l) => (
+            <div key={l.id} className="rounded-md border border-border p-3 space-y-1 text-xs">
+              <p className="text-muted-foreground text-[11px]">
+                {new Date(l.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+              </p>
+              <p className="break-all"><span className="text-[10px] uppercase text-muted-foreground">Admin: </span>{l.admin_email ?? "—"}</p>
+              <p className="break-all"><span className="text-[10px] uppercase text-muted-foreground">Aluno: </span>{l.student_email}</p>
+              <p className="text-muted-foreground"><span className="text-[10px] uppercase">Tópico anterior: </span>{l.previous_topic ?? "—"}</p>
+            </div>
+          ))}
+          {unlockLogs.length === 0 && (
+            <p className="text-center text-muted-foreground py-6 text-sm">Nenhuma liberação manual ainda.</p>
+          )}
+        </div>
+
+        {/* Desktop: tabela */}
+        <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
