@@ -25,6 +25,7 @@ interface Profile {
   avatar_pending_url: string | null;
   avatar_status: "none" | "pending" | "approved" | "rejected";
   avatar_reviewed_at: string | null;
+  highlights_unlocked_until: string | null;
 }
 
 interface AuthCtx {
@@ -49,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = async (uid: string) => {
     const { data: p } = await supabase
       .from("profiles")
-      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking,plan,access_expires_at,chat_unlocked,created_at,days_30_renewals_count,terms_accepted_at,expert_unlocked_until,display_name,avatar_url,avatar_pending_url,avatar_status,avatar_reviewed_at")
+      .select("id,email,theme,current_topic,current_topic_unlocked,last_score,show_in_ranking,plan,access_expires_at,chat_unlocked,created_at,days_30_renewals_count,terms_accepted_at,expert_unlocked_until,display_name,avatar_url,avatar_pending_url,avatar_status,avatar_reviewed_at,highlights_unlocked_until")
       .eq("id", uid)
       .maybeSingle();
 
