@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X, Quote } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +40,7 @@ interface StudentRow {
   current_topic: string | null;
   current_topic_unlocked: boolean;
   expert_unlocked_until: string | null;
+  highlights_unlocked_until: string | null;
 }
 
 export default function Admin() {
@@ -65,7 +66,7 @@ export default function Admin() {
     const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }, { data: pend }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until").order("access_expires_at", { ascending: true }),
+      supabase.from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until,highlights_unlocked_until").order("access_expires_at", { ascending: true }),
       supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
       supabase.from("profiles").select("id,email,avatar_pending_url,avatar_url").eq("avatar_status", "pending").order("updated_at", { ascending: false }),
@@ -136,6 +137,17 @@ export default function Admin() {
       return;
     }
     toast({ title: "Pacote Expert liberado!", description: `${email} tem acesso Expert por +30 dias.` });
+    load();
+  };
+
+  const unlockHighlights = async (userId: string, email: string) => {
+    if (!confirm(`Liberar Extração de Trechos-Chave (Pegar Nota) por 30 dias para ${email}?`)) return;
+    const { error } = await (supabase as any).rpc("admin_unlock_highlights", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Trechos-Chave liberados!", description: `${email} pode usar Pegar Nota por 30 dias.` });
     load();
   };
 
@@ -507,6 +519,7 @@ export default function Admin() {
             const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
             const isAdminRow = adminIds.has(s.id);
             const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
+            const highlightsActiveNow = s.highlights_unlocked_until && new Date(s.highlights_unlocked_until) > new Date();
             return (
               <div key={s.id} className="rounded-md border border-border p-3 space-y-2">
                 <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -570,6 +583,18 @@ export default function Admin() {
                     </Button>
                   </div>
                   <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Trechos-Chave (30d)</span>
+                    {highlightsActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
+                        <Quote className="w-3 h-3" /> Liberado até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockHighlights(s.id, s.email)}>
+                        <Quote className="w-3 h-3 mr-1" /> Liberar Trechos (30d)
+                      </Button>
+                    )}
+                  </div>
+                  <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Renovar</span>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-8 text-xs w-full">
@@ -602,6 +627,7 @@ export default function Admin() {
               <TableHead>Expira</TableHead>
               <TableHead>Estudo</TableHead>
               <TableHead>Expert 24h</TableHead>
+              <TableHead>Trechos (30d)</TableHead>
               <TableHead>Renovar</TableHead>
             </TableRow>
           </TableHeader>
@@ -610,6 +636,7 @@ export default function Admin() {
               const expired = s.access_expires_at && new Date(s.access_expires_at) < new Date();
               const isAdminRow = adminIds.has(s.id);
               const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
+              const highlightsActiveNow = s.highlights_unlocked_until && new Date(s.highlights_unlocked_until) > new Date();
               return (
                 <TableRow key={s.id}>
                   <TableCell className="text-xs truncate max-w-[180px]">{s.email}</TableCell>
@@ -687,6 +714,17 @@ export default function Admin() {
                     )}
                   </TableCell>
                   <TableCell>
+                    {highlightsActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success" title={new Date(s.highlights_unlocked_until!).toLocaleString("pt-BR")}>
+                        <Quote className="w-3 h-3" /> Até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => unlockHighlights(s.id, s.email)}>
+                        <Quote className="w-3 h-3 mr-1" /> Liberar 30d
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-8 w-[130px] text-xs">
                         <RefreshCw className="w-3 h-3 mr-1" />
@@ -703,7 +741,7 @@ export default function Admin() {
               );
             })}
             {students.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>

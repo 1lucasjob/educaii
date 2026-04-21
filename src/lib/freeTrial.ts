@@ -86,3 +86,19 @@ export function expertActive(opts: {
   }
   return false;
 }
+
+/**
+ * Acesso à Extração de Trechos-Chave ("Pegar Nota").
+ * Liberado para planos days_60, days_90, days_180 e premium,
+ * ou se houver liberação ADM temporária ativa (30 dias).
+ */
+export function highlightsActive(opts: {
+  plan: AccessPlan | null | undefined;
+  highlightsUnlockedUntil: string | null | undefined;
+}): boolean {
+  if (opts.plan && ["days_60", "days_90", "days_180", "premium"].includes(opts.plan)) return true;
+  if (opts.highlightsUnlockedUntil) {
+    return new Date(opts.highlightsUnlockedUntil).getTime() > Date.now();
+  }
+  return false;
+}
