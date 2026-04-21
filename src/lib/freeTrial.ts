@@ -97,7 +97,9 @@ export function expertActive(opts: {
 export function highlightsActive(opts: {
   plan: AccessPlan | null | undefined;
   highlightsUnlockedUntil: string | null | undefined;
+  isAdmin?: boolean;
 }): boolean {
+  if (opts.isAdmin) return true;
   if (opts.plan && ["days_60", "days_90", "days_180", "premium"].includes(opts.plan)) return true;
   if (opts.highlightsUnlockedUntil) {
     return new Date(opts.highlightsUnlockedUntil).getTime() > Date.now();
