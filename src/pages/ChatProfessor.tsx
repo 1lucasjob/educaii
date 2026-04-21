@@ -235,14 +235,15 @@ export default function ChatProfessor() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-10rem)]">
-      <div className="flex items-center justify-between mb-3">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <GraduationCap className="text-primary" /> Chat com Professor Saraiva
+    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100svh-9rem)] sm:h-[calc(100vh-10rem)]">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 min-w-0">
+          <GraduationCap className="text-primary shrink-0" />
+          <span className="truncate">Chat com Professor Saraiva</span>
         </h1>
         {messages.length > 0 && (
-          <Button size="sm" variant="ghost" onClick={clearChat}>
-            <Trash2 className="w-4 h-4 mr-1" /> Limpar
+          <Button size="sm" variant="ghost" onClick={clearChat} className="shrink-0">
+            <Trash2 className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Limpar</span>
           </Button>
         )}
       </div>

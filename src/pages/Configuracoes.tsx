@@ -66,7 +66,7 @@ export default function Configuracoes() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold flex items-center gap-2"><Settings className="text-primary" /> Configurações</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><Settings className="text-primary shrink-0" /> Configurações</h1>
 
       <Card className="p-6">
         <div className="flex items-start justify-between gap-4">
