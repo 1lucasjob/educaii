@@ -160,6 +160,7 @@ export default function Admin() {
     load();
   };
 
+  const copyLink = (token: string) => {
     const link = `${getPublicOrigin()}/cadastro?token=${token}`;
     navigator.clipboard.writeText(link);
     toast({ title: "Link copiado!" });
