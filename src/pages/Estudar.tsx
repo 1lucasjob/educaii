@@ -31,6 +31,29 @@ export default function Estudar() {
   const [highlights, setHighlights] = useState<string[]>([]);
   const [loadingHighlights, setLoadingHighlights] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [resumable, setResumable] = useState<SavedQuiz | null>(null);
+
+  useEffect(() => {
+    const refresh = () => setResumable(getResumableQuiz(profile?.id));
+    refresh();
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, [profile?.id]);
+
+  const handleResume = () => {
+    if (!resumable) return;
+    navigate(
+      `/app/simulado?topic=${encodeURIComponent(resumable.topic)}&difficulty=${resumable.difficulty}&resume=1`,
+    );
+  };
+
+  const handleDiscardResumable = () => {
+    clearQuiz(profile?.id);
+    setResumable(null);
+  };
+
+  const formatResumeTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const trial = computeFreeTrial({ plan: profile?.plan, createdAt: profile?.created_at });
   const freeExpired = trial.isFree && !trial.freeBaseActive;
