@@ -288,6 +288,47 @@ export default function Admin() {
         )}
       </Card>
 
+      <Card className="p-5 border-primary/30 bg-gradient-to-br from-background to-primary/5">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <Trophy className="w-4 h-4 text-primary" />
+          <h2 className="font-bold">Preview · Cristais de Fidelidade</h2>
+          <Badge variant="outline" className="text-[10px]">Somente admin</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Visualização de todos os {LOYALTY_TIERS.length} níveis com brilho, cores e ícones — exatamente como aparecem ao lado do nick e na timeline do aluno.
+        </p>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:flex-wrap sm:overflow-visible">
+          {LOYALTY_TIERS.map((tier) => {
+            const Icon = tier.Icon;
+            const Extra = tier.extraIcon;
+            return (
+              <div
+                key={tier.months}
+                className="shrink-0 w-[80px] sm:w-[88px] flex flex-col items-center gap-1.5 text-center"
+              >
+                <div
+                  className={cn(
+                    "relative w-14 h-14 rounded-full flex items-center justify-center",
+                    tier.bgClass,
+                    tier.glowClass,
+                    tier.pulse && "animate-pulse",
+                  )}
+                >
+                  <Icon className={cn("w-7 h-7", tier.iconClass)} strokeWidth={2} />
+                  {Extra && (
+                    <Extra className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-cyan-200 bg-background rounded-full p-0.5 border border-cyan-400/50" />
+                  )}
+                </div>
+                <p className={cn("text-[11px] leading-tight w-full", tier.titleClass ?? "font-medium text-foreground")}>
+                  {tier.short}
+                </p>
+                <span className="text-[9px] text-muted-foreground">{tier.months}m</span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
       <Card className="p-6 sm:p-8 shadow-glow text-center">
         <p className="text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>
         <p className="text-5xl sm:text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
