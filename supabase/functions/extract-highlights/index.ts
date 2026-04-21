@@ -15,17 +15,30 @@ REGRAS ABSOLUTAS:
 - Não adicione comentários, marcações, aspas externas ou explicações.
 - Se o texto for curto, retorne menos itens. Qualidade > quantidade.`;
 
+const FRAMEWORK_TEMPLATE_MARKERS = [
+  "Resumo no formato 5W2H",
+  "Resumo no formato SWOT (FOFA)",
+];
+
+function topicMatchesFrameworkTemplate(topic: string): boolean {
+  if (!topic) return false;
+  const head = topic.trimStart();
+  return FRAMEWORK_TEMPLATE_MARKERS.some((m) => head.startsWith(m));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, title, count } = await req.json();
+    const { topic, title, count, from_framework } = await req.json();
     if (!topic || typeof topic !== "string" || topic.trim().length < 100) {
       return new Response(JSON.stringify({ error: "Texto muito curto para extrair trechos." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const frameworkBypass = from_framework === true && topicMatchesFrameworkTemplate(topic);
+    void frameworkBypass; // gating de plano é feito no client; flag fica disponível para futura validação server-side
     const safeCount = Math.max(3, Math.min(10, Number(count) || 6));
     const safeTitle = typeof title === "string" ? title.trim().slice(0, 200) : "";
 
