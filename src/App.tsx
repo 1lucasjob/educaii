@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AppLayout from "./layouts/AppLayout";
 import Estudar from "./pages/Estudar";
 import EstudarDemo from "./pages/EstudarDemo";
+import Modelos from "./pages/Modelos";
 import Simulado from "./pages/Simulado";
 import Normas from "./pages/Normas";
 import Progresso from "./pages/Progresso";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Navigate to="/app/estudar" replace />} />
               <Route path="estudar" element={<Estudar />} />
+              <Route path="modelos" element={<Modelos />} />
               <Route path="estudar-demo" element={<EstudarDemo />} />
               <Route path="simulado" element={<Simulado />} />
               <Route path="normas" element={<Normas />} />
