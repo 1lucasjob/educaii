@@ -13,6 +13,7 @@ import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchieve
 import { computeFreeTrial, computePlanWindows, expertActive } from "@/lib/freeTrial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
+import { saveQuiz, clearQuiz, loadQuiz } from "@/lib/quizPersistence";
 
 interface Question {
   question: string;
