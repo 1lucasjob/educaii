@@ -50,7 +50,34 @@ export default function Estudar() {
   const [loadingHighlights, setLoadingHighlights] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [resumable, setResumable] = useState<SavedQuiz | null>(null);
+  const [fromFramework, setFromFramework] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(FROM_FRAMEWORK_KEY) === "1"; } catch { return false; }
+  });
   const topicRef = useRef<HTMLTextAreaElement>(null);
+
+  const enableFrameworkBypass = () => {
+    setFromFramework(true);
+    try { sessionStorage.setItem(FROM_FRAMEWORK_KEY, "1"); } catch {}
+  };
+  const disableFrameworkBypass = () => {
+    setFromFramework(false);
+    try { sessionStorage.removeItem(FROM_FRAMEWORK_KEY); } catch {}
+  };
+
+  // Limpa o bypass quando o usuário edita o tema e ele deixa de bater com um template de framework
+  useEffect(() => {
+    if (!fromFramework) return;
+    if (topic && !topicMatchesFrameworkTemplate(topic)) {
+      disableFrameworkBypass();
+    }
+  }, [topic, fromFramework]);
+
+  // Limpa o bypass ao desmontar a página
+  useEffect(() => {
+    return () => {
+      try { sessionStorage.removeItem(FROM_FRAMEWORK_KEY); } catch {}
+    };
+  }, []);
 
   const handlePickFramework = (fw: Framework) => {
     console.log("[FrameworkPicker] picked:", fw.id);
