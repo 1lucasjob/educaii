@@ -46,17 +46,31 @@ OBSERVAÇÕES DO PROFESSOR:
 
 Linguagem: técnica, precisa, em português brasileiro. Sem rodeios. Sem floreios. Sem Markdown. Rigor de cátedra.`;
 
+const FRAMEWORK_TEMPLATE_MARKERS = [
+  "Resumo no formato 5W2H",
+  "Resumo no formato SWOT (FOFA)",
+];
+
+function topicMatchesFrameworkTemplate(topic: string): boolean {
+  if (!topic) return false;
+  const head = topic.trimStart();
+  return FRAMEWORK_TEMPLATE_MARKERS.some((m) => head.startsWith(m));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, title } = await req.json();
+    const { topic, title, from_framework } = await req.json();
     if (!topic || typeof topic !== "string" || topic.trim().length < 3) {
       return new Response(JSON.stringify({ error: "Tema inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Bypass de plano: aceito apenas quando o topic começa com um marcador de template conhecido
+    const frameworkBypass = from_framework === true && topicMatchesFrameworkTemplate(topic);
+    void frameworkBypass; // gating de plano nesta função é feito hoje pelo client; flag fica disponível para futura validação server-side
     const safeTitle = typeof title === "string" ? title.trim().slice(0, 200) : "";
     const userContent = safeTitle
       ? `Título: ${safeTitle}\n\nDescrição: ${topic}`
