@@ -129,6 +129,23 @@ export default function Admin() {
     toast({ title: "Link copiado!" });
   };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    const { data, error } = await supabase.functions.invoke("delete-invite", {
+      body: { pin: deletePin, inviteId: deleteTarget.id },
+    });
+    setDeleteLoading(false);
+    if (error || data?.error) {
+      toast({ title: "Erro ao excluir", description: data?.error ?? error?.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Convite excluído!", description: "O link não pode mais ser usado." });
+    setDeleteTarget(null);
+    setDeletePin("");
+    load();
+  };
+
   const statusOf = (i: Invite) => {
     if (i.used) return <Badge variant="secondary">Usado</Badge>;
     if (new Date(i.expires_at) < new Date()) return <Badge variant="destructive">Expirado</Badge>;
