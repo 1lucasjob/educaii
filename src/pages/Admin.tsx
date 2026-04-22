@@ -213,11 +213,11 @@ export default function Admin() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary shrink-0" /> Gestão de Cadastros</h1>
-        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Libere acessos individuais protegidos por PIN.</p>
+        <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary shrink-0 w-6 h-6 sm:w-8 sm:h-8" /> Gestão de Cadastros</h1>
+        <p className="text-muted-foreground mt-1 text-xs sm:text-base">Libere acessos individuais protegidos por PIN.</p>
       </div>
 
-      <Card className="p-6 border-primary/30 bg-primary/5">
+      <Card className="p-4 sm:p-6 border-primary/30 bg-primary/5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
