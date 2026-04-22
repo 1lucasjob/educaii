@@ -290,49 +290,95 @@ export default function Progresso() {
 
       <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4">Histórico</h2>
-        <div className="space-y-2">
-          {reversed.map((a) => {
-            const counts = a.counts_for_ranking !== false && (a.time_spent_seconds ?? 0) >= 120;
-            const reason =
-              (a.time_spent_seconds ?? 0) < 120
-                ? "Tempo abaixo de 2 min"
-                : a.counts_for_ranking === false
-                ? "Limite diário ou regra anti-burla"
-                : "";
-            return (
-              <div key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-md bg-muted">
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{a.topic}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-                    <span>{new Date(a.created_at).toLocaleString("pt-BR")}</span>
-                    <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDuration(a.time_spent_seconds ?? 0)}</span>
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:justify-end">
-                  <Badge
-                    variant="outline"
-                    title={counts ? "Conta no ranking" : reason}
-                    className={
-                      counts
-                        ? "gap-1 border-success/40 text-success bg-success/10"
-                        : "gap-1 border-muted-foreground/30 text-muted-foreground"
-                    }
-                  >
-                    {counts ? <ShieldCheck className="w-3 h-3" /> : <ShieldOff className="w-3 h-3" />}
-                    <span className="hidden sm:inline">{counts ? "Ranking" : "Sem ranking"}</span>
-                  </Badge>
-                  <Badge variant={a.difficulty === "hard" ? "default" : "outline"} className={a.difficulty === "hard" ? "gradient-primary text-primary-foreground border-0" : ""}>
-                    {a.difficulty === "hard" ? "Difícil" : "Fácil"}
-                  </Badge>
-                  <span className="font-bold flex items-center gap-1 ml-auto sm:ml-0">
-                    <Trophy className="w-4 h-4 text-primary" /> {a.score}
-                  </span>
-                </div>
+        {(() => {
+          const totalPages = Math.max(1, Math.ceil(reversed.length / PAGE_SIZE));
+          const currentPage = Math.min(historyPage, totalPages);
+          const start = (currentPage - 1) * PAGE_SIZE;
+          const pageItems = reversed.slice(start, start + PAGE_SIZE);
+          return (
+            <>
+              <div className="space-y-2">
+                {pageItems.map((a) => {
+                  const counts = a.counts_for_ranking !== false && (a.time_spent_seconds ?? 0) >= 120;
+                  const reason =
+                    (a.time_spent_seconds ?? 0) < 120
+                      ? "Tempo abaixo de 2 min"
+                      : a.counts_for_ranking === false
+                      ? "Limite diário ou regra anti-burla"
+                      : "";
+                  return (
+                    <div key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 sm:p-3 rounded-md bg-muted">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2 sm:block">
+                          <p className="font-medium truncate text-sm sm:text-base">{a.topic}</p>
+                          <span className="font-bold flex items-center gap-1 text-sm sm:hidden shrink-0">
+                            <Trophy className="w-3.5 h-3.5 text-primary" /> {a.score}
+                          </span>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-muted-foreground flex items-center gap-2 flex-wrap mt-0.5">
+                          <span>{new Date(a.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                          <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDuration(a.time_spent_seconds ?? 0)}</span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap sm:justify-end">
+                        <Badge
+                          variant="outline"
+                          title={counts ? "Conta no ranking" : reason}
+                          className={
+                            "gap-1 text-[10px] sm:text-xs px-1.5 py-0 h-5 " +
+                            (counts
+                              ? "border-success/40 text-success bg-success/10"
+                              : "border-muted-foreground/30 text-muted-foreground")
+                          }
+                        >
+                          {counts ? <ShieldCheck className="w-3 h-3" /> : <ShieldOff className="w-3 h-3" />}
+                          <span className="hidden sm:inline">{counts ? "Ranking" : "Sem ranking"}</span>
+                        </Badge>
+                        <Badge
+                          variant={a.difficulty === "hard" ? "default" : "outline"}
+                          className={
+                            "text-[10px] sm:text-xs px-1.5 py-0 h-5 " +
+                            (a.difficulty === "hard" ? "gradient-primary text-primary-foreground border-0" : "")
+                          }
+                        >
+                          {a.difficulty === "hard" ? "Difícil" : "Fácil"}
+                        </Badge>
+                        <span className="font-bold hidden sm:flex items-center gap-1 ml-auto sm:ml-0">
+                          <Trophy className="w-4 h-4 text-primary" /> {a.score}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {attempts.length === 0 && <p className="text-center text-muted-foreground py-6 text-sm">Nenhum simulado ainda.</p>}
               </div>
-            );
-          })}
-          {attempts.length === 0 && <p className="text-center text-muted-foreground py-6">Nenhum simulado ainda.</p>}
-        </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="text-xs sm:text-sm px-3 py-1.5 rounded-md border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ← Anterior
+                  </button>
+                  <span className="text-xs sm:text-sm text-muted-foreground">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setHistoryPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="text-xs sm:text-sm px-3 py-1.5 rounded-md border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Próxima →
+                  </button>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </Card>
     </div>
   );
