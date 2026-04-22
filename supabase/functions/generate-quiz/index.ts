@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, difficulty, sourceText } = await req.json();
+    const { topic, difficulty, sourceText, framework } = await req.json();
     if (!topic || !["easy", "hard", "expert"].includes(difficulty)) {
       return new Response(JSON.stringify({ error: "Parâmetros inválidos" }), {
         status: 400,
@@ -30,10 +30,10 @@ Deno.serve(async (req) => {
 
     const range =
       difficulty === "easy"
-        ? "entre 5 e 10 questões (escolha um número adequado)"
+        ? "entre 10 e 12 questões (mínimo obrigatório: 10)"
         : difficulty === "hard"
-          ? "entre 5 e 10 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão"
-          : "entre 5 e 10 questões de NÍVEL ACADÊMICO/PÓS-GRADUAÇÃO — estudo de caso longo, exigindo cálculos quando aplicável e combinação de múltiplas NRs";
+          ? "entre 10 e 12 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão (mínimo obrigatório: 10)"
+          : "entre 10 e 12 questões de NÍVEL ACADÊMICO/PÓS-GRADUAÇÃO — estudo de caso longo, exigindo cálculos quando aplicável e combinação de múltiplas NRs (mínimo obrigatório: 10)";
 
     const difficultyLabel =
       difficulty === "easy"
@@ -66,10 +66,14 @@ Deno.serve(async (req) => {
 - Evitar perguntas conceituais simples ("o que é EPI?") — sempre exigir aplicação ou análise.`
           : "As questões devem cobrir conceitos básicos e aplicações diretas.";
 
+    const frameworkBlock = framework === "5w2h" || framework === "swot"
+      ? `\nFluxo: Simulado de Modelo de Estudo. Modelo obrigatório: ${framework.toUpperCase()}. Todas as questões devem avaliar domínio do modelo ${framework.toUpperCase()} aplicado à Saúde e Segurança do Trabalho.`
+      : "";
+
     const userPrompt = `Tema: ${topic}
 Dificuldade: ${difficultyLabel}
 Quantidade: ${range}.
-Total de pontos: exatamente 100, distribuídos entre as questões.${expertExtra}${sourceTextBlock}`;
+Total de pontos: exatamente 100, distribuídos entre as questões.${frameworkBlock}${expertExtra}${sourceTextBlock}`;
 
     const model =
       difficulty === "expert"
@@ -162,6 +166,11 @@ Total de pontos: exatamente 100, distribuídos entre as questões.${expertExtra}
     }
     const args = JSON.parse(toolCall.function.arguments);
     const questions = args.questions ?? [];
+    if (!Array.isArray(questions) || questions.length < 10) {
+      return new Response(JSON.stringify({ error: "A IA gerou menos de 10 questões. Tente gerar novamente." }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Normalize points to total exactly 100
     const totalPts = questions.reduce((s: number, q: any) => s + (q.points || 0), 0);

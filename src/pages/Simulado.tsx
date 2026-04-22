@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap, Sparkles, Copy } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
-import { computeFreeTrial, computePlanWindows, expertActive, performanceAnalysisActive } from "@/lib/freeTrial";
+import { computeFreeTrial, computePlanWindows, expertActive, modelQuizAdvancedActive, modelQuizEasyActive, performanceAnalysisActive } from "@/lib/freeTrial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { saveQuiz, clearQuiz, loadQuiz, loadQuizRemote, clearQuizRemote } from "@/lib/quizPersistence";
@@ -27,6 +27,8 @@ export default function Simulado() {
   const [params] = useSearchParams();
   const topic = params.get("topic") ?? "";
   const difficulty = (params.get("difficulty") as "easy" | "hard" | "expert") ?? "easy";
+  const framework = params.get("framework");
+  const isFrameworkQuiz = framework === "5w2h" || framework === "swot";
   const navigate = useNavigate();
   const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -39,7 +41,22 @@ export default function Simulado() {
   const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
   const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
 
+  const modelQuizAllowed = difficulty === "easy"
+    ? modelQuizEasyActive({
+        plan: profile?.plan,
+        createdAt: profile?.created_at,
+        modelQuizUnlockedUntil: profile?.model_quiz_unlocked_until,
+        isAdmin,
+      })
+    : modelQuizAdvancedActive({
+        plan: profile?.plan,
+        modelQuizUnlockedUntil: profile?.model_quiz_unlocked_until,
+        isAdmin,
+      });
+  const modelQuizBlocked = isFrameworkQuiz && !modelQuizAllowed;
+
   const freeBlocked =
+    !isFrameworkQuiz &&
     !isAdmin &&
     trial.isFree &&
     ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
@@ -51,12 +68,12 @@ export default function Simulado() {
     (profile?.plan === "days_30" && (profile?.days_30_renewals_count ?? 0) >= 2) ||
     (profile?.plan === "days_60" && planWindow.hardActive);
   const planBlockedHard =
-    !isAdmin && !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
+    !isFrameworkQuiz && !isAdmin && !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
 
   // Expert gating: somente premium, days_90 ou liberação ADM ativa.
-  const expertBlocked = difficulty === "expert" && !userHasExpert;
+  const expertBlocked = !isFrameworkQuiz && difficulty === "expert" && !userHasExpert;
 
-  const blocked = freeBlocked || planBlockedHard || expertBlocked;
+  const blocked = modelQuizBlocked || freeBlocked || planBlockedHard || expertBlocked;
 
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -162,7 +179,7 @@ export default function Simulado() {
         sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
       } catch {}
       const { data, error } = await supabase.functions.invoke("generate-quiz", {
-        body: { topic, difficulty, sourceText },
+        body: { topic, difficulty, sourceText, framework: isFrameworkQuiz ? framework : undefined },
       });
       if (error || data?.error) {
         toast({ title: "Erro ao gerar simulado", description: data?.error ?? error?.message, variant: "destructive" });
@@ -346,7 +363,11 @@ export default function Simulado() {
     const isHard = difficulty === "hard";
     const isExpert = difficulty === "expert";
     const renewals = profile?.days_30_renewals_count ?? 0;
-    const description = isExpert
+    const description = modelQuizBlocked
+      ? (difficulty === "easy"
+          ? "O Simulado Fácil dos Modelos exige FREE dentro dos 30 dias, plano 60 DAYS ou superior, ou liberação do administrador por 30 dias."
+          : "Os Simulados Difícil e Expert dos Modelos exigem plano 90 DAYS ou superior, ou liberação do administrador por 30 dias.")
+      : isExpert
       ? "O Simulado Expert (nível acadêmico) é exclusivo dos planos PREMIUM, 180 DAYS e 90 DAYS (10 dias iniciais). O administrador também pode liberar acesso temporário (24h) sob solicitação."
       : freeBlocked
         ? (isHard
@@ -354,17 +375,17 @@ export default function Simulado() {
             : "Seus 30 dias do plano FREE acabaram. Faça upgrade para continuar acessando os simulados.")
         : `O Simulado Difícil exige plano 90 DAYS, PREMIUM ou plano 30 DAYS renovado pelo menos 2 vezes (você tem ${renewals} renovação${renewals === 1 ? "" : "ões"}). Faça upgrade ou continue renovando o 30 DAYS.`;
     return (
-      <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) navigate("/app/estudar"); setUpgradeOpen(o); }}>
+      <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) navigate(isFrameworkQuiz ? "/app/modelos" : "/app/estudar"); setUpgradeOpen(o); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-warning" />
-              {isExpert ? "Simulado Expert bloqueado" : isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
+              {isFrameworkQuiz ? "Simulado do Modelo bloqueado" : isExpert ? "Simulado Expert bloqueado" : isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
             </DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => navigate("/app/estudar")}>
+            <Button variant="outline" onClick={() => navigate(isFrameworkQuiz ? "/app/modelos" : "/app/estudar")}>
               Voltar
             </Button>
             <Button asChild className="gradient-primary text-primary-foreground shadow-glow">

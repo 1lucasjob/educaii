@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BookOpen, GraduationCap, Lightbulb, Sparkles, Eraser } from "lucide-react";
+import { ArrowLeft, BookOpen, GraduationCap, Lightbulb, Sparkles, Eraser, Lock, PlayCircle } from "lucide-react";
 import { FRAMEWORKS, type Framework } from "@/lib/studyFrameworks";
 import FrameworkPicker from "@/components/FrameworkPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { modelQuizAdvancedActive, modelQuizEasyActive } from "@/lib/freeTrial";
 
 export default function Modelos() {
   const [selected, setSelected] = useState<Framework | null>(null);
@@ -30,7 +32,7 @@ export default function Modelos() {
         <>
           <Card className="p-5 bg-primary/5 border-primary/30">
             <p className="text-sm text-foreground">
-              Cada modelo abaixo tem um <strong>resumo explicativo</strong>, um <strong>exemplo prático</strong> e um <strong>modo de treino</strong> com feedback da IA. Ao final, você pode aplicar o modelo direto no <strong>Estudar</strong>.
+              Cada modelo abaixo tem um <strong>resumo explicativo</strong>, um <strong>exemplo prático</strong> e um <strong>modo de treino</strong> com feedback da IA. Ao final, você pode gerar um <strong>simulado específico</strong> do modelo escolhido.
             </p>
           </Card>
           <FrameworkPicker onPick={(fw) => setSelected(fw)} />
@@ -79,7 +81,7 @@ function FrameworkDetail({ framework, onBack }: { framework: Framework; onBack: 
             <GraduationCap className="w-4 h-4" /> Treinar
           </TabsTrigger>
           <TabsTrigger value="use" className="gap-1.5">
-            <Sparkles className="w-4 h-4" /> Usar no Estudar
+            <Sparkles className="w-4 h-4" /> Gerar Simulado
           </TabsTrigger>
         </TabsList>
 
@@ -105,7 +107,7 @@ function FrameworkDetail({ framework, onBack }: { framework: Framework; onBack: 
         </TabsContent>
 
         <TabsContent value="use" className="mt-4">
-          <UseInEstudar framework={framework} />
+          <GenerateFrameworkQuiz framework={framework} />
         </TabsContent>
       </Tabs>
     </div>
@@ -221,9 +223,28 @@ function FrameworkTrainer({ framework }: { framework: Framework }) {
   );
 }
 
-function UseInEstudar({ framework }: { framework: Framework }) {
+function GenerateFrameworkQuiz({ framework }: { framework: Framework }) {
   const navigate = useNavigate();
+  const { profile, isAdmin } = useAuth();
   const colorVar = `hsl(${framework.color})`;
+  const [difficulty, setDifficulty] = useState<"easy" | "hard" | "expert">("easy");
+  const easyAllowed = modelQuizEasyActive({
+    plan: profile?.plan,
+    createdAt: profile?.created_at,
+    modelQuizUnlockedUntil: profile?.model_quiz_unlocked_until,
+    isAdmin,
+  });
+  const advancedAllowed = modelQuizAdvancedActive({
+    plan: profile?.plan,
+    modelQuizUnlockedUntil: profile?.model_quiz_unlocked_until,
+    isAdmin,
+  });
+  const allowed = difficulty === "easy" ? easyAllowed : advancedAllowed;
+  const topic = `Simulado sobre o modelo ${framework.label} aplicado à Segurança do Trabalho`;
+  const goToQuiz = () => {
+    navigate(`/app/simulado?topic=${encodeURIComponent(topic)}&difficulty=${difficulty}&framework=${framework.id}`);
+  };
+
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-start gap-3">
@@ -234,20 +255,53 @@ function UseInEstudar({ framework }: { framework: Framework }) {
           <Sparkles className="w-5 h-5" style={{ color: colorVar }} />
         </div>
         <div>
-          <h3 className="font-semibold">Aplicar no Módulo de Estudos</h3>
+          <h3 className="font-semibold">Gerar Simulado do Modelo</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Quer gerar um resumo técnico completo já estruturado neste modelo? Vamos abrir o Estudar com o template carregado — basta preencher seu tema e gerar.
+            Escolha o nível e gere um simulado com no mínimo 10 questões baseado no modelo {framework.label}.
           </p>
         </div>
       </div>
+      <div className="grid grid-cols-3 gap-2">
+        {([
+          ["easy", "Fácil"],
+          ["hard", "Difícil"],
+          ["expert", "Expert"],
+        ] as const).map(([value, label]) => (
+          <Button
+            key={value}
+            type="button"
+            variant={difficulty === value ? "default" : "outline"}
+            onClick={() => setDifficulty(value)}
+            className={difficulty === value ? "gradient-primary text-primary-foreground shadow-glow" : ""}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      {!allowed && (
+        <div className="rounded-md border border-warning/40 bg-warning/5 p-3 text-sm flex items-start gap-2">
+          <Lock className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+          <div>
+            <p>
+              {difficulty === "easy"
+                ? "O simulado fácil dos modelos exige FREE ativo nos 30 dias, plano 60 DAYS ou superior, ou liberação do admin."
+                : "Simulados difícil e expert dos modelos exigem plano 90 DAYS ou superior, ou liberação do admin por 30 dias."}
+            </p>
+            <Link to="/app/planos" className="text-primary underline underline-offset-2 text-xs font-medium">
+              Ver planos disponíveis
+            </Link>
+          </div>
+        </div>
+      )}
       <Button
-        onClick={() => navigate(`/app/estudar?framework=${framework.id}`)}
+        onClick={goToQuiz}
+        disabled={!allowed}
         className="w-full gradient-primary text-primary-foreground shadow-glow"
       >
-        <Sparkles className="mr-2" /> Usar {framework.label} no Estudar
+        <PlayCircle className="mr-2" /> Gerar Simulado {framework.label}
       </Button>
       <p className="text-xs text-muted-foreground text-center">
-        Você também pode abrir o <Link to="/app/estudar" className="text-primary underline underline-offset-2">Módulo de Estudos</Link> diretamente.
+        Os simulados normais continuam disponíveis no <Link to="/app/estudar" className="text-primary underline underline-offset-2">Módulo de Estudos</Link>.
       </p>
     </Card>
   );
