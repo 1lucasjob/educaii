@@ -195,6 +195,7 @@ export type Database = {
           highlights_unlocked_until: string | null
           id: string
           last_score: number
+          model_quiz_unlocked_until: string | null
           plan: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash: string | null
           secret_answer_hash: string | null
@@ -222,6 +223,7 @@ export type Database = {
           highlights_unlocked_until?: string | null
           id: string
           last_score?: number
+          model_quiz_unlocked_until?: string | null
           plan?: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash?: string | null
           secret_answer_hash?: string | null
@@ -249,6 +251,7 @@ export type Database = {
           highlights_unlocked_until?: string | null
           id?: string
           last_score?: number
+          model_quiz_unlocked_until?: string | null
           plan?: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash?: string | null
           secret_answer_hash?: string | null
@@ -441,6 +444,10 @@ export type Database = {
       }
       admin_unlock_expert: { Args: { _user_id: string }; Returns: undefined }
       admin_unlock_highlights: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
+      admin_unlock_model_quiz: {
         Args: { _user_id: string }
         Returns: undefined
       }
