@@ -438,6 +438,12 @@ export default function Simulado() {
   }
 
   if (generationError) {
+    const errorTips = [
+      "Reduza o tema para um recorte mais específico, como uma NR, item ou situação prática.",
+      "Tente novamente após alguns segundos, pois a IA pode estar sobrecarregada.",
+      "Se estiver usando texto base, remova partes muito longas ou pouco relacionadas ao simulado.",
+    ];
+
     return (
       <div className="max-w-2xl mx-auto py-12 px-3">
         <Card className="p-6 sm:p-8 space-y-5 border-destructive/40 bg-destructive/5">
@@ -445,8 +451,20 @@ export default function Simulado() {
             <AlertCircle className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
             <div className="space-y-1">
               <h1 className="text-lg sm:text-xl font-bold">Falha ao gerar o simulado</h1>
-              <p className="text-sm text-muted-foreground">{generationError}</p>
+              <p className="text-sm text-muted-foreground">Não foi possível concluir a geração agora.</p>
             </div>
+          </div>
+          <div className="rounded-md border bg-background/60 p-4 space-y-2">
+            <p className="text-sm font-medium">Detalhes do erro</p>
+            <p className="text-sm text-muted-foreground break-words">{generationError}</p>
+          </div>
+          <div className="rounded-md border bg-background/60 p-4 space-y-3">
+            <p className="text-sm font-medium">Dicas para resolver</p>
+            <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+              {errorTips.map((tip) => (
+                <li key={tip}>{tip}</li>
+              ))}
+            </ul>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <Button onClick={generateQuiz} className="gradient-primary text-primary-foreground shadow-glow">
