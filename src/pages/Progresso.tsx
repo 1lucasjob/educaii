@@ -159,39 +159,39 @@ export default function Progresso() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground">Simulados</p>
-          <p className="text-3xl font-bold">{total}</p>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground">Simulados</p>
+          <p className="text-2xl sm:text-3xl font-bold">{total}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground">Média</p>
-          <p className="text-3xl font-bold text-primary">{avg}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground">Média</p>
+          <p className="text-2xl sm:text-3xl font-bold text-primary">{avg}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Trophy className="w-3 h-3" /> Melhor</p>
-          <p className="text-3xl font-bold text-primary">{best}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Trophy className="w-3 h-3" /> Melhor</p>
+          <p className="text-2xl sm:text-3xl font-bold text-primary">{best}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Target className="w-3 h-3" /> Aprovações</p>
-          <p className="text-3xl font-bold">{passed}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Target className="w-3 h-3" /> Aprovações</p>
+          <p className="text-2xl sm:text-3xl font-bold">{passed}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo total</p>
-          <p className="text-2xl font-bold">{formatDuration(totalTime)}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo total</p>
+          <p className="text-lg sm:text-2xl font-bold break-words">{formatDuration(totalTime)}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo médio</p>
-          <p className="text-2xl font-bold">{formatDuration(avgTime)}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo médio</p>
+          <p className="text-lg sm:text-2xl font-bold break-words">{formatDuration(avgTime)}</p>
         </Card>
       </div>
 
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold flex items-center gap-2">
+      <Card className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <h2 className="font-bold flex items-center gap-2 text-sm sm:text-base">
             <Award className="w-4 h-4 text-primary" /> Conquistas
           </h2>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs sm:text-sm text-muted-foreground shrink-0">
             {unlockedCount}/{achievements.length} desbloqueadas
           </span>
         </div>
@@ -199,9 +199,9 @@ export default function Progresso() {
       </Card>
 
       {showSecretSection && (
-        <Card className="p-6 border-primary/40 bg-gradient-to-br from-primary/5 to-transparent">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-bold flex items-center gap-2">
+        <Card className="p-4 sm:p-6 border-primary/40 bg-gradient-to-br from-primary/5 to-transparent">
+          <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
+            <h2 className="font-bold flex items-center gap-2 text-sm sm:text-base">
               <Sparkles className="w-4 h-4 text-primary" /> Conquistas Secretas
               {isAdmin && (
                 <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
@@ -209,7 +209,7 @@ export default function Progresso() {
                 </Badge>
               )}
             </h2>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground shrink-0">
               {unlockedSecretCount}/{secretAchievements.length} reveladas
             </span>
           </div>
@@ -224,17 +224,17 @@ export default function Progresso() {
         <LoyaltyProgram startDate={profile.created_at} />
       )}
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-1 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Evolução das pontuações</h2>
         <p className="text-xs text-muted-foreground mb-4">Linha de meta em 80 pontos (aprovação no difícil)</p>
         {evolutionData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum dado para exibir ainda.</p>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
-            <LineChart data={evolutionData} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+          <ChartContainer config={chartConfig} className="h-[220px] sm:h-[260px] w-full">
+            <LineChart data={evolutionData} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} />
-              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={32} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={28} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ReferenceLine y={80} stroke="hsl(var(--primary))" strokeDasharray="4 4" />
               <Line
@@ -250,16 +250,16 @@ export default function Progresso() {
         )}
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4">Média por tema</h2>
         {byTopic.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum tema avaliado ainda.</p>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
-            <BarChart data={byTopic} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+          <ChartContainer config={chartConfig} className="h-[240px] sm:h-[260px] w-full">
+            <BarChart data={byTopic} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="topic" tickLine={false} axisLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
-              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={32} />
+              <XAxis dataKey="topic" tickLine={false} axisLine={false} interval={0} angle={-25} textAnchor="end" height={60} fontSize={10} />
+              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={28} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="media" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
             </BarChart>
@@ -267,17 +267,17 @@ export default function Progresso() {
         )}
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-1 flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Evolução do tempo por simulado</h2>
         <p className="text-xs text-muted-foreground mb-4">Tempo gasto em cada simulado e média acumulada (em minutos)</p>
         {timeData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Sem dados de tempo registrados ainda.</p>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
-            <LineChart data={timeData} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+          <ChartContainer config={chartConfig} className="h-[220px] sm:h-[260px] w-full">
+            <LineChart data={timeData} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} width={32} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis tickLine={false} axisLine={false} width={28} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line type="monotone" dataKey="tempo" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} />
               <Line type="monotone" dataKey="media" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
@@ -286,7 +286,7 @@ export default function Progresso() {
         )}
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4">Histórico</h2>
         <div className="space-y-2">
           {reversed.map((a) => {
@@ -298,7 +298,7 @@ export default function Progresso() {
                 ? "Limite diário ou regra anti-burla"
                 : "";
             return (
-              <div key={a.id} className="flex items-center justify-between p-3 rounded-md bg-muted">
+              <div key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-md bg-muted">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{a.topic}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
@@ -306,7 +306,7 @@ export default function Progresso() {
                     <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDuration(a.time_spent_seconds ?? 0)}</span>
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:justify-end">
                   <Badge
                     variant="outline"
                     title={counts ? "Conta no ranking" : reason}
@@ -322,7 +322,7 @@ export default function Progresso() {
                   <Badge variant={a.difficulty === "hard" ? "default" : "outline"} className={a.difficulty === "hard" ? "gradient-primary text-primary-foreground border-0" : ""}>
                     {a.difficulty === "hard" ? "Difícil" : "Fácil"}
                   </Badge>
-                  <span className="font-bold flex items-center gap-1">
+                  <span className="font-bold flex items-center gap-1 ml-auto sm:ml-0">
                     <Trophy className="w-4 h-4 text-primary" /> {a.score}
                   </span>
                 </div>
