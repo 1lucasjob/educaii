@@ -286,7 +286,7 @@ export default function Progresso() {
         )}
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4">Histórico</h2>
         <div className="space-y-2">
           {reversed.map((a) => {
@@ -298,7 +298,7 @@ export default function Progresso() {
                 ? "Limite diário ou regra anti-burla"
                 : "";
             return (
-              <div key={a.id} className="flex items-center justify-between p-3 rounded-md bg-muted">
+              <div key={a.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-md bg-muted">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{a.topic}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
@@ -306,7 +306,7 @@ export default function Progresso() {
                     <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {formatDuration(a.time_spent_seconds ?? 0)}</span>
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:justify-end">
                   <Badge
                     variant="outline"
                     title={counts ? "Conta no ranking" : reason}
@@ -322,7 +322,7 @@ export default function Progresso() {
                   <Badge variant={a.difficulty === "hard" ? "default" : "outline"} className={a.difficulty === "hard" ? "gradient-primary text-primary-foreground border-0" : ""}>
                     {a.difficulty === "hard" ? "Difícil" : "Fácil"}
                   </Badge>
-                  <span className="font-bold flex items-center gap-1">
+                  <span className="font-bold flex items-center gap-1 ml-auto sm:ml-0">
                     <Trophy className="w-4 h-4 text-primary" /> {a.score}
                   </span>
                 </div>
