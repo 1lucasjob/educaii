@@ -126,3 +126,29 @@ export function highlightsActive(opts: {
   }
   return false;
 }
+
+export function modelQuizEasyActive(opts: {
+  plan: AccessPlan | null | undefined;
+  createdAt: string | null | undefined;
+  modelQuizUnlockedUntil: string | null | undefined;
+  isAdmin?: boolean;
+}): boolean {
+  if (opts.isAdmin) return true;
+  if (opts.modelQuizUnlockedUntil && new Date(opts.modelQuizUnlockedUntil).getTime() > Date.now()) return true;
+  if (opts.plan && ["days_60", "days_90", "days_180", "premium"].includes(opts.plan)) return true;
+  if (opts.plan === "free" && opts.createdAt) {
+    const days = Math.floor((Date.now() - new Date(opts.createdAt).getTime()) / DAY_MS);
+    return days < 30;
+  }
+  return false;
+}
+
+export function modelQuizAdvancedActive(opts: {
+  plan: AccessPlan | null | undefined;
+  modelQuizUnlockedUntil: string | null | undefined;
+  isAdmin?: boolean;
+}): boolean {
+  if (opts.isAdmin) return true;
+  if (opts.modelQuizUnlockedUntil && new Date(opts.modelQuizUnlockedUntil).getTime() > Date.now()) return true;
+  return !!opts.plan && ["days_90", "days_180", "premium"].includes(opts.plan);
+}
