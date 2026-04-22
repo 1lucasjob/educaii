@@ -186,12 +186,12 @@ export default function Progresso() {
         </Card>
       </div>
 
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold flex items-center gap-2">
+      <Card className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <h2 className="font-bold flex items-center gap-2 text-sm sm:text-base">
             <Award className="w-4 h-4 text-primary" /> Conquistas
           </h2>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs sm:text-sm text-muted-foreground shrink-0">
             {unlockedCount}/{achievements.length} desbloqueadas
           </span>
         </div>
@@ -199,9 +199,9 @@ export default function Progresso() {
       </Card>
 
       {showSecretSection && (
-        <Card className="p-6 border-primary/40 bg-gradient-to-br from-primary/5 to-transparent">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-bold flex items-center gap-2">
+        <Card className="p-4 sm:p-6 border-primary/40 bg-gradient-to-br from-primary/5 to-transparent">
+          <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
+            <h2 className="font-bold flex items-center gap-2 text-sm sm:text-base">
               <Sparkles className="w-4 h-4 text-primary" /> Conquistas Secretas
               {isAdmin && (
                 <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
@@ -209,7 +209,7 @@ export default function Progresso() {
                 </Badge>
               )}
             </h2>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground shrink-0">
               {unlockedSecretCount}/{secretAchievements.length} reveladas
             </span>
           </div>
