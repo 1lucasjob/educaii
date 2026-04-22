@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap, Sparkles, Copy } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
-import { computeFreeTrial, computePlanWindows, expertActive, performanceAnalysisActive } from "@/lib/freeTrial";
+import { computeFreeTrial, computePlanWindows, expertActive, modelQuizAdvancedActive, modelQuizEasyActive, performanceAnalysisActive } from "@/lib/freeTrial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { saveQuiz, clearQuiz, loadQuiz, loadQuizRemote, clearQuizRemote } from "@/lib/quizPersistence";
@@ -27,6 +27,8 @@ export default function Simulado() {
   const [params] = useSearchParams();
   const topic = params.get("topic") ?? "";
   const difficulty = (params.get("difficulty") as "easy" | "hard" | "expert") ?? "easy";
+  const framework = params.get("framework");
+  const isFrameworkQuiz = framework === "5w2h" || framework === "swot";
   const navigate = useNavigate();
   const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -39,7 +41,22 @@ export default function Simulado() {
   const planWindow = computePlanWindows({ plan: profile?.plan, accessExpiresAt: profile?.access_expires_at });
   const userHasExpert = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin });
 
+  const modelQuizAllowed = difficulty === "easy"
+    ? modelQuizEasyActive({
+        plan: profile?.plan,
+        createdAt: profile?.created_at,
+        modelQuizUnlockedUntil: profile?.model_quiz_unlocked_until,
+        isAdmin,
+      })
+    : modelQuizAdvancedActive({
+        plan: profile?.plan,
+        modelQuizUnlockedUntil: profile?.model_quiz_unlocked_until,
+        isAdmin,
+      });
+  const modelQuizBlocked = isFrameworkQuiz && !modelQuizAllowed;
+
   const freeBlocked =
+    !isFrameworkQuiz &&
     !isAdmin &&
     trial.isFree &&
     ((difficulty === "hard" && !trial.freeHardActive) || (difficulty === "easy" && !trial.freeBaseActive));
@@ -51,12 +68,12 @@ export default function Simulado() {
     (profile?.plan === "days_30" && (profile?.days_30_renewals_count ?? 0) >= 2) ||
     (profile?.plan === "days_60" && planWindow.hardActive);
   const planBlockedHard =
-    !isAdmin && !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
+    !isFrameworkQuiz && !isAdmin && !!profile && !trial.isFree && difficulty === "hard" && !planAllowsHard;
 
   // Expert gating: somente premium, days_90 ou liberação ADM ativa.
-  const expertBlocked = difficulty === "expert" && !userHasExpert;
+  const expertBlocked = !isFrameworkQuiz && difficulty === "expert" && !userHasExpert;
 
-  const blocked = freeBlocked || planBlockedHard || expertBlocked;
+  const blocked = modelQuizBlocked || freeBlocked || planBlockedHard || expertBlocked;
 
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -162,7 +179,7 @@ export default function Simulado() {
         sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
       } catch {}
       const { data, error } = await supabase.functions.invoke("generate-quiz", {
-        body: { topic, difficulty, sourceText },
+        body: { topic, difficulty, sourceText, framework: isFrameworkQuiz ? framework : undefined },
       });
       if (error || data?.error) {
         toast({ title: "Erro ao gerar simulado", description: data?.error ?? error?.message, variant: "destructive" });
