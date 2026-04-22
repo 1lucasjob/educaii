@@ -363,7 +363,11 @@ export default function Simulado() {
     const isHard = difficulty === "hard";
     const isExpert = difficulty === "expert";
     const renewals = profile?.days_30_renewals_count ?? 0;
-    const description = isExpert
+    const description = modelQuizBlocked
+      ? (difficulty === "easy"
+          ? "O Simulado Fácil dos Modelos exige FREE dentro dos 30 dias, plano 60 DAYS ou superior, ou liberação do administrador por 30 dias."
+          : "Os Simulados Difícil e Expert dos Modelos exigem plano 90 DAYS ou superior, ou liberação do administrador por 30 dias.")
+      : isExpert
       ? "O Simulado Expert (nível acadêmico) é exclusivo dos planos PREMIUM, 180 DAYS e 90 DAYS (10 dias iniciais). O administrador também pode liberar acesso temporário (24h) sob solicitação."
       : freeBlocked
         ? (isHard
@@ -371,17 +375,17 @@ export default function Simulado() {
             : "Seus 30 dias do plano FREE acabaram. Faça upgrade para continuar acessando os simulados.")
         : `O Simulado Difícil exige plano 90 DAYS, PREMIUM ou plano 30 DAYS renovado pelo menos 2 vezes (você tem ${renewals} renovação${renewals === 1 ? "" : "ões"}). Faça upgrade ou continue renovando o 30 DAYS.`;
     return (
-      <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) navigate("/app/estudar"); setUpgradeOpen(o); }}>
+      <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) navigate(isFrameworkQuiz ? "/app/modelos" : "/app/estudar"); setUpgradeOpen(o); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-warning" />
-              {isExpert ? "Simulado Expert bloqueado" : isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
+              {isFrameworkQuiz ? "Simulado do Modelo bloqueado" : isExpert ? "Simulado Expert bloqueado" : isHard ? "Simulado Difícil bloqueado" : "Acesso encerrado"}
             </DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => navigate("/app/estudar")}>
+            <Button variant="outline" onClick={() => navigate(isFrameworkQuiz ? "/app/modelos" : "/app/estudar")}>
               Voltar
             </Button>
             <Button asChild className="gradient-primary text-primary-foreground shadow-glow">
