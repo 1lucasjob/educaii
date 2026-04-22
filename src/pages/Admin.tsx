@@ -324,7 +324,7 @@ export default function Admin() {
         )}
       </Card>
 
-      <Card className="p-5 border-primary/30 bg-gradient-to-br from-background to-primary/5">
+      <Card className="p-4 sm:p-5 border-primary/30 bg-gradient-to-br from-background to-primary/5">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Trophy className="w-4 h-4 text-primary" />
           <h2 className="font-bold">Preview · Cristais de Fidelidade</h2>
@@ -365,9 +365,9 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-6 sm:p-8 shadow-glow text-center">
-        <p className="text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>
-        <p className="text-5xl sm:text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
+      <Card className="p-4 sm:p-8 shadow-glow text-center">
+        <p className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>
+        <p className="text-4xl sm:text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
           {slots}
         </p>
         <Button onClick={() => setOpen(true)} className="gradient-primary text-primary-foreground shadow-glow mt-2">
