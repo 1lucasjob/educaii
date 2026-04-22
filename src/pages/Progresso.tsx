@@ -159,30 +159,30 @@ export default function Progresso() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground">Simulados</p>
-          <p className="text-3xl font-bold">{total}</p>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground">Simulados</p>
+          <p className="text-2xl sm:text-3xl font-bold">{total}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground">Média</p>
-          <p className="text-3xl font-bold text-primary">{avg}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground">Média</p>
+          <p className="text-2xl sm:text-3xl font-bold text-primary">{avg}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Trophy className="w-3 h-3" /> Melhor</p>
-          <p className="text-3xl font-bold text-primary">{best}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Trophy className="w-3 h-3" /> Melhor</p>
+          <p className="text-2xl sm:text-3xl font-bold text-primary">{best}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Target className="w-3 h-3" /> Aprovações</p>
-          <p className="text-3xl font-bold">{passed}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Target className="w-3 h-3" /> Aprovações</p>
+          <p className="text-2xl sm:text-3xl font-bold">{passed}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo total</p>
-          <p className="text-2xl font-bold">{formatDuration(totalTime)}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo total</p>
+          <p className="text-lg sm:text-2xl font-bold break-words">{formatDuration(totalTime)}</p>
         </Card>
-        <Card className="p-5">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo médio</p>
-          <p className="text-2xl font-bold">{formatDuration(avgTime)}</p>
+        <Card className="p-3 sm:p-5">
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo médio</p>
+          <p className="text-lg sm:text-2xl font-bold break-words">{formatDuration(avgTime)}</p>
         </Card>
       </div>
 
