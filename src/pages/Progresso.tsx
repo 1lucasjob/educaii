@@ -224,17 +224,17 @@ export default function Progresso() {
         <LoyaltyProgram startDate={profile.created_at} />
       )}
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-1 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Evolução das pontuações</h2>
         <p className="text-xs text-muted-foreground mb-4">Linha de meta em 80 pontos (aprovação no difícil)</p>
         {evolutionData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum dado para exibir ainda.</p>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
-            <LineChart data={evolutionData} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+          <ChartContainer config={chartConfig} className="h-[220px] sm:h-[260px] w-full">
+            <LineChart data={evolutionData} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} />
-              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={32} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={28} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ReferenceLine y={80} stroke="hsl(var(--primary))" strokeDasharray="4 4" />
               <Line
@@ -250,16 +250,16 @@ export default function Progresso() {
         )}
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-4">Média por tema</h2>
         {byTopic.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum tema avaliado ainda.</p>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
-            <BarChart data={byTopic} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+          <ChartContainer config={chartConfig} className="h-[240px] sm:h-[260px] w-full">
+            <BarChart data={byTopic} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="topic" tickLine={false} axisLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
-              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={32} />
+              <XAxis dataKey="topic" tickLine={false} axisLine={false} interval={0} angle={-25} textAnchor="end" height={60} fontSize={10} />
+              <YAxis domain={[0, 100]} tickLine={false} axisLine={false} width={28} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="media" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
             </BarChart>
@@ -267,17 +267,17 @@ export default function Progresso() {
         )}
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-1 flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Evolução do tempo por simulado</h2>
         <p className="text-xs text-muted-foreground mb-4">Tempo gasto em cada simulado e média acumulada (em minutos)</p>
         {timeData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Sem dados de tempo registrados ainda.</p>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
-            <LineChart data={timeData} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+          <ChartContainer config={chartConfig} className="h-[220px] sm:h-[260px] w-full">
+            <LineChart data={timeData} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} width={32} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis tickLine={false} axisLine={false} width={28} fontSize={11} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line type="monotone" dataKey="tempo" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} />
               <Line type="monotone" dataKey="media" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
