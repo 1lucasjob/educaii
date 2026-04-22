@@ -213,11 +213,11 @@ export default function Admin() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary shrink-0" /> Gestão de Cadastros</h1>
-        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Libere acessos individuais protegidos por PIN.</p>
+        <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary shrink-0 w-6 h-6 sm:w-8 sm:h-8" /> Gestão de Cadastros</h1>
+        <p className="text-muted-foreground mt-1 text-xs sm:text-base">Libere acessos individuais protegidos por PIN.</p>
       </div>
 
-      <Card className="p-6 border-primary/30 bg-primary/5">
+      <Card className="p-4 sm:p-6 border-primary/30 bg-primary/5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
@@ -324,7 +324,7 @@ export default function Admin() {
         )}
       </Card>
 
-      <Card className="p-5 border-primary/30 bg-gradient-to-br from-background to-primary/5">
+      <Card className="p-4 sm:p-5 border-primary/30 bg-gradient-to-br from-background to-primary/5">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Trophy className="w-4 h-4 text-primary" />
           <h2 className="font-bold">Preview · Cristais de Fidelidade</h2>
@@ -365,9 +365,9 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-6 sm:p-8 shadow-glow text-center">
-        <p className="text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>
-        <p className="text-5xl sm:text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
+      <Card className="p-4 sm:p-8 shadow-glow text-center">
+        <p className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>
+        <p className="text-4xl sm:text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
           {slots}
         </p>
         <Button onClick={() => setOpen(true)} className="gradient-primary text-primary-foreground shadow-glow mt-2">
