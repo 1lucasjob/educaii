@@ -532,6 +532,7 @@ export default function Admin() {
             const isAdminRow = adminIds.has(s.id);
             const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
             const highlightsActiveNow = s.highlights_unlocked_until && new Date(s.highlights_unlocked_until) > new Date();
+            const modelQuizActiveNow = s.model_quiz_unlocked_until && new Date(s.model_quiz_unlocked_until) > new Date();
             return (
               <div key={s.id} className="rounded-md border border-border p-3 space-y-2">
                 <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -607,6 +608,18 @@ export default function Admin() {
                     )}
                   </div>
                   <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Simulados dos Modelos</span>
+                    {modelQuizActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
+                        <PlayCircle className="w-3 h-3" /> Liberado até {new Date(s.model_quiz_unlocked_until!).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockModelQuiz(s.id, s.email)}>
+                        <PlayCircle className="w-3 h-3 mr-1" /> Liberar Modelos (30d)
+                      </Button>
+                    )}
+                  </div>
+                  <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Renovar</span>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-8 text-xs w-full">
@@ -640,6 +653,7 @@ export default function Admin() {
               <TableHead>Estudo</TableHead>
               <TableHead>Expert 24h</TableHead>
               <TableHead>Trechos (30d)</TableHead>
+              <TableHead>Modelos (30d)</TableHead>
               <TableHead>Renovar</TableHead>
             </TableRow>
           </TableHeader>
@@ -649,6 +663,7 @@ export default function Admin() {
               const isAdminRow = adminIds.has(s.id);
               const expertActiveNow = s.expert_unlocked_until && new Date(s.expert_unlocked_until) > new Date();
               const highlightsActiveNow = s.highlights_unlocked_until && new Date(s.highlights_unlocked_until) > new Date();
+              const modelQuizActiveNow = s.model_quiz_unlocked_until && new Date(s.model_quiz_unlocked_until) > new Date();
               return (
                 <TableRow key={s.id}>
                   <TableCell className="text-xs truncate max-w-[180px]">{s.email}</TableCell>
@@ -737,6 +752,17 @@ export default function Admin() {
                     )}
                   </TableCell>
                   <TableCell>
+                    {modelQuizActiveNow ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success" title={new Date(s.model_quiz_unlocked_until!).toLocaleString("pt-BR")}>
+                        <PlayCircle className="w-3 h-3" /> Até {new Date(s.model_quiz_unlocked_until!).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => unlockModelQuiz(s.id, s.email)}>
+                        <PlayCircle className="w-3 h-3 mr-1" /> Liberar 30d
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-8 w-[130px] text-xs">
                         <RefreshCw className="w-3 h-3 mr-1" />
@@ -753,7 +779,7 @@ export default function Admin() {
               );
             })}
             {students.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Nenhum aluno cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
