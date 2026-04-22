@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BookOpen, GraduationCap, Lightbulb, Sparkles, Eraser } from "lucide-react";
+import { ArrowLeft, BookOpen, GraduationCap, Lightbulb, Sparkles, Eraser, Lock, PlayCircle } from "lucide-react";
 import { FRAMEWORKS, type Framework } from "@/lib/studyFrameworks";
 import FrameworkPicker from "@/components/FrameworkPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { modelQuizAdvancedActive, modelQuizEasyActive } from "@/lib/freeTrial";
 
 export default function Modelos() {
   const [selected, setSelected] = useState<Framework | null>(null);
@@ -30,7 +32,7 @@ export default function Modelos() {
         <>
           <Card className="p-5 bg-primary/5 border-primary/30">
             <p className="text-sm text-foreground">
-              Cada modelo abaixo tem um <strong>resumo explicativo</strong>, um <strong>exemplo prático</strong> e um <strong>modo de treino</strong> com feedback da IA. Ao final, você pode aplicar o modelo direto no <strong>Estudar</strong>.
+              Cada modelo abaixo tem um <strong>resumo explicativo</strong>, um <strong>exemplo prático</strong> e um <strong>modo de treino</strong> com feedback da IA. Ao final, você pode gerar um <strong>simulado específico</strong> do modelo escolhido.
             </p>
           </Card>
           <FrameworkPicker onPick={(fw) => setSelected(fw)} />
@@ -79,7 +81,7 @@ function FrameworkDetail({ framework, onBack }: { framework: Framework; onBack: 
             <GraduationCap className="w-4 h-4" /> Treinar
           </TabsTrigger>
           <TabsTrigger value="use" className="gap-1.5">
-            <Sparkles className="w-4 h-4" /> Usar no Estudar
+            <Sparkles className="w-4 h-4" /> Gerar Simulado
           </TabsTrigger>
         </TabsList>
 
@@ -105,7 +107,7 @@ function FrameworkDetail({ framework, onBack }: { framework: Framework; onBack: 
         </TabsContent>
 
         <TabsContent value="use" className="mt-4">
-          <UseInEstudar framework={framework} />
+          <GenerateFrameworkQuiz framework={framework} />
         </TabsContent>
       </Tabs>
     </div>
