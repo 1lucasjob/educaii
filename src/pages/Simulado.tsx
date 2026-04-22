@@ -422,9 +422,41 @@ export default function Simulado() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-20">
-        <div className="inline-block w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4" />
-        <p className="text-muted-foreground">Gerando simulado {difficulty === "expert" ? "expert" : difficulty === "hard" ? "difícil" : "fácil"}…</p>
+      <div className="max-w-2xl mx-auto py-16 px-3">
+        <Card className="p-6 sm:p-8 text-center space-y-4 border-primary/30 bg-primary/5">
+          <div className="mx-auto w-14 h-14 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          <div className="space-y-1">
+            <h1 className="text-lg sm:text-xl font-bold">Gerando Simulado</h1>
+            <p className="text-sm text-muted-foreground">
+              A IA está preparando no mínimo 10 questões no modo {difficulty === "expert" ? "expert" : difficulty === "hard" ? "difícil" : "fácil"}.
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground">Isso pode levar alguns instantes. Não feche esta tela.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (generationError) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-3">
+        <Card className="p-6 sm:p-8 space-y-5 border-destructive/40 bg-destructive/5">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h1 className="text-lg sm:text-xl font-bold">Falha ao gerar o simulado</h1>
+              <p className="text-sm text-muted-foreground">{generationError}</p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button onClick={generateQuiz} className="gradient-primary text-primary-foreground shadow-glow">
+              <RotateCcw className="mr-2 w-4 h-4" /> Tentar novamente
+            </Button>
+            <Button variant="outline" onClick={() => navigate(isFrameworkQuiz ? "/app/modelos" : "/app/estudar")}>
+              <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
