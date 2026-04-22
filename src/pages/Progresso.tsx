@@ -46,6 +46,8 @@ export default function Progresso() {
   const { user, isAdmin, profile } = useAuth();
   const { enabled: demoEnabled, fakeAttempts, viewAsRow } = useDemoMode();
   const [realAttempts, setRealAttempts] = useState<Attempt[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   useEffect(() => {
     if (!user) return;
@@ -141,9 +143,9 @@ export default function Progresso() {
   const reversed = [...attempts].reverse();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-        <BarChart3 className="text-primary shrink-0" />
+    <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+      <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2">
+        <BarChart3 className="text-primary shrink-0 w-6 h-6 sm:w-8 sm:h-8" />
         <span className="truncate">{viewAsRow ? `Progresso de ${viewAsRow.display_name}` : "Meu Progresso"}</span>
       </h1>
       {demoEnabled && (
