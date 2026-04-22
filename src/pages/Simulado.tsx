@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap, Sparkles, Copy } from "lucide-react";
+import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap, Sparkles, Copy, AlertCircle } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
 import { computeFreeTrial, computePlanWindows, expertActive, modelQuizAdvancedActive, modelQuizEasyActive, performanceAnalysisActive } from "@/lib/freeTrial";
@@ -84,6 +84,7 @@ export default function Simulado() {
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
   const [upgradeOpen, setUpgradeOpen] = useState(blocked);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisText, setAnalysisText] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -135,6 +136,42 @@ export default function Simulado() {
     }
   };
 
+  const generateQuiz = async () => {
+    setLoading(true);
+    setGenerationError(null);
+    setQuestions([]);
+    setAnswers([]);
+    setCurrent(0);
+    setFinished(false);
+    setScore(0);
+    setTimeLeft(TIME_LIMIT);
+    setTimeSpent(0);
+
+    let sourceText: string | undefined;
+    try {
+      sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
+    } catch {}
+
+    const { data, error } = await supabase.functions.invoke("generate-quiz", {
+      body: { topic, difficulty, sourceText, framework: isFrameworkQuiz ? framework : undefined },
+    });
+    const msg = data?.error ?? error?.message;
+    if (error || data?.error || !Array.isArray(data?.questions) || data.questions.length < 10) {
+      const fallback = !Array.isArray(data?.questions) || data?.questions?.length < 10
+        ? "A IA não conseguiu gerar o mínimo de 10 questões. Tente novamente."
+        : "Não foi possível gerar o simulado. Tente novamente.";
+      const description = msg ?? fallback;
+      setGenerationError(description);
+      toast({ title: "Erro ao gerar simulado", description, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    setQuestions(data.questions);
+    setAnswers(new Array(data.questions.length).fill(-1));
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (blocked) {
       setUpgradeOpen(true);
@@ -174,21 +211,7 @@ export default function Simulado() {
         const remote = await loadQuizRemote(profile.id);
         if (tryResumeFrom(remote)) return;
       }
-      let sourceText: string | undefined;
-      try {
-        sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
-      } catch {}
-      const { data, error } = await supabase.functions.invoke("generate-quiz", {
-        body: { topic, difficulty, sourceText, framework: isFrameworkQuiz ? framework : undefined },
-      });
-      if (error || data?.error) {
-        toast({ title: "Erro ao gerar simulado", description: data?.error ?? error?.message, variant: "destructive" });
-        navigate("/app/estudar");
-        return;
-      }
-      setQuestions(data.questions);
-      setAnswers(new Array(data.questions.length).fill(-1));
-      setLoading(false);
+      await generateQuiz();
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -399,9 +422,41 @@ export default function Simulado() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-20">
-        <div className="inline-block w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4" />
-        <p className="text-muted-foreground">Gerando simulado {difficulty === "expert" ? "expert" : difficulty === "hard" ? "difícil" : "fácil"}…</p>
+      <div className="max-w-2xl mx-auto py-16 px-3">
+        <Card className="p-6 sm:p-8 text-center space-y-4 border-primary/30 bg-primary/5">
+          <div className="mx-auto w-14 h-14 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          <div className="space-y-1">
+            <h1 className="text-lg sm:text-xl font-bold">Gerando Simulado</h1>
+            <p className="text-sm text-muted-foreground">
+              A IA está preparando no mínimo 10 questões no modo {difficulty === "expert" ? "expert" : difficulty === "hard" ? "difícil" : "fácil"}.
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground">Isso pode levar alguns instantes. Não feche esta tela.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (generationError) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-3">
+        <Card className="p-6 sm:p-8 space-y-5 border-destructive/40 bg-destructive/5">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h1 className="text-lg sm:text-xl font-bold">Falha ao gerar o simulado</h1>
+              <p className="text-sm text-muted-foreground">{generationError}</p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button onClick={generateQuiz} className="gradient-primary text-primary-foreground shadow-glow">
+              <RotateCcw className="mr-2 w-4 h-4" /> Tentar novamente
+            </Button>
+            <Button variant="outline" onClick={() => navigate(isFrameworkQuiz ? "/app/modelos" : "/app/estudar")}>
+              <ArrowLeft className="mr-2 w-4 h-4" /> Voltar
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
