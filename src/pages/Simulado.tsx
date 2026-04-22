@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap, Sparkles, Copy } from "lucide-react";
+import { Trophy, Unlock, RotateCcw, ArrowLeft, CheckCircle2, XCircle, Clock, Lock, Award, Zap, Sparkles, Copy, AlertCircle } from "lucide-react";
 import { computeAchievements } from "@/lib/achievements";
 import { fireConfetti, fireEpicConfetti, playAchievementSound, playSecretAchievementSound } from "@/lib/celebrate";
 import { computeFreeTrial, computePlanWindows, expertActive, modelQuizAdvancedActive, modelQuizEasyActive, performanceAnalysisActive } from "@/lib/freeTrial";
@@ -84,6 +84,7 @@ export default function Simulado() {
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
   const [upgradeOpen, setUpgradeOpen] = useState(blocked);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisText, setAnalysisText] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -135,6 +136,42 @@ export default function Simulado() {
     }
   };
 
+  const generateQuiz = async () => {
+    setLoading(true);
+    setGenerationError(null);
+    setQuestions([]);
+    setAnswers([]);
+    setCurrent(0);
+    setFinished(false);
+    setScore(0);
+    setTimeLeft(TIME_LIMIT);
+    setTimeSpent(0);
+
+    let sourceText: string | undefined;
+    try {
+      sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
+    } catch {}
+
+    const { data, error } = await supabase.functions.invoke("generate-quiz", {
+      body: { topic, difficulty, sourceText, framework: isFrameworkQuiz ? framework : undefined },
+    });
+    const msg = data?.error ?? error?.message;
+    if (error || data?.error || !Array.isArray(data?.questions) || data.questions.length < 10) {
+      const fallback = !Array.isArray(data?.questions) || data?.questions?.length < 10
+        ? "A IA não conseguiu gerar o mínimo de 10 questões. Tente novamente."
+        : "Não foi possível gerar o simulado. Tente novamente.";
+      const description = msg ?? fallback;
+      setGenerationError(description);
+      toast({ title: "Erro ao gerar simulado", description, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
+    setQuestions(data.questions);
+    setAnswers(new Array(data.questions.length).fill(-1));
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (blocked) {
       setUpgradeOpen(true);
@@ -174,21 +211,7 @@ export default function Simulado() {
         const remote = await loadQuizRemote(profile.id);
         if (tryResumeFrom(remote)) return;
       }
-      let sourceText: string | undefined;
-      try {
-        sourceText = localStorage.getItem(`study_body:${topic}`) ?? undefined;
-      } catch {}
-      const { data, error } = await supabase.functions.invoke("generate-quiz", {
-        body: { topic, difficulty, sourceText, framework: isFrameworkQuiz ? framework : undefined },
-      });
-      if (error || data?.error) {
-        toast({ title: "Erro ao gerar simulado", description: data?.error ?? error?.message, variant: "destructive" });
-        navigate("/app/estudar");
-        return;
-      }
-      setQuestions(data.questions);
-      setAnswers(new Array(data.questions.length).fill(-1));
-      setLoading(false);
+      await generateQuiz();
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
