@@ -141,13 +141,27 @@ export default function Ouvir() {
         <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-glow shrink-0">
           <Headphones className="w-6 h-6 text-primary-foreground" />
         </div>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Ouvir</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Ouvir</h1>
+            <Badge className="bg-primary/15 text-primary hover:bg-primary/20 border-primary/30">BETA</Badge>
+          </div>
           <p className="text-muted-foreground mt-1">
             Aqui você não precisa ler — apenas ouvir. Coloque seu texto, feche os olhos e preste atenção.
           </p>
         </div>
       </div>
+
+      <Card className="border-primary/30 bg-primary/5">
+        <CardContent className="pt-6 text-sm space-y-2">
+          <p className="font-semibold text-foreground">⚙️ Recurso em atualização</p>
+          <p className="text-muted-foreground">
+            Estamos usando o leitor nativo do seu navegador, que ainda tem qualidade inferior à de vozes
+            profissionais. A ideia é evoluir em breve para uma voz mais natural e fluida — esta versão é
+            apenas o começo. Obrigado pela paciência! 💙
+          </p>
+        </CardContent>
+      </Card>
 
       {!supported && (
         <Card className="border-destructive/40">
