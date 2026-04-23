@@ -8,7 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, Play, Pause, Square, RotateCcw, Volume2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { requestTextToSpeechAudio } from "@/lib/textToSpeech";
 
 type Gender = "female" | "male";
 type Lang = "pt" | "en" | "auto";
@@ -84,23 +84,7 @@ export default function Ouvir() {
     setLoading(true);
     setLastError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("text-to-speech", {
-        body: { text, voice: selectedVoice },
-      });
-      if (error) throw new Error(error.message || "Falha ao gerar áudio");
-
-      // data should be a Blob (audio/mpeg)
-      let blob: Blob;
-      if (data instanceof Blob) {
-        blob = data;
-      } else if (data instanceof ArrayBuffer) {
-        blob = new Blob([data], { type: "audio/mpeg" });
-      } else {
-        // Fallback: maybe JSON error
-        throw new Error("Resposta inesperada do servidor");
-      }
-
-      if (blob.size === 0) throw new Error("Áudio vazio recebido");
+      const blob = await requestTextToSpeechAudio({ text, voice: selectedVoice });
 
       // Cleanup previous URL
       if (audioUrl) URL.revokeObjectURL(audioUrl);
