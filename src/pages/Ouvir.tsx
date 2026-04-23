@@ -183,10 +183,10 @@ export default function Ouvir() {
 
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="pt-6 text-sm space-y-2">
-          <p className="font-semibold text-foreground">🔊 Vozes neurais (Edge-TTS)</p>
+          <p className="font-semibold text-foreground">🔊 Áudio em servidor (BETA)</p>
           <p className="text-muted-foreground">
-            Agora usando vozes neurais da Microsoft — qualidade muito superior à leitura nativa do navegador.
-            Ainda em BETA: pode haver pequenas pausas enquanto o áudio é gerado.
+            O áudio agora é gerado no servidor e tocado como MP3 — qualidade superior à leitura nativa do navegador.
+            Em breve trocaremos por vozes neurais ainda melhores. Textos longos podem demorar alguns segundos.
           </p>
         </CardContent>
       </Card>
