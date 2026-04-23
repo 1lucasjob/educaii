@@ -3,14 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, Play, Pause, Square, RotateCcw, Volume2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { requestTextToSpeechAudio } from "@/lib/textToSpeech";
 
-type Gender = "female" | "male";
 type Lang = "pt" | "en" | "auto";
 
 const PT_HINTS = /[áàâãéêíóôõúç]|\b(de|que|não|você|para|com|uma|por|isso|mas|este|esta|aqui|então|também|porque|sobre|muito|quando|como)\b/i;
@@ -21,22 +19,17 @@ function detectLanguage(text: string): "pt-BR" | "en-US" {
 }
 
 const VOICE_MAP: Record<string, string> = {
-  "pt-BR|female": "pt-BR-FranciscaNeural",
-  "pt-BR|male": "pt-BR-AntonioNeural",
-  "en-US|female": "en-US-JennyNeural",
-  "en-US|male": "en-US-GuyNeural",
+  "pt-BR": "pt-BR-FranciscaNeural",
+  "en-US": "en-US-JennyNeural",
 };
 
 const VOICE_LABELS: Record<string, string> = {
-  "pt-BR-FranciscaNeural": "Francisca (PT-BR)",
-  "pt-BR-AntonioNeural": "Antônio (PT-BR)",
-  "en-US-JennyNeural": "Jenny (EN-US)",
-  "en-US-GuyNeural": "Guy (EN-US)",
+  "pt-BR-FranciscaNeural": "Voz padrão (PT-BR)",
+  "en-US-JennyNeural": "Voz padrão (EN-US)",
 };
 
 export default function Ouvir() {
   const [text, setText] = useState("");
-  const [gender, setGender] = useState<Gender>("female");
   const [lang, setLang] = useState<Lang>("auto");
   const [rate, setRate] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -52,7 +45,7 @@ export default function Ouvir() {
     return text.trim() ? detectLanguage(text) : "pt-BR";
   }, [text, lang]);
 
-  const selectedVoice = VOICE_MAP[`${detectedLang}|${gender}`];
+  const selectedVoice = VOICE_MAP[detectedLang];
 
   useEffect(() => {
     return () => {
