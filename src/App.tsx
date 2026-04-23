@@ -22,6 +22,7 @@ import Configuracoes from "./pages/Configuracoes";
 import ChatProfessor from "./pages/ChatProfessor";
 import Planos from "./pages/Planos";
 import Suporte from "./pages/Suporte";
+import Ouvir from "./pages/Ouvir";
 import Termos from "./pages/Termos";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="chat" element={<ChatProfessor />} />
               <Route path="planos" element={<Planos />} />
               <Route path="suporte" element={<Suporte />} />
+              <Route path="ouvir" element={<Ouvir />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
