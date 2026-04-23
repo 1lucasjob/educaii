@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Headphones, Play, Pause, Square, RotateCcw, Volume2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { requestTextToSpeechAudio } from "@/lib/textToSpeech";
 
-type Gender = "female" | "male";
 type Lang = "pt" | "en" | "auto";
 
 const PT_HINTS = /[áàâãéêíóôõúç]|\b(de|que|não|você|para|com|uma|por|isso|mas|este|esta|aqui|então|também|porque|sobre|muito|quando|como)\b/i;
@@ -21,22 +20,17 @@ function detectLanguage(text: string): "pt-BR" | "en-US" {
 }
 
 const VOICE_MAP: Record<string, string> = {
-  "pt-BR|female": "pt-BR-FranciscaNeural",
-  "pt-BR|male": "pt-BR-AntonioNeural",
-  "en-US|female": "en-US-JennyNeural",
-  "en-US|male": "en-US-GuyNeural",
+  "pt-BR": "pt-BR-FranciscaNeural",
+  "en-US": "en-US-JennyNeural",
 };
 
 const VOICE_LABELS: Record<string, string> = {
-  "pt-BR-FranciscaNeural": "Francisca (PT-BR)",
-  "pt-BR-AntonioNeural": "Antônio (PT-BR)",
-  "en-US-JennyNeural": "Jenny (EN-US)",
-  "en-US-GuyNeural": "Guy (EN-US)",
+  "pt-BR-FranciscaNeural": "Voz padrão (PT-BR)",
+  "en-US-JennyNeural": "Voz padrão (EN-US)",
 };
 
 export default function Ouvir() {
   const [text, setText] = useState("");
-  const [gender, setGender] = useState<Gender>("female");
   const [lang, setLang] = useState<Lang>("auto");
   const [rate, setRate] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -52,7 +46,7 @@ export default function Ouvir() {
     return text.trim() ? detectLanguage(text) : "pt-BR";
   }, [text, lang]);
 
-  const selectedVoice = VOICE_MAP[`${detectedLang}|${gender}`];
+  const selectedVoice = VOICE_MAP[detectedLang];
 
   useEffect(() => {
     return () => {
@@ -210,32 +204,21 @@ export default function Ouvir() {
           <CardTitle className="text-lg">Voz e ajustes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Voz</Label>
-              <Select value={gender} onValueChange={(v) => setGender(v as Gender)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="female">Feminina</SelectItem>
-                  <SelectItem value="male">Masculina</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Idioma</Label>
-              <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="auto">Automático</SelectItem>
-                  <SelectItem value="pt">Português (PT-BR)</SelectItem>
-                  <SelectItem value="en">Inglês (EN-US)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>Idioma</Label>
+            <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Automático</SelectItem>
+                <SelectItem value="pt">Português (PT-BR)</SelectItem>
+                <SelectItem value="en">Inglês (EN-US)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Por enquanto o provedor BETA oferece apenas uma voz por idioma. Em breve adicionaremos vozes neurais masculinas e femininas.
+            </p>
           </div>
 
           <div className="space-y-2">
