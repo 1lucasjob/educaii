@@ -19,154 +19,117 @@ const BodySchema = z.object({
   voice: z.enum(VOICES),
 });
 
-const TRUSTED_TOKEN = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
-const EDGE_TTS_URL = `wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=${TRUSTED_TOKEN}`;
+const VOICE_LANG: Record<string, string> = {
+  "pt-BR-FranciscaNeural": "pt-BR",
+  "pt-BR-AntonioNeural": "pt-BR",
+  "en-US-JennyNeural": "en-US",
+  "en-US-GuyNeural": "en-US",
+};
 
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+const MAX_CHUNK = 190; // Google Translate TTS limit (~200 chars)
+
+/**
+ * Splits text into chunks <= MAX_CHUNK chars, preferring sentence/word boundaries.
+ */
+function chunkText(text: string): string[] {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= MAX_CHUNK) return [cleaned];
+
+  const chunks: string[] = [];
+  // Split by sentences first
+  const sentences = cleaned.match(/[^.!?]+[.!?]+|\S[^.!?]*$/g) ?? [cleaned];
+
+  let buffer = "";
+  for (const sRaw of sentences) {
+    const s = sRaw.trim();
+    if (!s) continue;
+
+    if (s.length > MAX_CHUNK) {
+      // Flush buffer first
+      if (buffer) {
+        chunks.push(buffer.trim());
+        buffer = "";
+      }
+      // Split long sentence by words
+      const words = s.split(" ");
+      let line = "";
+      for (const w of words) {
+        if ((line + " " + w).trim().length > MAX_CHUNK) {
+          if (line) chunks.push(line.trim());
+          // If a single word is huge, hard-split it
+          if (w.length > MAX_CHUNK) {
+            for (let i = 0; i < w.length; i += MAX_CHUNK) {
+              chunks.push(w.slice(i, i + MAX_CHUNK));
+            }
+            line = "";
+          } else {
+            line = w;
+          }
+        } else {
+          line = line ? line + " " + w : w;
+        }
+      }
+      if (line) chunks.push(line.trim());
+    } else if ((buffer + " " + s).trim().length > MAX_CHUNK) {
+      if (buffer) chunks.push(buffer.trim());
+      buffer = s;
+    } else {
+      buffer = buffer ? buffer + " " + s : s;
+    }
+  }
+  if (buffer) chunks.push(buffer.trim());
+  return chunks;
 }
 
-function buildSsml(voice: string, text: string): string {
-  const lang = voice.startsWith("pt") ? "pt-BR" : "en-US";
-  return (
-    `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'>` +
-    `<voice name='${voice}'>` +
-    `<prosody pitch='+0Hz' rate='+0%' volume='+0%'>${escapeXml(text)}</prosody>` +
-    `</voice></speak>`
-  );
-}
+async function fetchChunkMp3(text: string, lang: string): Promise<Uint8Array> {
+  const url =
+    `https://translate.google.com/translate_tts?ie=UTF-8` +
+    `&q=${encodeURIComponent(text)}` +
+    `&tl=${encodeURIComponent(lang)}` +
+    `&client=tw-ob&ttsspeed=1`;
 
-function uuid(): string {
-  return crypto.randomUUID().replace(/-/g, "");
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Referer": "https://translate.google.com/",
+      "Accept": "audio/mpeg, */*",
+      "Accept-Language": lang,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Falha no provedor TTS (HTTP ${res.status})`);
+  }
+  const buf = new Uint8Array(await res.arrayBuffer());
+  if (buf.length === 0) {
+    throw new Error("Provedor TTS retornou áudio vazio");
+  }
+  return buf;
 }
 
 async function synthesize(text: string, voice: string): Promise<Uint8Array> {
-  return await new Promise((resolve, reject) => {
-    const ws = new WebSocket(EDGE_TTS_URL);
-    ws.binaryType = "arraybuffer";
+  const lang = VOICE_LANG[voice] ?? "pt-BR";
+  const chunks = chunkText(text);
 
-    const chunks: Uint8Array[] = [];
-    let finished = false;
+  const audioParts: Uint8Array[] = [];
+  for (const chunk of chunks) {
+    // Small delay between requests to avoid rate-limit
+    if (audioParts.length > 0) {
+      await new Promise((r) => setTimeout(r, 120));
+    }
+    const mp3 = await fetchChunkMp3(chunk, lang);
+    audioParts.push(mp3);
+  }
 
-    const timeout = setTimeout(() => {
-      if (!finished) {
-        finished = true;
-        try {
-          ws.close();
-        } catch (_) { /* noop */ }
-        reject(new Error("Timeout: Edge-TTS demorou demais para responder"));
-      }
-    }, 30000);
-
-    const cleanup = () => {
-      clearTimeout(timeout);
-      try {
-        ws.close();
-      } catch (_) { /* noop */ }
-    };
-
-    ws.onopen = () => {
-      const reqId = uuid();
-      const ts = new Date().toString();
-
-      // 1. speech.config
-      const configMsg =
-        `X-Timestamp:${ts}\r\n` +
-        `Content-Type:application/json; charset=utf-8\r\n` +
-        `Path:speech.config\r\n\r\n` +
-        JSON.stringify({
-          context: {
-            synthesis: {
-              audio: {
-                metadataoptions: {
-                  sentenceBoundaryEnabled: "false",
-                  wordBoundaryEnabled: "false",
-                },
-                outputFormat: "audio-24khz-48kbitrate-mono-mp3",
-              },
-            },
-          },
-        });
-      ws.send(configMsg);
-
-      // 2. SSML
-      const ssml = buildSsml(voice, text);
-      const ssmlMsg =
-        `X-RequestId:${reqId}\r\n` +
-        `Content-Type:application/ssml+xml\r\n` +
-        `X-Timestamp:${ts}\r\n` +
-        `Path:ssml\r\n\r\n` +
-        ssml;
-      ws.send(ssmlMsg);
-    };
-
-    ws.onmessage = (ev) => {
-      if (typeof ev.data === "string") {
-        // Text frames: turn.start, response, turn.end
-        if (ev.data.includes("Path:turn.end")) {
-          if (!finished) {
-            finished = true;
-            cleanup();
-            // Concatenate
-            const total = chunks.reduce((acc, c) => acc + c.length, 0);
-            const out = new Uint8Array(total);
-            let off = 0;
-            for (const c of chunks) {
-              out.set(c, off);
-              off += c.length;
-            }
-            if (out.length === 0) {
-              reject(new Error("Edge-TTS retornou áudio vazio"));
-            } else {
-              resolve(out);
-            }
-          }
-        }
-      } else {
-        // Binary: 2-byte big-endian header length, then header text, then audio bytes
-        const buf = new Uint8Array(ev.data as ArrayBuffer);
-        if (buf.length < 2) return;
-        const headerLen = (buf[0] << 8) | buf[1];
-        if (buf.length < 2 + headerLen) return;
-        const headerText = new TextDecoder().decode(buf.slice(2, 2 + headerLen));
-        if (headerText.includes("Path:audio")) {
-          chunks.push(buf.slice(2 + headerLen));
-        }
-      }
-    };
-
-    ws.onerror = (ev) => {
-      if (!finished) {
-        finished = true;
-        cleanup();
-        reject(new Error(`Erro WebSocket Edge-TTS: ${(ev as ErrorEvent).message ?? "desconhecido"}`));
-      }
-    };
-
-    ws.onclose = () => {
-      if (!finished) {
-        finished = true;
-        cleanup();
-        if (chunks.length > 0) {
-          const total = chunks.reduce((acc, c) => acc + c.length, 0);
-          const out = new Uint8Array(total);
-          let off = 0;
-          for (const c of chunks) {
-            out.set(c, off);
-            off += c.length;
-          }
-          resolve(out);
-        } else {
-          reject(new Error("Conexão fechada sem áudio"));
-        }
-      }
-    };
-  });
+  const total = audioParts.reduce((acc, c) => acc + c.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const c of audioParts) {
+    out.set(c, off);
+    off += c.length;
+  }
+  return out;
 }
 
 Deno.serve(async (req) => {
