@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Headphones, Play, Pause, Square, RotateCcw, Volume2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { requestTextToSpeechAudio } from "@/lib/textToSpeech";
@@ -203,32 +204,21 @@ export default function Ouvir() {
           <CardTitle className="text-lg">Voz e ajustes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Voz</Label>
-              <Select value={gender} onValueChange={(v) => setGender(v as Gender)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="female">Feminina</SelectItem>
-                  <SelectItem value="male">Masculina</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Idioma</Label>
-              <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="auto">Automático</SelectItem>
-                  <SelectItem value="pt">Português (PT-BR)</SelectItem>
-                  <SelectItem value="en">Inglês (EN-US)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>Idioma</Label>
+            <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Automático</SelectItem>
+                <SelectItem value="pt">Português (PT-BR)</SelectItem>
+                <SelectItem value="en">Inglês (EN-US)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Por enquanto o provedor BETA oferece apenas uma voz por idioma. Em breve adicionaremos vozes neurais masculinas e femininas.
+            </p>
           </div>
 
           <div className="space-y-2">
