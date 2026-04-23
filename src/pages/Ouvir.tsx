@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Headphones, Play, Pause, Square, RotateCcw, Volume2 } from "lucide-react";
+import { Headphones, Play, Pause, Square, RotateCcw, Volume2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type Gender = "female" | "male";
 type Lang = "pt" | "en" | "auto";
@@ -16,49 +17,34 @@ const PT_HINTS = /[áàâãéêíóôõúç]|\b(de|que|não|você|para|com|uma|p
 
 function detectLanguage(text: string): "pt-BR" | "en-US" {
   const sample = text.slice(0, 600);
-  const ptMatches = sample.match(PT_HINTS);
-  return ptMatches ? "pt-BR" : "en-US";
+  return PT_HINTS.test(sample) ? "pt-BR" : "en-US";
 }
 
-function pickVoice(voices: SpeechSynthesisVoice[], lang: string, gender: Gender): SpeechSynthesisVoice | null {
-  if (!voices.length) return null;
-  const langPrefix = lang.slice(0, 2).toLowerCase();
-  const sameLang = voices.filter((v) => v.lang.toLowerCase().startsWith(langPrefix));
-  const pool = sameLang.length ? sameLang : voices;
+const VOICE_MAP: Record<string, string> = {
+  "pt-BR|female": "pt-BR-FranciscaNeural",
+  "pt-BR|male": "pt-BR-AntonioNeural",
+  "en-US|female": "en-US-JennyNeural",
+  "en-US|male": "en-US-GuyNeural",
+};
 
-  const femaleHints = /female|fem|woman|mulher|maria|luciana|joana|helena|francisca|samantha|victoria|zira|google.*(feminin|female)/i;
-  const maleHints = /male|man|homem|ricardo|daniel|felipe|diego|paulo|google.*(mascul|male)/i;
-  const hint = gender === "female" ? femaleHints : maleHints;
-
-  const matched = pool.find((v) => hint.test(v.name));
-  if (matched) return matched;
-
-  // Heuristic fallback: most systems list female voice first
-  if (gender === "female") return pool[0];
-  return pool[pool.length - 1] || pool[0];
-}
+const VOICE_LABELS: Record<string, string> = {
+  "pt-BR-FranciscaNeural": "Francisca (PT-BR)",
+  "pt-BR-AntonioNeural": "Antônio (PT-BR)",
+  "en-US-JennyNeural": "Jenny (EN-US)",
+  "en-US-GuyNeural": "Guy (EN-US)",
+};
 
 export default function Ouvir() {
-  const supported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [text, setText] = useState("");
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [gender, setGender] = useState<Gender>("female");
   const [lang, setLang] = useState<Lang>("auto");
   const [rate, setRate] = useState(1);
-  const [pitch, setPitch] = useState(1);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
-  useEffect(() => {
-    if (!supported) return;
-    const load = () => setVoices(window.speechSynthesis.getVoices());
-    load();
-    window.speechSynthesis.onvoiceschanged = load;
-    return () => {
-      window.speechSynthesis.cancel();
-    };
-  }, [supported]);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const detectedLang = useMemo(() => {
     if (lang === "pt") return "pt-BR";
@@ -66,70 +52,113 @@ export default function Ouvir() {
     return text.trim() ? detectLanguage(text) : "pt-BR";
   }, [text, lang]);
 
-  const selectedVoice = useMemo(() => pickVoice(voices, detectedLang, gender), [voices, detectedLang, gender]);
+  const selectedVoice = VOICE_MAP[`${detectedLang}|${gender}`];
 
-  const handlePlay = () => {
-    if (!supported) {
-      toast.error("Seu navegador não suporta leitura de voz.");
-      return;
-    }
+  useEffect(() => {
+    return () => {
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      const a = audioRef.current;
+      if (a) {
+        a.pause();
+        a.src = "";
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Apply rate live
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.playbackRate = rate;
+  }, [rate]);
+
+  const generateAndPlay = async () => {
     if (!text.trim()) {
       toast.warning("Cole ou digite um texto para ouvir.");
       return;
     }
-
-    if (isPaused && utteranceRef.current) {
-      window.speechSynthesis.resume();
-      setIsPaused(false);
+    if (text.length > 5000) {
+      toast.error("Texto muito longo. Limite de 5000 caracteres por vez.");
       return;
     }
 
-    window.speechSynthesis.cancel();
+    setLoading(true);
+    setLastError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("text-to-speech", {
+        body: { text, voice: selectedVoice },
+      });
+      if (error) throw new Error(error.message || "Falha ao gerar áudio");
 
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = detectedLang;
-    utter.rate = rate;
-    utter.pitch = pitch;
-    if (selectedVoice) utter.voice = selectedVoice;
-
-    utter.onstart = () => {
-      setIsSpeaking(true);
-      setIsPaused(false);
-    };
-    utter.onend = () => {
-      setIsSpeaking(false);
-      setIsPaused(false);
-    };
-    utter.onerror = (e) => {
-      setIsSpeaking(false);
-      setIsPaused(false);
-      if (e.error !== "canceled" && e.error !== "interrupted") {
-        toast.error("Erro ao reproduzir o áudio.");
+      // data should be a Blob (audio/mpeg)
+      let blob: Blob;
+      if (data instanceof Blob) {
+        blob = data;
+      } else if (data instanceof ArrayBuffer) {
+        blob = new Blob([data], { type: "audio/mpeg" });
+      } else {
+        // Fallback: maybe JSON error
+        throw new Error("Resposta inesperada do servidor");
       }
-    };
 
-    utteranceRef.current = utter;
-    window.speechSynthesis.speak(utter);
+      if (blob.size === 0) throw new Error("Áudio vazio recebido");
+
+      // Cleanup previous URL
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      const url = URL.createObjectURL(blob);
+      setAudioUrl(url);
+
+      // Wait for ref then play
+      requestAnimationFrame(() => {
+        const a = audioRef.current;
+        if (a) {
+          a.src = url;
+          a.playbackRate = rate;
+          a.play().catch((e) => {
+            toast.error("Não foi possível tocar o áudio: " + e.message);
+          });
+        }
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      setLastError(msg);
+      toast.error("Erro ao gerar áudio", { description: msg });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePause = () => {
-    if (!supported) return;
-    window.speechSynthesis.pause();
-    setIsPaused(true);
+  const handlePlayPause = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (isPaused) {
+      a.play();
+    } else if (isPlaying) {
+      a.pause();
+    } else if (audioUrl) {
+      a.play();
+    } else {
+      generateAndPlay();
+    }
   };
 
   const handleStop = () => {
-    if (!supported) return;
-    window.speechSynthesis.cancel();
-    setIsSpeaking(false);
+    const a = audioRef.current;
+    if (!a) return;
+    a.pause();
+    a.currentTime = 0;
+    setIsPlaying(false);
     setIsPaused(false);
   };
 
   const handleReset = () => {
     handleStop();
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
+    }
     setText("");
     setRate(1);
-    setPitch(1);
+    setLastError(null);
   };
 
   const charCount = text.length;
@@ -154,28 +183,19 @@ export default function Ouvir() {
 
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="pt-6 text-sm space-y-2">
-          <p className="font-semibold text-foreground">⚙️ Recurso em atualização</p>
+          <p className="font-semibold text-foreground">🔊 Vozes neurais (Edge-TTS)</p>
           <p className="text-muted-foreground">
-            Estamos usando o leitor nativo do seu navegador, que ainda tem qualidade inferior à de vozes
-            profissionais. A ideia é evoluir em breve para uma voz mais natural e fluida — esta versão é
-            apenas o começo. Obrigado pela paciência! 💙
+            Agora usando vozes neurais da Microsoft — qualidade muito superior à leitura nativa do navegador.
+            Ainda em BETA: pode haver pequenas pausas enquanto o áudio é gerado.
           </p>
         </CardContent>
       </Card>
-
-      {!supported && (
-        <Card className="border-destructive/40">
-          <CardContent className="pt-6 text-sm text-destructive">
-            Seu navegador não suporta a leitura por voz. Tente o Chrome, Edge ou Safari atualizados.
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Seu texto</CardTitle>
           <CardDescription>
-            Cole ou digite o conteúdo. A leitura detecta automaticamente português ou inglês.
+            Cole ou digite o conteúdo (até 5000 caracteres). A leitura detecta automaticamente português ou inglês.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -184,20 +204,19 @@ export default function Ouvir() {
             onChange={(e) => setText(e.target.value)}
             placeholder="Cole aqui o texto que você quer ouvir..."
             className="min-h-[220px] resize-y"
+            maxLength={5000}
           />
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="secondary">{wordCount} palavras</Badge>
-            <Badge variant="secondary">{charCount} caracteres</Badge>
+            <Badge variant="secondary">{charCount}/5000 caracteres</Badge>
             <Badge variant="outline">
               Idioma: {detectedLang === "pt-BR" ? "Português" : "Inglês"}
               {lang === "auto" && " (auto)"}
             </Badge>
-            {selectedVoice && (
-              <Badge variant="outline" className="gap-1">
-                <Volume2 className="w-3 h-3" />
-                {selectedVoice.name}
-              </Badge>
-            )}
+            <Badge variant="outline" className="gap-1">
+              <Volume2 className="w-3 h-3" />
+              {VOICE_LABELS[selectedVoice]}
+            </Badge>
           </div>
         </CardContent>
       </Card>
@@ -243,27 +262,45 @@ export default function Ouvir() {
             <Slider value={[rate]} min={0.5} max={2} step={0.1} onValueChange={(v) => setRate(v[0])} />
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Tom</Label>
-              <span className="text-xs text-muted-foreground">{pitch.toFixed(1)}</span>
-            </div>
-            <Slider value={[pitch]} min={0.5} max={2} step={0.1} onValueChange={(v) => setPitch(v[0])} />
-          </div>
+          <audio
+            ref={audioRef}
+            onPlay={() => {
+              setIsPlaying(true);
+              setIsPaused(false);
+            }}
+            onPause={() => {
+              setIsPlaying(false);
+              setIsPaused(audioRef.current ? audioRef.current.currentTime > 0 && !audioRef.current.ended : false);
+            }}
+            onEnded={() => {
+              setIsPlaying(false);
+              setIsPaused(false);
+            }}
+            className="w-full"
+            controls
+          />
 
           <div className="flex flex-wrap gap-2 pt-2">
-            {!isSpeaking || isPaused ? (
-              <Button onClick={handlePlay} className="gap-2">
-                <Play className="w-4 h-4" />
-                {isPaused ? "Continuar" : "Ouvir"}
-              </Button>
-            ) : (
-              <Button onClick={handlePause} variant="secondary" className="gap-2">
-                <Pause className="w-4 h-4" />
-                Pausar
+            <Button onClick={generateAndPlay} disabled={loading} className="gap-2">
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Gerando áudio...
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  {audioUrl ? "Gerar novamente" : "Ouvir"}
+                </>
+              )}
+            </Button>
+            {audioUrl && (
+              <Button onClick={handlePlayPause} variant="secondary" className="gap-2" disabled={loading}>
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                {isPlaying ? "Pausar" : isPaused ? "Continuar" : "Tocar"}
               </Button>
             )}
-            <Button onClick={handleStop} variant="outline" className="gap-2" disabled={!isSpeaking && !isPaused}>
+            <Button onClick={handleStop} variant="outline" className="gap-2" disabled={!audioUrl}>
               <Square className="w-4 h-4" />
               Parar
             </Button>
@@ -273,9 +310,19 @@ export default function Ouvir() {
             </Button>
           </div>
 
+          {lastError && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm space-y-2">
+              <p className="text-destructive font-medium">Falha ao gerar áudio</p>
+              <p className="text-muted-foreground text-xs">{lastError}</p>
+              <Button size="sm" variant="outline" onClick={generateAndPlay} className="gap-2" disabled={loading}>
+                <RefreshCw className="w-3 h-3" />
+                Tentar novamente
+              </Button>
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground pt-2">
-            Dica: as vozes disponíveis dependem do seu navegador e sistema. No Chrome/Edge as vozes do Google
-            costumam ser as mais naturais.
+            Dica: textos longos demoram mais para gerar. Para ouvir mais rápido, divida em partes de até 1000 caracteres.
           </p>
         </CardContent>
       </Card>
