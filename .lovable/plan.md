@@ -1,58 +1,104 @@
-## 🎨 Recriação dos 13 avatares (1024×1024 PNG)
 
-Estilo unificado: ilustração 3D estilo Memoji/Notion, cabeça+ombros centralizados com folga (sem precisar de recorte), fundo gradiente temático, iluminação consistente. Gerados via `google/gemini-3-pro-image-preview` para qualidade máxima.
+## 🎯 Objetivos da entrega
 
-**8 humanos (livres para todos):**
-1. Homem negro · 2. Mulher negra · 3. Homem japonês · 4. Mulher japonesa
-5. Homem branco sem barba · 6. Homem branco com barba · 7. Mulher branca · 8. Alienígena humanoide
+1. **Bordas exclusivas:** mostrar apenas **uma opção por tipo/cor** de borda (não repetir a mesma borda em vários avatares).
+2. **Pares M/F:** garantir que todo avatar pronto tenha versão masculina e feminina equivalente.
+3. **Admin:** criar **2 novos avatares de admin** focados em tecnologia/IA, com **mais zoom no rosto** (e regerar o existente no mesmo padrão para coerência).
 
-**4 de conquista (ocultos até desbloquear, com borda dourada+glow):**
-- 🦉 Coruja → `secret_night_owl`
-- 👽 Alienígena cósmico → `ultra_omniscient`
-- 🤖 Robô → `ultra_time_mage`
-- 🏴‍☠️ Pirata → `secret_phoenix`
+---
 
-**1 admin (borda platina + coroa, só visível se `isAdmin`):**
-- 👑 Avatar de admin
+## 1) Borda exclusiva — uma por tipo/cor
 
-## 📁 Arquivos
+**Arquivo:** `src/lib/presetAvatars.ts` (função `availableBorderPresets`)
 
-**Criar (13 PNGs):**
-- Sobrescrever `src/assets/avatars/preset-1` … `preset-8` com nova qualidade
-- Novos: `achievement-coruja.png`, `achievement-alienigena-cosmico.png`, `achievement-robo.png`, `achievement-pirata.png`, `admin-coroa.png`
+Hoje a função retorna **todos** os presets que têm `borderClass`, então a seção "Borda exclusiva" em Configurações lista a mesma borda dourada várias vezes (uma por avatar de conquista M e F + cada conquista diferente também usa `ACHIEVEMENT_BORDER`). 
 
-**Criar componente:**
-- `src/components/UserAvatar.tsx` — wrapper de `<Avatar>` que detecta se a `src` é um preset especial e aplica `borderClass`/glow correspondente. Props: `avatarUrl`, `displayName`, `size` (sm/md/lg/xl), `className`.
+**Mudança:** após filtrar por elegibilidade, **deduplicar pelo valor de `borderClass`**, mantendo apenas o primeiro preset de cada classe. Resultado em Configurações:
+- 1 borda dourada (ACHIEVEMENT_BORDER) — se o usuário tiver qualquer conquista comum desbloqueada
+- 1 borda laranja Fênix (PHOENIX_BORDER) — se desbloqueou Fênix
+- 1 borda roxa do plano (PLAN_PURPLE_BORDER) — se plano ≥ 90 dias
+- 1 borda platina admin (ADMIN_BORDER) — só admin
+
+Sem alterar a lógica de **avatares de conquista** (essa seção continua mostrando todos os personagens individualmente — só a seção "Borda exclusiva" fica deduplicada).
+
+Também ajustar o texto explicativo da seção "Borda exclusiva" em `src/pages/Configuracoes.tsx` (linhas ~492-494) para refletir "uma borda por categoria conquistada".
+
+---
+
+## 2) Pares masculino/feminino dos avatares
+
+Inventário atual em `src/assets/avatars/`:
+
+| Categoria | Atual | Status |
+|---|---|---|
+| Humanos negros | preset-1 (M) + preset-2 (F) | ✅ par |
+| Humanos japoneses | preset-3 (M) + preset-4 (F) | ✅ par |
+| Brancos sem barba | preset-5 (M) + preset-7 (F mulher branca) | ✅ par |
+| **Branco com barba** | preset-6 (M) | ❌ **sem par feminino** |
+| Loiros | preset-9 (M) + preset-10 (F) | ✅ par |
+| Alienígena humanoide neutro | preset-8 | ❌ **órfão** (não bate com másculo/feminina) |
+| Alienígena estilo "másculo/feminina" | preset-11 (M) + preset-12 (F) | ✅ par |
+| Conquistas (5 tipos) | todas têm versão M e F | ✅ |
+| **Plano (alien humanoide)** | plan-alien-masculino | ❌ **sem par feminino** |
+| Admin | admin-coroa (1 só) | será expandido (item 3) |
+
+**Ações:**
+
+**a)** Gerar `preset-13-mulher-branca-cabelo-cacheado.png` (1024×1024) como par de `preset-6` (homem branco com barba). Mesmo estilo 3D Memoji/Notion, gradiente de fundo coerente, cabeça+ombros centralizados.
+
+**b)** Gerar `plan-alien-feminina.png` (1024×1024) — alienígena humanoide feminina, mesmo estilo do `plan-alien-masculino.png`, com gradiente roxo. Adicionar ao array `PRESET_AVATARS` com `category: "plan"`, `requiresPlanIn: PURPLE_PLAN_TIERS`, `borderClass: PLAN_PURPLE_BORDER`.
+
+**c)** `preset-8-alienigena.png` — manter como está (alienígena "neutro/clássico" — usuários antigos podem já tê-lo selecionado, então não removo). Apenas documentar em comentário no array que é o alienígena "neutro" e o par M/F formal é preset-11/12.
+
+**d)** Atualizar `src/lib/presetAvatars.ts`:
+- Importar `preset13` e `planAlienFem`
+- Adicionar entradas correspondentes na lista `PRESET_AVATARS`
+
+---
+
+## 3) Avatares de admin focados em tecnologia/IA (3 no total)
+
+Hoje só existe `admin-coroa.png`. Vou:
+
+**a) Regerar `admin-coroa.png`** com **mais zoom no rosto** (enquadramento "head-and-shoulders" mais apertado, ~70% da imagem é a cabeça) e tema tech/IA: figura masculina com sutis elementos cibernéticos (ex.: iluminação ciano/dourada, padrão circuito ao fundo), coroa estilizada de "imperador da IA".
+
+**b) Criar `admin-ia-neural.png`** — avatar masculino estilo "engenheiro/cientista de IA", traços neurais brilhantes ao redor do rosto, óculos high-tech, fundo com gradiente azul-elétrico/violeta.
+
+**c) Criar `admin-ia-cyber.png`** — avatar masculino "ciborgue benevolente": metade do rosto com detalhes de placa-mãe luminosa, olhos com HUD sutil, fundo gradiente preto/dourado (mantendo a identidade "platina+ouro" do admin).
+
+Todos: 1024×1024 PNG, **enquadramento com mais zoom no rosto** que os atuais presets, gerados com `google/gemini-3-pro-image-preview`. Todos masculinos (atendendo regra anterior do usuário: "todo avatar de admin é do sexo masculino"). Todos com `borderClass: ADMIN_BORDER` (a borda platina) → aparecem só para `isAdmin` e contam como **1 borda exclusiva** depois da deduplicação do item 1.
+
+Atualizar `src/lib/presetAvatars.ts`:
+```ts
+import adminCoroa from "@/assets/avatars/admin-coroa.png";
+import adminIaNeural from "@/assets/avatars/admin-ia-neural.png";
+import adminIaCyber from "@/assets/avatars/admin-ia-cyber.png";
+
+// ...
+{ id: "admin-coroa", label: "Imperador da IA", src: adminCoroa, category: "admin", requiresAdmin: true, borderClass: ADMIN_BORDER },
+{ id: "admin-ia-neural", label: "Arquiteto Neural", src: adminIaNeural, category: "admin", requiresAdmin: true, borderClass: ADMIN_BORDER },
+{ id: "admin-ia-cyber", label: "Ciborgue Mestre", src: adminIaCyber, category: "admin", requiresAdmin: true, borderClass: ADMIN_BORDER },
+```
+
+A grade "Exclusivo Admin" em `Configuracoes.tsx` (linhas 443-484) já é dinâmica e renderizará os 3 automaticamente.
+
+---
+
+## 📁 Arquivos afetados
+
+**Criar (PNGs):**
+- `src/assets/avatars/preset-13-mulher-branca-cabelo-cacheado.png`
+- `src/assets/avatars/plan-alien-feminina.png`
+- `src/assets/avatars/admin-ia-neural.png`
+- `src/assets/avatars/admin-ia-cyber.png`
+
+**Sobrescrever:**
+- `src/assets/avatars/admin-coroa.png` (mais zoom no rosto + tema tech)
 
 **Editar:**
-- `src/lib/presetAvatars.ts` — nova interface:
-  ```ts
-  interface PresetAvatar {
-    id: string;
-    label: string;
-    src: string;
-    category: "human" | "achievement" | "admin";
-    requiresAchievement?: string;
-    requiresAdmin?: boolean;
-    borderClass?: string; // tailwind ring/glow classes
-  }
-  ```
-- `src/pages/Configuracoes.tsx`:
-  - Carregar `quiz_attempts` do usuário e calcular `computeAchievements`
-  - Filtrar: humanos sempre visíveis; conquista só se `unlocked`; admin só se `isAdmin`
-  - Renderizar até 3 seções: "Avatares humanos", "Avatares de conquista" (se houver desbloqueado), "Exclusivo Admin" (se isAdmin)
-- Trocar `<Avatar>` por `<UserAvatar>` em:
-  - `src/layouts/AppLayout.tsx` (header)
-  - `src/pages/Ranking.tsx` (linhas do leaderboard)
-  - `src/pages/Admin.tsx` (lista de alunos e pendentes)
-  - `src/pages/Configuracoes.tsx` (preview principal)
+- `src/lib/presetAvatars.ts` — novos imports, novas entradas em `PRESET_AVATARS`, deduplicação por `borderClass` em `availableBorderPresets`
+- `src/pages/Configuracoes.tsx` — pequeno ajuste no texto explicativo da seção "Borda exclusiva" (linhas ~492-494)
 
-## 🔒 Visibilidade — OCULTOS até desbloquear
-Avatares de conquista não aparecem na grade até serem desbloqueados (efeito surpresa). Sem cadeado, sem hint.
-
-## 🌟 Bordas exclusivas (client-side, via `borderClass`)
-- Conquista: `ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)]`
-- Admin: `ring-4 ring-slate-300 shadow-[0_0_24px_rgba(203,213,225,0.7)]` + ícone coroa absoluta no canto
-
-## 🛠️ Sem mudanças no banco
-Continua usando `profiles.avatar_url`. Tudo é lookup client-side.
+**Sem mudanças:**
+- Banco de dados (continua usando `profiles.avatar_url` + `profiles.avatar_border`)
+- `UserAvatar`, `AppLayout`, `Ranking`, `Admin`, `Progresso` — já consomem via lookup automático
