@@ -490,7 +490,7 @@ export default function Configuracoes() {
                 Borda exclusiva
               </p>
               <p className="text-xs text-muted-foreground mb-3">
-                A borda é independente da imagem do avatar — você pode usar sua foto pessoal ou um avatar pronto e ainda assim ostentar uma borda exclusiva conquistada.
+                Uma borda por categoria conquistada. Aplica-se sobre qualquer imagem de avatar — sua foto pessoal ou um avatar pronto.
               </p>
               <div className="grid grid-cols-5 sm:grid-cols-9 gap-3">
                 {/* Opção "sem borda" */}
