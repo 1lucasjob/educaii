@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -21,6 +22,18 @@ import { cn } from "@/lib/utils";
 export default function Configuracoes() {
   const { profile, refreshProfile, isAdmin } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.slice(1);
+    // Pequeno delay para garantir que o DOM já renderizou
+    const t = setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [location.hash]);
 
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
@@ -264,7 +277,7 @@ export default function Configuracoes() {
     <div className="max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><Settings className="text-primary shrink-0" /> Configurações</h1>
 
-      <Card className="p-6">
+      <Card id="meu-perfil" className="p-6 scroll-mt-20">
         <h2 className="font-bold flex items-center gap-2 mb-4"><UserIcon className="w-4 h-4 text-primary" /> Meu Perfil</h2>
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <div className="flex flex-col items-center gap-2">

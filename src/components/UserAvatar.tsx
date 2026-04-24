@@ -13,6 +13,8 @@ interface UserAvatarProps {
   borderId?: string | null;
   size?: Size;
   className?: string;
+  /** Aplica leve zoom ao passar o mouse, para visualizar melhor o rosto. */
+  hoverZoom?: boolean;
 }
 
 const SIZE_MAP: Record<Size, string> = {
@@ -38,6 +40,7 @@ export default function UserAvatar({
   borderId,
   size = "md",
   className,
+  hoverZoom = true,
 }: UserAvatarProps) {
   // Borda explícita tem prioridade; senão, usa a borda do preset cuja imagem bate com avatar_url (compat).
   const borderPreset = findPresetById(borderId) ?? findPresetBySrc(avatarUrl);
@@ -45,9 +48,16 @@ export default function UserAvatar({
   const isAdminBorder = borderPreset?.category === "admin";
 
   return (
-    <div className={cn("relative inline-block shrink-0", className)}>
-      <Avatar className={cn(SIZE_MAP[size], borderPreset?.borderClass)}>
-        <AvatarImage src={avatarUrl ?? undefined} alt={displayName ?? "Avatar"} />
+    <div className={cn("relative inline-block shrink-0", hoverZoom && "group", className)}>
+      <Avatar className={cn(SIZE_MAP[size], borderPreset?.borderClass, "overflow-hidden")}>
+        <AvatarImage
+          src={avatarUrl ?? undefined}
+          alt={displayName ?? "Avatar"}
+          className={cn(
+            "transition-transform duration-300 ease-out",
+            hoverZoom && "group-hover:scale-150 group-focus-within:scale-150",
+          )}
+        />
         <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
           {initial}
         </AvatarFallback>

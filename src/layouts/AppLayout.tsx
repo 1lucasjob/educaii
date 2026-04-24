@@ -190,16 +190,23 @@ export default function AppLayout() {
               )}
               {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} size="sm" className="hidden sm:inline-flex" />}
               <div className="hidden md:flex items-center gap-2 min-w-0">
-                <UserAvatar
-                  avatarUrl={profile?.avatar_url}
-                  displayName={profile?.display_name}
-                  email={profile?.email}
-                  borderId={profile?.avatar_border}
-                  size="xs"
-                />
-                <span className="text-sm truncate max-w-[160px]">
-                  {profile?.display_name?.trim() || profile?.email?.split("@")[0]}
-                </span>
+                <Link
+                  to="/app/configuracoes#meu-perfil"
+                  className="flex items-center gap-2 min-w-0 rounded-md px-1 py-0.5 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                  aria-label="Editar nome e avatar"
+                  title="Editar nome e avatar"
+                >
+                  <UserAvatar
+                    avatarUrl={profile?.avatar_url}
+                    displayName={profile?.display_name}
+                    email={profile?.email}
+                    borderId={profile?.avatar_border}
+                    size="xs"
+                  />
+                  <span className="text-sm truncate max-w-[160px] hover:underline">
+                    {profile?.display_name?.trim() || profile?.email?.split("@")[0]}
+                  </span>
+                </Link>
                 <LoyaltyBadge startDate={profile?.created_at} size="xs" />
               </div>
               <Button variant="ghost" size="sm" onClick={signOut} aria-label="Sair">
