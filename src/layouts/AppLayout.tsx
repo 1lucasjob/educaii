@@ -22,6 +22,7 @@ import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
 import LoyaltyBadge from "@/components/LoyaltyBadge";
 import TermsGate from "@/components/TermsGate";
+import UserAvatar from "@/components/UserAvatar";
 import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
 
 const items = [

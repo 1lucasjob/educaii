@@ -177,13 +177,11 @@ export default function Ranking() {
                   }`}
                 >
                   <div className="w-8 flex justify-center">{rankIcon(i)}</div>
-                  {r.avatar_url ? (
-                    <img src={r.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-border shrink-0" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
-                      {(r.display_name || "?").charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <UserAvatar
+                    avatarUrl={r.avatar_url}
+                    displayName={r.display_name}
+                    size="sm"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate flex items-center gap-1.5">
                       <span className="truncate">{r.display_name}</span>
