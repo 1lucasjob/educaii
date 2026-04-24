@@ -77,14 +77,14 @@ export function AchievementsGrid({ items, revealSecrets = false }: Props) {
             <p className="font-semibold text-sm leading-tight">
               {a.title}
             </p>
-            {!isHiddenSecret && (
+            {!isHiddenSecret && revealSecrets && (
               <p className="text-[11px] text-muted-foreground leading-tight">
                 {a.description}
               </p>
             )}
             <div className="w-full mt-auto space-y-1">
               <Progress value={isHiddenSecret ? 0 : a.progress} className="h-1.5" />
-              {!isHiddenSecret && (
+              {!isHiddenSecret && revealSecrets && (
                 <p className="text-[10px] text-muted-foreground">
                   {a.hint}
                 </p>
