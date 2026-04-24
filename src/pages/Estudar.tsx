@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock, ShieldCheck, AlertTriangle, BookMarked } from "lucide-react";
+import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock, ShieldCheck, AlertTriangle, BookMarked, GraduationCap } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -35,26 +35,25 @@ function stripMarkdown(s: string): string {
 
 const PONTOS_CRITICOS_RE = /^PONTOS\s+CR[IÍ]TICOS\s+PARA\s+PROVA\s+OU\s+CONCURSO\s*:?\s*$/i;
 const NORMAS_RE = /^NORMAS\s+REGULAMENTADORAS\s+APLIC[AÁ]VEIS\s+AO\s+CASO\s*:?\s*$/i;
+const OBSERVACOES_RE = /^OBSERVA[CÇ][OÕ]ES\s+DO\s+PROFESSOR\s*:?\s*$/i;
 const SECTION_HEADER_RE = /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9 ()\/\-]{3,}:\s*$/;
 
 /**
- * Separa do resumo as seções "PONTOS CRÍTICOS PARA PROVA OU CONCURSO" e
- * "NORMAS REGULAMENTADORAS APLICÁVEIS AO CASO" para que sejam renderizadas
- * destacadas e SEMPRE no final, depois da interpretação do texto.
+ * Separa do resumo as seções "PONTOS CRÍTICOS PARA PROVA OU CONCURSO",
+ * "NORMAS REGULAMENTADORAS APLICÁVEIS AO CASO" e "OBSERVAÇÕES DO PROFESSOR"
+ * para que sejam renderizadas destacadas, depois da interpretação do texto.
  */
 function splitSummaryHighlights(raw: string): {
   body: string;
   pontosCriticos: string | null;
   normas: string | null;
+  observacoes: string | null;
 } {
   const text = stripMarkdown(raw);
   const lines = text.split("\n");
 
-  const isOtherHeader = (t: string) =>
-    SECTION_HEADER_RE.test(t) && !PONTOS_CRITICOS_RE.test(t) && !NORMAS_RE.test(t);
-
-  // Para extração: para em QUALQUER próximo cabeçalho de seção (inclusive a outra
-  // seção destacada), evitando que o conteúdo de uma "vaze" para dentro da outra.
+  // Para extração: para em QUALQUER próximo cabeçalho de seção, evitando que
+  // o conteúdo de uma "vaze" para dentro da outra.
   const isAnyHeader = (t: string) => SECTION_HEADER_RE.test(t);
 
   const extractFrom = (arr: string[], idx: number): string => {
@@ -69,8 +68,10 @@ function splitSummaryHighlights(raw: string): {
 
   const pIdx = lines.findIndex((l) => PONTOS_CRITICOS_RE.test(l.trim()));
   const nIdx = lines.findIndex((l) => NORMAS_RE.test(l.trim()));
+  const oIdx = lines.findIndex((l) => OBSERVACOES_RE.test(l.trim()));
   const pontosCriticos = pIdx >= 0 ? extractFrom(lines, pIdx) : null;
   const normas = nIdx >= 0 ? extractFrom(lines, nIdx) : null;
+  const observacoes = oIdx >= 0 ? extractFrom(lines, oIdx) : null;
 
   const removeSection = (src: string, headerRe: RegExp): string => {
     const arr = src.split("\n");
@@ -91,8 +92,9 @@ function splitSummaryHighlights(raw: string): {
   let body = text;
   body = removeSection(body, PONTOS_CRITICOS_RE);
   body = removeSection(body, NORMAS_RE);
+  body = removeSection(body, OBSERVACOES_RE);
 
-  return { body, pontosCriticos, normas };
+  return { body, pontosCriticos, normas, observacoes };
 }
 
 export default function Estudar() {
@@ -241,7 +243,7 @@ export default function Estudar() {
   const MIN_CHARS_EASY = 500;
   const MIN_CHARS_HARD = 1501;
   const MIN_CHARS_EXPERT = 5000;
-  const TITLE_MIN = 1;
+  const TITLE_MIN = 7;
   const TITLE_MAX = 80;
   const topicLength = topic.trim().length;
   const titleLength = title.trim().length;
@@ -523,13 +525,25 @@ export default function Estudar() {
       </Card>
 
       {summary && (() => {
-        const { body, pontosCriticos, normas } = splitSummaryHighlights(summary);
+        const { body, pontosCriticos, normas, observacoes } = splitSummaryHighlights(summary);
         return (
         <Card className="p-6 animate-fade-in">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain className="text-primary" /> Resumo Técnico</h3>
           <div className="max-w-none whitespace-pre-line text-sm leading-relaxed text-foreground space-y-1">
             {body}
           </div>
+
+          {observacoes && (
+            <div className="mt-6 rounded-lg border-2 border-accent/60 bg-accent/10 p-4 shadow-glow">
+              <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-accent-foreground">
+                <GraduationCap className="w-5 h-5 text-accent-foreground" />
+                Observações do Professor
+              </h4>
+              <div className="whitespace-pre-line text-sm leading-relaxed text-foreground font-medium">
+                {observacoes}
+              </div>
+            </div>
+          )}
 
           {(pontosCriticos || normas) && (
             <div className="mt-6 space-y-4">
