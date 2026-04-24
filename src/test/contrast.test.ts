@@ -96,7 +96,8 @@ describe("WCAG contrast — Observações do Professor card", () => {
     // bg-accent/15 sobre o background da página
     const cardBg = blend(accent, bg, 0.15);
     const fgRgb = hslToRgb(fg);
-    const accentRgb = hslToRgb(accent);
+    // border-foreground/70 sobre o background da página
+    const borderRgb = blend(fg, bg, 0.7);
 
     describe(`theme: ${theme}`, () => {
       it("texto (foreground) sobre card (accent/15) ≥ 4.5:1 (AA normal)", () => {
@@ -104,13 +105,13 @@ describe("WCAG contrast — Observações do Professor card", () => {
         expect(ratio, `contrast=${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
       });
 
-      it("ícone/borda (accent) sobre card (accent/15) ≥ 3:1 (AA UI)", () => {
-        const ratio = contrast(accentRgb, cardBg);
-        expect(ratio, `contrast=${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(3);
+      it("ícone (foreground) sobre card (accent/15) ≥ 4.5:1 (AA normal)", () => {
+        const ratio = contrast(fgRgb, cardBg);
+        expect(ratio, `contrast=${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
       });
 
-      it("borda (accent) sobre background da página ≥ 3:1 (AA UI)", () => {
-        const ratio = contrast(accentRgb, hslToRgb(bg));
+      it("borda (foreground/70) sobre background da página ≥ 3:1 (AA UI)", () => {
+        const ratio = contrast(borderRgb, hslToRgb(bg));
         expect(ratio, `contrast=${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(3);
       });
     });
