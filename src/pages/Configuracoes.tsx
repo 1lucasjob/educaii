@@ -14,6 +14,8 @@ import LoyaltyBadge from "@/components/LoyaltyBadge";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AvatarCropDialog from "@/components/AvatarCropDialog";
+import { PRESET_AVATARS } from "@/lib/presetAvatars";
+import { cn } from "@/lib/utils";
 
 export default function Configuracoes() {
   const { profile, refreshProfile, isAdmin } = useAuth();
