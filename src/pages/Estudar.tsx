@@ -534,15 +534,26 @@ export default function Estudar() {
           </div>
 
           {observacoes && (
-            <div className="mt-6 rounded-lg border-2 border-accent/60 bg-accent/10 p-4 shadow-glow">
-              <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-accent-foreground">
-                <GraduationCap className="w-5 h-5 text-accent-foreground" />
-                Observações do Professor
+            <section
+              role="region"
+              aria-labelledby="observacoes-professor-title"
+              className="mt-6 rounded-lg border-2 border-accent bg-accent/15 p-4 shadow-glow focus-within:ring-2 focus-within:ring-accent"
+            >
+              <h4
+                id="observacoes-professor-title"
+                className="font-bold text-base mb-2 flex items-center gap-2 text-foreground"
+              >
+                <GraduationCap className="w-5 h-5 text-accent" aria-hidden="true" />
+                <span>Observações do Professor</span>
+                <span className="sr-only"> — seção destacada com orientações importantes do professor</span>
               </h4>
-              <div className="whitespace-pre-line text-sm leading-relaxed text-foreground font-medium">
+              <div
+                className="whitespace-pre-line text-sm leading-relaxed text-foreground font-medium"
+                aria-label="Conteúdo das observações do professor"
+              >
                 {observacoes}
               </div>
-            </div>
+            </section>
           )}
 
           {(pontosCriticos || normas) && (
