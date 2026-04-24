@@ -132,7 +132,6 @@ export default function LoyaltyProgram({ startDate, className }: Props) {
               <p className={cn("text-[10px] leading-tight truncate w-full", unlocked ? tier.titleClass ?? "font-medium text-foreground" : "text-muted-foreground")}>
                 {tier.short}
               </p>
-              <span className="text-[9px] text-muted-foreground">{tier.months}m</span>
             </div>
           );
         })}
