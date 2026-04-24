@@ -13,6 +13,18 @@ import preset10 from "@/assets/avatars/preset-10-mulher-loira.png";
 import preset11 from "@/assets/avatars/preset-11-alienigena-masculo.png";
 import preset12 from "@/assets/avatars/preset-12-alienigena-feminina.png";
 import preset13 from "@/assets/avatars/preset-13-mulher-branca-cabelo-cacheado.png";
+import preset14 from "@/assets/avatars/preset-14-homem-dreads.png";
+import preset15 from "@/assets/avatars/preset-15-mulher-afro.png";
+import preset16 from "@/assets/avatars/preset-16-homem-oculos.png";
+import preset17 from "@/assets/avatars/preset-17-homem-indiano.png";
+import preset18 from "@/assets/avatars/preset-18-mulher-indiana.png";
+import preset19 from "@/assets/avatars/preset-19-mulher-turbante-vermelho.png";
+import preset20 from "@/assets/avatars/preset-20-mulher-turbante-laranja.png";
+import preset21 from "@/assets/avatars/preset-21-homem-asiatico-oculos.png";
+import preset22 from "@/assets/avatars/preset-22-mulher-loira-longa.png";
+import preset23 from "@/assets/avatars/preset-23-mulher-ruiva.png";
+import preset24 from "@/assets/avatars/preset-24-homem-negro-barba.png";
+import preset25 from "@/assets/avatars/preset-25-mulher-asiatica.png";
 import achCoruja from "@/assets/avatars/achievement-coruja.png";
 import achAlienCosmico from "@/assets/avatars/achievement-alienigena-cosmico.png";
 import achRobo from "@/assets/avatars/achievement-robo.png";
@@ -79,6 +91,19 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "mulher-loira", label: "Mulher loira", src: preset10, category: "human" },
   { id: "alienigena-masculo", label: "Alienígena másculo", src: preset11, category: "human" },
   { id: "alienigena-feminina", label: "Alienígena feminina", src: preset12, category: "human" },
+  // Novos presets humanos (recortados da nova grade de avatares)
+  { id: "homem-dreads", label: "Homem com dreads", src: preset14, category: "human" },
+  { id: "mulher-afro", label: "Mulher afro", src: preset15, category: "human" },
+  { id: "homem-oculos", label: "Homem de óculos", src: preset16, category: "human" },
+  { id: "homem-indiano", label: "Homem indiano", src: preset17, category: "human" },
+  { id: "mulher-indiana", label: "Mulher indiana", src: preset18, category: "human" },
+  { id: "mulher-turbante-vermelho", label: "Mulher de turbante vermelho", src: preset19, category: "human" },
+  { id: "mulher-turbante-laranja", label: "Mulher de turbante laranja", src: preset20, category: "human" },
+  { id: "homem-asiatico-oculos", label: "Homem asiático de óculos", src: preset21, category: "human" },
+  { id: "mulher-loira-longa", label: "Mulher loira (cabelo longo)", src: preset22, category: "human" },
+  { id: "mulher-ruiva", label: "Mulher ruiva", src: preset23, category: "human" },
+  { id: "homem-negro-barba", label: "Homem negro com barba", src: preset24, category: "human" },
+  { id: "mulher-asiatica", label: "Mulher asiática", src: preset25, category: "human" },
   // Alienígena clássico (legado, mantido por compatibilidade com avatares já escolhidos)
   { id: "alienigena-humano", label: "Alienígena clássico", src: preset8, category: "human" },
 
