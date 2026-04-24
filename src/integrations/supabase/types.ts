@@ -179,6 +179,7 @@ export type Database = {
       profiles: {
         Row: {
           access_expires_at: string | null
+          avatar_border: string | null
           avatar_pending_url: string | null
           avatar_reviewed_at: string | null
           avatar_reviewed_by: string | null
@@ -207,6 +208,7 @@ export type Database = {
         }
         Insert: {
           access_expires_at?: string | null
+          avatar_border?: string | null
           avatar_pending_url?: string | null
           avatar_reviewed_at?: string | null
           avatar_reviewed_by?: string | null
@@ -235,6 +237,7 @@ export type Database = {
         }
         Update: {
           access_expires_at?: string | null
+          avatar_border?: string | null
           avatar_pending_url?: string | null
           avatar_reviewed_at?: string | null
           avatar_reviewed_by?: string | null
