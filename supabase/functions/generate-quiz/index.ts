@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
     const range =
       difficulty === "easy"
-        ? "entre 10 e 12 questões (mínimo obrigatório: 10)"
+        ? "entre 10 e 12 questões (mínimo obrigatório: 10) — conceituais e de aplicação direta, baseadas no texto base do estudo"
         : difficulty === "hard"
           ? "entre 10 e 12 questões de NÍVEL EXAMINADOR — extremamente analíticas, com múltiplos conceitos por questão (mínimo obrigatório: 10)"
           : "entre 10 e 12 questões de NÍVEL ACADÊMICO/PÓS-GRADUAÇÃO — estudo de caso longo, exigindo cálculos quando aplicável e combinação de múltiplas NRs (mínimo obrigatório: 10)";
