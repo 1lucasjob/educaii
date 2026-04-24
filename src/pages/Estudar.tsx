@@ -241,7 +241,7 @@ export default function Estudar() {
   const MIN_CHARS_EASY = 500;
   const MIN_CHARS_HARD = 1501;
   const MIN_CHARS_EXPERT = 5000;
-  const TITLE_MIN = 1;
+  const TITLE_MIN = 7;
   const TITLE_MAX = 80;
   const topicLength = topic.trim().length;
   const titleLength = title.trim().length;
