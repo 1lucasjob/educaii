@@ -143,7 +143,7 @@ export default function Progresso() {
   const reversed = [...attempts].reverse();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 min-w-0">
       <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2">
         <BarChart3 className="text-primary shrink-0 w-6 h-6 sm:w-8 sm:h-8" />
         <span className="truncate">{viewAsRow ? `Progresso de ${viewAsRow.display_name}` : "Meu Progresso"}</span>
