@@ -223,7 +223,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 min-w-0">
       <div>
         <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary shrink-0 w-6 h-6 sm:w-8 sm:h-8" /> Gestão de Cadastros</h1>
         <p className="text-muted-foreground mt-1 text-xs sm:text-base">Libere acessos individuais protegidos por PIN.</p>
