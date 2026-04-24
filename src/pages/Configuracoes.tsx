@@ -14,6 +14,8 @@ import LoyaltyBadge from "@/components/LoyaltyBadge";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AvatarCropDialog from "@/components/AvatarCropDialog";
+import { PRESET_AVATARS } from "@/lib/presetAvatars";
+import { cn } from "@/lib/utils";
 
 export default function Configuracoes() {
   const { profile, refreshProfile, isAdmin } = useAuth();
@@ -126,6 +128,25 @@ export default function Configuracoes() {
     toast({ title: "Imagem removida" });
   };
 
+  const selectPreset = async (url: string) => {
+    if (!profile) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        avatar_url: url,
+        avatar_pending_url: null,
+        avatar_status: "approved",
+        avatar_reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", profile.id);
+    if (error) {
+      toast({ title: "Erro ao aplicar avatar", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Avatar atualizado!" });
+  };
+
   const changePassword = async () => {
     if (newPwd.length < 6) {
       toast({ title: "Senha muito curta", description: "Use no mínimo 6 caracteres.", variant: "destructive" });
@@ -224,6 +245,40 @@ export default function Configuracoes() {
             <Button onClick={saveDisplayName} disabled={savingNick} size="sm" className="gradient-primary text-primary-foreground">
               {savingNick ? "Salvando…" : "Salvar apelido"}
             </Button>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-5 border-t border-border">
+          <p className="text-sm font-medium mb-1">Ou escolha um avatar pronto</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            Aplicação imediata, sem precisar de aprovação.
+          </p>
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            {PRESET_AVATARS.map((a) => {
+              const active = profile?.avatar_url === a.src;
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => selectPreset(a.src)}
+                  title={a.label}
+                  aria-label={a.label}
+                  className={cn(
+                    "relative aspect-square rounded-full overflow-hidden border-2 transition-all hover:scale-105",
+                    active ? "border-primary shadow-glow" : "border-border hover:border-primary/50",
+                  )}
+                >
+                  <img
+                    src={a.src}
+                    alt={a.label}
+                    width={128}
+                    height={128}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              );
+            })}
           </div>
         </div>
       </Card>
