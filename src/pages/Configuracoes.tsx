@@ -288,38 +288,126 @@ export default function Configuracoes() {
           </div>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-border">
-          <p className="text-sm font-medium mb-1">Ou escolha um avatar pronto</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            Aplicação imediata, sem precisar de aprovação.
-          </p>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-            {PRESET_AVATARS.map((a) => {
-              const active = profile?.avatar_url === a.src;
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => selectPreset(a.src)}
-                  title={a.label}
-                  aria-label={a.label}
-                  className={cn(
-                    "relative aspect-square rounded-full overflow-hidden border-2 transition-all hover:scale-105",
-                    active ? "border-primary shadow-glow" : "border-border hover:border-primary/50",
-                  )}
-                >
-                  <img
-                    src={a.src}
-                    alt={a.label}
-                    width={128}
-                    height={128}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              );
-            })}
+        <div className="mt-6 pt-5 border-t border-border space-y-5">
+          <div>
+            <p className="text-sm font-medium mb-1">Ou escolha um avatar pronto</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Aplicação imediata, sem precisar de aprovação.
+            </p>
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+              {groupedAvatars.human.map((a) => {
+                const active = profile?.avatar_url === a.src;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => selectPreset(a.src)}
+                    title={a.label}
+                    aria-label={a.label}
+                    className={cn(
+                      "relative aspect-square rounded-full overflow-hidden border-2 transition-all hover:scale-105",
+                      active ? "border-primary shadow-glow" : "border-border hover:border-primary/50",
+                    )}
+                  >
+                    <img
+                      src={a.src}
+                      alt={a.label}
+                      width={128}
+                      height={128}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {groupedAvatars.achievement.length > 0 && (
+            <div>
+              <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                Avatares de conquista
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Desbloqueados pelas suas conquistas — borda dourada exclusiva.
+              </p>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                {groupedAvatars.achievement.map((a) => {
+                  const active = profile?.avatar_url === a.src;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => selectPreset(a.src)}
+                      title={a.label}
+                      aria-label={a.label}
+                      className={cn(
+                        "relative aspect-square rounded-full overflow-hidden transition-all hover:scale-105",
+                        a.borderClass,
+                        active && "scale-105",
+                      )}
+                    >
+                      <img
+                        src={a.src}
+                        alt={a.label}
+                        width={128}
+                        height={128}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                      {active && (
+                        <span className="absolute inset-0 ring-2 ring-primary rounded-full pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {groupedAvatars.admin.length > 0 && (
+            <div>
+              <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                Exclusivo Admin
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Borda platina + coroa — só você vê esta opção.
+              </p>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                {groupedAvatars.admin.map((a) => {
+                  const active = profile?.avatar_url === a.src;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => selectPreset(a.src)}
+                      title={a.label}
+                      aria-label={a.label}
+                      className={cn(
+                        "relative aspect-square rounded-full overflow-hidden transition-all hover:scale-105",
+                        a.borderClass,
+                        active && "scale-105",
+                      )}
+                    >
+                      <img
+                        src={a.src}
+                        alt={a.label}
+                        width={128}
+                        height={128}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                      {active && (
+                        <span className="absolute inset-0 ring-2 ring-primary rounded-full pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
