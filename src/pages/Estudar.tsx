@@ -604,7 +604,8 @@ export default function Estudar() {
             )}
           </div>
         </Card>
-      )}
+        );
+      })()}
 
       {summary && sourceText && canExtractHighlights && (
         <Card className="p-6 animate-fade-in">
