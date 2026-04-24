@@ -128,6 +128,25 @@ export default function Configuracoes() {
     toast({ title: "Imagem removida" });
   };
 
+  const selectPreset = async (url: string) => {
+    if (!profile) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        avatar_url: url,
+        avatar_pending_url: null,
+        avatar_status: "approved",
+        avatar_reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", profile.id);
+    if (error) {
+      toast({ title: "Erro ao aplicar avatar", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: "Avatar atualizado!" });
+  };
+
   const changePassword = async () => {
     if (newPwd.length < 6) {
       toast({ title: "Senha muito curta", description: "Use no mínimo 6 caracteres.", variant: "destructive" });
