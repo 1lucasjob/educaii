@@ -542,8 +542,8 @@ export default function Estudar() {
               </div>
 
               {pontosCriticos && (
-                <div className="rounded-lg border-2 border-warning/50 bg-warning/5 p-4">
-                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-warning-foreground">
+                <div className="rounded-lg border-2 border-warning/60 bg-warning/10 p-4">
+                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-warning">
                     <AlertTriangle className="w-5 h-5 text-warning" />
                     Pontos críticos para prova ou concurso
                   </h4>
