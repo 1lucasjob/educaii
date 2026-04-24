@@ -14,7 +14,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2, Sparkles, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AvatarCropDialog from "@/components/AvatarCropDialog";
-import { PRESET_AVATARS, type PresetAvatar } from "@/lib/presetAvatars";
+import { PRESET_AVATARS, availableBorderPresets, type PresetAvatar } from "@/lib/presetAvatars";
 import { computeAchievements } from "@/lib/achievements";
 import { cn } from "@/lib/utils";
 
@@ -52,13 +52,13 @@ export default function Configuracoes() {
 
   const visibleAvatars = useMemo(() => {
     return PRESET_AVATARS.filter((p) => {
+      if (isAdmin) return true; // admin vê todos os ocultos
       if (p.category === "human") return true;
-      if (p.category === "admin") return isAdmin;
+      if (p.category === "admin") return false;
       if (p.category === "achievement") {
         return p.requiresAchievement ? unlockedAchievements.has(p.requiresAchievement) : true;
       }
       if (p.category === "plan") {
-        if (isAdmin) return true;
         return !!(p.requiresPlanIn && profile?.plan && p.requiresPlanIn.includes(profile.plan));
       }
       return false;
@@ -78,6 +78,16 @@ export default function Configuracoes() {
     });
     return { human, achievement, plan, admin };
   }, [visibleAvatars]);
+
+  const borderOptions = useMemo(
+    () =>
+      availableBorderPresets({
+        isAdmin,
+        unlockedAchievementIds: unlockedAchievements,
+        plan: profile?.plan,
+      }),
+    [isAdmin, unlockedAchievements, profile?.plan],
+  );
 
   const saveDisplayName = async () => {
     if (!profile) return;
