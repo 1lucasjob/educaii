@@ -264,7 +264,7 @@ export default function Configuracoes() {
     <div className="max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><Settings className="text-primary shrink-0" /> Configurações</h1>
 
-      <Card className="p-6">
+      <Card id="meu-perfil" className="p-6 scroll-mt-20">
         <h2 className="font-bold flex items-center gap-2 mb-4"><UserIcon className="w-4 h-4 text-primary" /> Meu Perfil</h2>
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <div className="flex flex-col items-center gap-2">
