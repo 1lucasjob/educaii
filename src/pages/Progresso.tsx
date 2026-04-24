@@ -232,6 +232,7 @@ export default function Progresso() {
         {evolutionData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum dado para exibir ainda.</p>
         ) : (
+          <div className="w-full min-w-0 overflow-hidden">
           <ChartContainer config={chartConfig} className="h-[220px] sm:h-[260px] w-full">
             <LineChart data={evolutionData} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -249,6 +250,7 @@ export default function Progresso() {
               />
             </LineChart>
           </ChartContainer>
+          </div>
         )}
       </Card>
 
@@ -257,6 +259,7 @@ export default function Progresso() {
         {byTopic.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Nenhum tema avaliado ainda.</p>
         ) : (
+          <div className="w-full min-w-0 overflow-hidden">
           <ChartContainer config={chartConfig} className="h-[240px] sm:h-[260px] w-full">
             <BarChart data={byTopic} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -266,6 +269,7 @@ export default function Progresso() {
               <Bar dataKey="media" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ChartContainer>
+          </div>
         )}
       </Card>
 
@@ -275,6 +279,7 @@ export default function Progresso() {
         {timeData.length === 0 ? (
           <p className="text-center text-muted-foreground py-10">Sem dados de tempo registrados ainda.</p>
         ) : (
+          <div className="w-full min-w-0 overflow-hidden">
           <ChartContainer config={chartConfig} className="h-[220px] sm:h-[260px] w-full">
             <LineChart data={timeData} margin={{ left: 4, right: 8, top: 8, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -285,6 +290,7 @@ export default function Progresso() {
               <Line type="monotone" dataKey="media" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
             </LineChart>
           </ChartContainer>
+          </div>
         )}
       </Card>
 
