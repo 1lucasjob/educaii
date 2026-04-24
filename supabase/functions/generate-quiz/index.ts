@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
           : "EXPERT (nível prova acadêmica / pós-graduação em Engenharia de Segurança do Trabalho)";
 
     const sourceTextBlock =
-      (difficulty === "hard" || difficulty === "expert") && sourceText && typeof sourceText === "string" && sourceText.trim().length > 0
+      (difficulty === "easy" || difficulty === "hard" || difficulty === "expert") && sourceText && typeof sourceText === "string" && sourceText.trim().length > 0
         ? `\n\nREGRA CRÍTICA DE FONTE:\nUse EXCLUSIVAMENTE o texto base abaixo como fonte de informação. NÃO invente itens de NR fora dele. Toda questão deve ser respondível a partir do texto. Se o texto não cobrir um detalhe, NÃO o use.\n\n<<TEXTO_BASE>>\n${sourceText.trim()}\n<</TEXTO_BASE>>`
         : "";
 
