@@ -22,6 +22,18 @@ import { cn } from "@/lib/utils";
 export default function Configuracoes() {
   const { profile, refreshProfile, isAdmin } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.slice(1);
+    // Pequeno delay para garantir que o DOM já renderizou
+    const t = setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [location.hash]);
 
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
