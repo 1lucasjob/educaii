@@ -272,6 +272,7 @@ export default function Configuracoes() {
               avatarUrl={profile?.avatar_url}
               displayName={profile?.display_name}
               email={profile?.email}
+              borderId={profile?.avatar_border}
               size="xl"
             />
             <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarSelected} />
