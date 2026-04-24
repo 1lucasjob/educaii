@@ -75,16 +75,20 @@ export function AchievementsGrid({ items, revealSecrets = false }: Props) {
               )}
             </div>
             <p className="font-semibold text-sm leading-tight">
-              {isHiddenSecret ? "Conquista secreta" : a.title}
+              {a.title}
             </p>
-            <p className="text-[11px] text-muted-foreground leading-tight">
-              {isHiddenSecret ? "Continue jogando para descobrir…" : a.description}
-            </p>
+            {!isHiddenSecret && (
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                {a.description}
+              </p>
+            )}
             <div className="w-full mt-auto space-y-1">
               <Progress value={isHiddenSecret ? 0 : a.progress} className="h-1.5" />
-              <p className="text-[10px] text-muted-foreground">
-                {isHiddenSecret ? "???" : a.hint}
-              </p>
+              {!isHiddenSecret && (
+                <p className="text-[10px] text-muted-foreground">
+                  {a.hint}
+                </p>
+              )}
             </div>
           </Card>
         );
