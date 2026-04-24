@@ -19,9 +19,7 @@ import preset16 from "@/assets/avatars/preset-16-homem-oculos.png";
 import preset17 from "@/assets/avatars/preset-17-homem-indiano.png";
 import preset18 from "@/assets/avatars/preset-18-mulher-indiana.png";
 import preset19 from "@/assets/avatars/preset-19-mulher-turbante-vermelho.png";
-import preset20 from "@/assets/avatars/preset-20-mulher-turbante-laranja.png";
 import preset21 from "@/assets/avatars/preset-21-homem-asiatico-oculos.png";
-import preset22 from "@/assets/avatars/preset-22-mulher-loira-longa.png";
 import preset23 from "@/assets/avatars/preset-23-mulher-ruiva.png";
 import preset24 from "@/assets/avatars/preset-24-homem-negro-barba.png";
 import preset25 from "@/assets/avatars/preset-25-mulher-asiatica.png";
@@ -100,9 +98,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "homem-indiano", label: "Homem indiano", src: preset17, category: "human" },
   { id: "mulher-indiana", label: "Mulher indiana", src: preset18, category: "human" },
   { id: "mulher-turbante-vermelho", label: "Mulher de turbante vermelho", src: preset19, category: "human" },
-  { id: "mulher-turbante-laranja", label: "Mulher de turbante laranja", src: preset20, category: "human" },
   { id: "homem-asiatico-oculos", label: "Homem asiático de óculos", src: preset21, category: "human" },
-  { id: "mulher-loira-longa", label: "Mulher loira (cabelo longo)", src: preset22, category: "human" },
   { id: "mulher-ruiva", label: "Mulher ruiva", src: preset23, category: "human" },
   { id: "homem-negro-barba", label: "Homem negro com barba", src: preset24, category: "human" },
   { id: "mulher-asiatica", label: "Mulher asiática", src: preset25, category: "human" },
