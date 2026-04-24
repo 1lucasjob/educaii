@@ -14,7 +14,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2, Sparkles, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AvatarCropDialog from "@/components/AvatarCropDialog";
-import { PRESET_AVATARS, type PresetAvatar } from "@/lib/presetAvatars";
+import { PRESET_AVATARS, availableBorderPresets, type PresetAvatar } from "@/lib/presetAvatars";
 import { computeAchievements } from "@/lib/achievements";
 import { cn } from "@/lib/utils";
 
@@ -52,13 +52,13 @@ export default function Configuracoes() {
 
   const visibleAvatars = useMemo(() => {
     return PRESET_AVATARS.filter((p) => {
+      if (isAdmin) return true; // admin vê todos os ocultos
       if (p.category === "human") return true;
-      if (p.category === "admin") return isAdmin;
+      if (p.category === "admin") return false;
       if (p.category === "achievement") {
         return p.requiresAchievement ? unlockedAchievements.has(p.requiresAchievement) : true;
       }
       if (p.category === "plan") {
-        if (isAdmin) return true;
         return !!(p.requiresPlanIn && profile?.plan && p.requiresPlanIn.includes(profile.plan));
       }
       return false;
@@ -78,6 +78,16 @@ export default function Configuracoes() {
     });
     return { human, achievement, plan, admin };
   }, [visibleAvatars]);
+
+  const borderOptions = useMemo(
+    () =>
+      availableBorderPresets({
+        isAdmin,
+        unlockedAchievementIds: unlockedAchievements,
+        plan: profile?.plan,
+      }),
+    [isAdmin, unlockedAchievements, profile?.plan],
+  );
 
   const saveDisplayName = async () => {
     if (!profile) return;
@@ -193,6 +203,20 @@ export default function Configuracoes() {
     toast({ title: "Avatar atualizado!" });
   };
 
+  const selectBorder = async (borderId: string | null) => {
+    if (!profile) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_border: borderId })
+      .eq("id", profile.id);
+    if (error) {
+      toast({ title: "Erro ao aplicar borda", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: borderId ? "Borda atualizada!" : "Borda removida" });
+  };
+
   const changePassword = async () => {
     if (newPwd.length < 6) {
       toast({ title: "Senha muito curta", description: "Use no mínimo 6 caracteres.", variant: "destructive" });
@@ -248,6 +272,7 @@ export default function Configuracoes() {
               avatarUrl={profile?.avatar_url}
               displayName={profile?.display_name}
               email={profile?.email}
+              borderId={profile?.avatar_border}
               size="xl"
             />
             <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarSelected} />
@@ -450,6 +475,64 @@ export default function Configuracoes() {
                       />
                       {active && (
                         <span className="absolute inset-0 ring-2 ring-primary rounded-full pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {borderOptions.length > 0 && (
+            <div className="pt-2 border-t border-border">
+              <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                Borda exclusiva
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                A borda é independente da imagem do avatar — você pode usar sua foto pessoal ou um avatar pronto e ainda assim ostentar uma borda exclusiva conquistada.
+              </p>
+              <div className="grid grid-cols-5 sm:grid-cols-9 gap-3">
+                {/* Opção "sem borda" */}
+                <button
+                  type="button"
+                  onClick={() => selectBorder(null)}
+                  title="Sem borda"
+                  aria-label="Sem borda"
+                  className={cn(
+                    "relative aspect-square rounded-full border-2 border-dashed flex items-center justify-center text-[10px] text-muted-foreground transition-all hover:scale-105",
+                    !profile?.avatar_border ? "border-primary text-primary" : "border-border",
+                  )}
+                >
+                  Nenhuma
+                </button>
+                {borderOptions.map((b) => {
+                  const active = profile?.avatar_border === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => selectBorder(b.id)}
+                      title={`Borda: ${b.label}`}
+                      aria-label={`Borda ${b.label}`}
+                      className={cn(
+                        "relative aspect-square rounded-full overflow-hidden transition-all hover:scale-105",
+                        b.borderClass,
+                        active && "scale-105 ring-offset-2 ring-offset-background",
+                      )}
+                    >
+                      <img
+                        src={b.src}
+                        alt={b.label}
+                        width={96}
+                        height={96}
+                        loading="lazy"
+                        className="w-full h-full object-cover opacity-90"
+                      />
+                      {active && (
+                        <span className="absolute inset-0 flex items-center justify-center bg-primary/30">
+                          <Check className="w-5 h-5 text-primary-foreground" />
+                        </span>
                       )}
                     </button>
                   );

@@ -194,6 +194,7 @@ export default function AppLayout() {
                   avatarUrl={profile?.avatar_url}
                   displayName={profile?.display_name}
                   email={profile?.email}
+                  borderId={profile?.avatar_border}
                   size="xs"
                 />
                 <span className="text-sm truncate max-w-[160px]">

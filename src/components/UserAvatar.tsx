@@ -1,6 +1,6 @@
 import { Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { findPresetBySrc } from "@/lib/presetAvatars";
+import { findPresetBySrc, findPresetById } from "@/lib/presetAvatars";
 import { cn } from "@/lib/utils";
 
 type Size = "xs" | "sm" | "md" | "lg" | "xl";
@@ -9,6 +9,8 @@ interface UserAvatarProps {
   avatarUrl?: string | null;
   displayName?: string | null;
   email?: string | null;
+  /** id de preset usado APENAS para a borda exclusiva (independente da imagem) */
+  borderId?: string | null;
   size?: Size;
   className?: string;
 }
@@ -33,21 +35,24 @@ export default function UserAvatar({
   avatarUrl,
   displayName,
   email,
+  borderId,
   size = "md",
   className,
 }: UserAvatarProps) {
-  const preset = findPresetBySrc(avatarUrl);
+  // Borda explícita tem prioridade; senão, usa a borda do preset cuja imagem bate com avatar_url (compat).
+  const borderPreset = findPresetById(borderId) ?? findPresetBySrc(avatarUrl);
   const initial = (displayName || email || "?").charAt(0).toUpperCase();
+  const isAdminBorder = borderPreset?.category === "admin";
 
   return (
     <div className={cn("relative inline-block shrink-0", className)}>
-      <Avatar className={cn(SIZE_MAP[size], preset?.borderClass)}>
+      <Avatar className={cn(SIZE_MAP[size], borderPreset?.borderClass)}>
         <AvatarImage src={avatarUrl ?? undefined} alt={displayName ?? "Avatar"} />
         <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
           {initial}
         </AvatarFallback>
       </Avatar>
-      {preset?.category === "admin" && (
+      {isAdminBorder && (
         <span
           className={cn(
             "absolute rounded-full bg-amber-400 text-amber-950 shadow-md flex items-center justify-center",
