@@ -10,6 +10,7 @@ import achCoruja from "@/assets/avatars/achievement-coruja.png";
 import achAlienCosmico from "@/assets/avatars/achievement-alienigena-cosmico.png";
 import achRobo from "@/assets/avatars/achievement-robo.png";
 import achPirata from "@/assets/avatars/achievement-pirata.png";
+import achFenix from "@/assets/avatars/achievement-fenix.png";
 import adminCoroa from "@/assets/avatars/admin-coroa.png";
 import planAlienMasc from "@/assets/avatars/plan-alien-masculino.png";
 import type { AccessPlan } from "@/contexts/AuthContext";
@@ -25,14 +26,16 @@ export interface PresetAvatar {
   requiresAchievement?: string;
   /** se true, só aparece para admins */
   requiresAdmin?: boolean;
-  /** planos mínimos elegíveis (para category "plan") */
+  /** planos elegíveis (para category "plan") */
   requiresPlanIn?: AccessPlan[];
-  /** classes Tailwind extras aplicadas no ring/glow exclusivo */
+  /** classes Tailwind aplicadas no ring/glow exclusivo */
   borderClass?: string;
 }
 
 const ACHIEVEMENT_BORDER =
   "ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)]";
+const PHOENIX_BORDER =
+  "ring-4 ring-orange-500 shadow-[0_0_24px_rgba(249,115,22,0.75)]";
 const ADMIN_BORDER =
   "ring-4 ring-slate-200 shadow-[0_0_24px_rgba(203,213,225,0.85)]";
 const PLAN_PURPLE_BORDER =
@@ -52,7 +55,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "mulher-branca", label: "Mulher branca", src: preset7, category: "human" },
   { id: "alienigena-humano", label: "Alienígena", src: preset8, category: "human" },
 
-  // ===== Conquistas (ocultos até desbloquear) =====
+  // ===== Conquistas (ocultos até desbloquear, exceto para admin) =====
   {
     id: "ach-coruja",
     label: "Coruja Noturna",
@@ -82,8 +85,16 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     label: "Pirata",
     src: achPirata,
     category: "achievement",
-    requiresAchievement: "secret_phoenix",
+    requiresAchievement: "secret_marathon",
     borderClass: ACHIEVEMENT_BORDER,
+  },
+  {
+    id: "ach-fenix",
+    label: "Fênix",
+    src: achFenix,
+    category: "achievement",
+    requiresAchievement: "secret_phoenix",
+    borderClass: PHOENIX_BORDER,
   },
 
   // ===== Plano 90 dias ou superior (borda roxa exclusiva) =====
@@ -113,8 +124,39 @@ export function findPresetBySrc(url: string | null | undefined): PresetAvatar | 
   return PRESET_AVATARS.find((p) => p.src === url);
 }
 
+/** Retorna o preset pelo id. */
+export function findPresetById(id: string | null | undefined): PresetAvatar | undefined {
+  if (!id) return undefined;
+  return PRESET_AVATARS.find((p) => p.id === id);
+}
+
 /** Verifica se um plano dá direito à borda roxa. */
 export function planQualifiesForPurple(plan: AccessPlan | null | undefined): boolean {
   if (!plan) return false;
   return PURPLE_PLAN_TIERS.includes(plan);
+}
+
+/**
+ * Lista os presets que podem ser usados COMO BORDA pelo usuário (apenas categorias com borderClass).
+ * Admin vê todas; demais respeitam conquista/plano.
+ */
+export function availableBorderPresets(opts: {
+  isAdmin: boolean;
+  unlockedAchievementIds: Set<string>;
+  plan: AccessPlan | null | undefined;
+}): PresetAvatar[] {
+  return PRESET_AVATARS.filter((p) => {
+    if (!p.borderClass) return false;
+    if (opts.isAdmin) return true;
+    if (p.category === "admin") return false;
+    if (p.category === "achievement") {
+      return p.requiresAchievement
+        ? opts.unlockedAchievementIds.has(p.requiresAchievement)
+        : true;
+    }
+    if (p.category === "plan") {
+      return !!(p.requiresPlanIn && opts.plan && p.requiresPlanIn.includes(opts.plan));
+    }
+    return false;
+  });
 }
