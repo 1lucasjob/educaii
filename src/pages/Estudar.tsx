@@ -79,7 +79,7 @@ function splitSummaryHighlights(raw: string): {
     let end = arr.length;
     for (let i = idx + 1; i < arr.length; i++) {
       const t = arr[i].trim();
-      if (t && isOtherHeader(t)) {
+      if (t && isAnyHeader(t)) {
         end = i;
         break;
       }
