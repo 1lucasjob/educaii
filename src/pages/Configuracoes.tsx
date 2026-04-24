@@ -247,6 +247,40 @@ export default function Configuracoes() {
             </Button>
           </div>
         </div>
+
+        <div className="mt-6 pt-5 border-t border-border">
+          <p className="text-sm font-medium mb-1">Ou escolha um avatar pronto</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            Aplicação imediata, sem precisar de aprovação.
+          </p>
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            {PRESET_AVATARS.map((a) => {
+              const active = profile?.avatar_url === a.src;
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => selectPreset(a.src)}
+                  title={a.label}
+                  aria-label={a.label}
+                  className={cn(
+                    "relative aspect-square rounded-full overflow-hidden border-2 transition-all hover:scale-105",
+                    active ? "border-primary shadow-glow" : "border-border hover:border-primary/50",
+                  )}
+                >
+                  <img
+                    src={a.src}
+                    alt={a.label}
+                    width={128}
+                    height={128}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </Card>
 
       <Card className="p-6">
