@@ -9,6 +9,7 @@ import preset8 from "@/assets/avatars/preset-8-alienigena.png";
 import preset9 from "@/assets/avatars/preset-9-homem-loiro.png";
 import preset10 from "@/assets/avatars/preset-10-mulher-loira.png";
 import preset11 from "@/assets/avatars/preset-11-alienigena-masculo.png";
+import preset12 from "@/assets/avatars/preset-12-alienigena-feminina.png";
 import achCoruja from "@/assets/avatars/achievement-coruja.png";
 import achAlienCosmico from "@/assets/avatars/achievement-alienigena-cosmico.png";
 import achRobo from "@/assets/avatars/achievement-robo.png";
@@ -60,6 +61,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "homem-loiro", label: "Homem loiro", src: preset9, category: "human" },
   { id: "mulher-loira", label: "Mulher loira", src: preset10, category: "human" },
   { id: "alienigena-masculo", label: "Alienígena másculo", src: preset11, category: "human" },
+  { id: "alienigena-feminina", label: "Alienígena feminina", src: preset12, category: "human" },
 
   // ===== Conquistas (ocultos até desbloquear, exceto para admin) =====
   {
