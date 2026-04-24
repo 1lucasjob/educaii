@@ -106,8 +106,8 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "mulher-ruiva", label: "Mulher ruiva", src: preset23, category: "human" },
   { id: "homem-negro-barba", label: "Homem negro com barba", src: preset24, category: "human" },
   { id: "mulher-asiatica", label: "Mulher asiática", src: preset25, category: "human" },
-  // Alienígena clássico (legado, mantido por compatibilidade com avatares já escolhidos)
-  { id: "alienigena-humano", label: "Alienígena clássico", src: preset8, category: "human" },
+  // Alienígena clássico (legado, mantido por compatibilidade — restrito a planos 60+)
+  { id: "alienigena-humano", label: "Alienígena clássico", src: preset8, category: "plan", requiresPlanIn: ALIEN_PLAN_TIERS },
 
   // ===== Conquistas (ocultos até desbloquear, exceto para admin) — pares M/F =====
   {
