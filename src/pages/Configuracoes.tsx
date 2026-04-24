@@ -203,6 +203,20 @@ export default function Configuracoes() {
     toast({ title: "Avatar atualizado!" });
   };
 
+  const selectBorder = async (borderId: string | null) => {
+    if (!profile) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_border: borderId })
+      .eq("id", profile.id);
+    if (error) {
+      toast({ title: "Erro ao aplicar borda", description: error.message, variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    toast({ title: borderId ? "Borda atualizada!" : "Borda removida" });
+  };
+
   const changePassword = async () => {
     if (newPwd.length < 6) {
       toast({ title: "Senha muito curta", description: "Use no mínimo 6 caracteres.", variant: "destructive" });
