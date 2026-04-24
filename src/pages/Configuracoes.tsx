@@ -199,12 +199,12 @@ export default function Configuracoes() {
         <h2 className="font-bold flex items-center gap-2 mb-4"><UserIcon className="w-4 h-4 text-primary" /> Meu Perfil</h2>
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <div className="flex flex-col items-center gap-2">
-            <Avatar className="w-24 h-24 border-2 border-border">
-              <AvatarImage src={profile?.avatar_url ?? undefined} alt="Avatar" />
-              <AvatarFallback className="text-2xl">
-                {(profile?.display_name || profile?.email || "?").charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              avatarUrl={profile?.avatar_url}
+              displayName={profile?.display_name}
+              email={profile?.email}
+              size="xl"
+            />
             <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarSelected} />
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}>
