@@ -53,11 +53,15 @@ function splitSummaryHighlights(raw: string): {
   const isOtherHeader = (t: string) =>
     SECTION_HEADER_RE.test(t) && !PONTOS_CRITICOS_RE.test(t) && !NORMAS_RE.test(t);
 
+  // Para extração: para em QUALQUER próximo cabeçalho de seção (inclusive a outra
+  // seção destacada), evitando que o conteúdo de uma "vaze" para dentro da outra.
+  const isAnyHeader = (t: string) => SECTION_HEADER_RE.test(t);
+
   const extractFrom = (arr: string[], idx: number): string => {
     const out: string[] = [];
     for (let i = idx + 1; i < arr.length; i++) {
       const t = arr[i].trim();
-      if (t && isOtherHeader(t)) break;
+      if (t && isAnyHeader(t)) break;
       out.push(arr[i]);
     }
     return out.join("\n").trim();
@@ -75,7 +79,7 @@ function splitSummaryHighlights(raw: string): {
     let end = arr.length;
     for (let i = idx + 1; i < arr.length; i++) {
       const t = arr[i].trim();
-      if (t && isOtherHeader(t)) {
+      if (t && isAnyHeader(t)) {
         end = i;
         break;
       }
@@ -538,8 +542,8 @@ export default function Estudar() {
               </div>
 
               {pontosCriticos && (
-                <div className="rounded-lg border-2 border-warning/50 bg-warning/5 p-4">
-                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-warning-foreground">
+                <div className="rounded-lg border-2 border-warning/60 bg-warning/10 p-4">
+                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-warning">
                     <AlertTriangle className="w-5 h-5 text-warning" />
                     Pontos críticos para prova ou concurso
                   </h4>
