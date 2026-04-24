@@ -28,6 +28,8 @@ import adminIaNeural from "@/assets/avatars/admin-ia-neural.png";
 import adminIaCyber from "@/assets/avatars/admin-ia-cyber.png";
 import planAlienMasc from "@/assets/avatars/plan-alien-masculino.png";
 import planAlienFem from "@/assets/avatars/plan-alien-feminina.png";
+import planPremiumOculosMasc from "@/assets/avatars/plan-premium-oculos-masculino.png";
+import planPremiumOculosFem from "@/assets/avatars/plan-premium-oculos-feminina.png";
 import type { AccessPlan } from "@/contexts/AuthContext";
 
 export type AvatarCategory = "human" | "achievement" | "admin" | "plan";
@@ -55,9 +57,13 @@ const ADMIN_BORDER =
   "ring-4 ring-slate-200 shadow-[0_0_24px_rgba(203,213,225,0.85)]";
 const PLAN_PURPLE_BORDER =
   "ring-4 ring-purple-500 shadow-[0_0_22px_rgba(168,85,247,0.7)]";
+const PLAN_PREMIUM_GOLD_BORDER =
+  "ring-4 ring-yellow-400 shadow-[0_0_26px_rgba(250,204,21,0.85)]";
 
 /** Planos elegíveis para a borda roxa (90 dias ou superior). */
 export const PURPLE_PLAN_TIERS: AccessPlan[] = ["days_90", "days_180", "premium"];
+/** Planos elegíveis para os avatares exclusivos Premium. */
+export const PREMIUM_PLAN_TIERS: AccessPlan[] = ["premium"];
 
 export const PRESET_AVATARS: PresetAvatar[] = [
   // ===== Humanos (livres para todos) — pares M/F =====
@@ -174,6 +180,24 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     category: "plan",
     requiresPlanIn: PURPLE_PLAN_TIERS,
     borderClass: PLAN_PURPLE_BORDER,
+  },
+
+  // ===== Plano Premium (exclusivos) — par M/F com borda dourada =====
+  {
+    id: "plan-premium-oculos-masc",
+    label: "Premium — Homem de óculos",
+    src: planPremiumOculosMasc,
+    category: "plan",
+    requiresPlanIn: PREMIUM_PLAN_TIERS,
+    borderClass: PLAN_PREMIUM_GOLD_BORDER,
+  },
+  {
+    id: "plan-premium-oculos-fem",
+    label: "Premium — Mulher de óculos",
+    src: planPremiumOculosFem,
+    category: "plan",
+    requiresPlanIn: PREMIUM_PLAN_TIERS,
+    borderClass: PLAN_PREMIUM_GOLD_BORDER,
   },
 
   // ===== Admin (todos masculinos, foco em tecnologia/IA) =====
