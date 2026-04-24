@@ -482,6 +482,64 @@ export default function Configuracoes() {
               </div>
             </div>
           )}
+
+          {borderOptions.length > 0 && (
+            <div className="pt-2 border-t border-border">
+              <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                Borda exclusiva
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                A borda é independente da imagem do avatar — você pode usar sua foto pessoal ou um avatar pronto e ainda assim ostentar uma borda exclusiva conquistada.
+              </p>
+              <div className="grid grid-cols-5 sm:grid-cols-9 gap-3">
+                {/* Opção "sem borda" */}
+                <button
+                  type="button"
+                  onClick={() => selectBorder(null)}
+                  title="Sem borda"
+                  aria-label="Sem borda"
+                  className={cn(
+                    "relative aspect-square rounded-full border-2 border-dashed flex items-center justify-center text-[10px] text-muted-foreground transition-all hover:scale-105",
+                    !profile?.avatar_border ? "border-primary text-primary" : "border-border",
+                  )}
+                >
+                  Nenhuma
+                </button>
+                {borderOptions.map((b) => {
+                  const active = profile?.avatar_border === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => selectBorder(b.id)}
+                      title={`Borda: ${b.label}`}
+                      aria-label={`Borda ${b.label}`}
+                      className={cn(
+                        "relative aspect-square rounded-full overflow-hidden transition-all hover:scale-105",
+                        b.borderClass,
+                        active && "scale-105 ring-offset-2 ring-offset-background",
+                      )}
+                    >
+                      <img
+                        src={b.src}
+                        alt={b.label}
+                        width={96}
+                        height={96}
+                        loading="lazy"
+                        className="w-full h-full object-cover opacity-90"
+                      />
+                      {active && (
+                        <span className="absolute inset-0 flex items-center justify-center bg-primary/30">
+                          <Check className="w-5 h-5 text-primary-foreground" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
