@@ -1,53 +1,58 @@
-## Objetivo
-Adicionar uma galeria de **8 avatares prontos** na página de Configurações, permitindo que o aluno escolha uma imagem oficial com um clique — sem passar pela fila de aprovação do admin.
+## 🎨 Recriação dos 13 avatares (1024×1024 PNG)
 
-## Avatares (8 opções)
-1. Homem negro
-2. Mulher negra
-3. Homem japonês
-4. Mulher japonesa
-5. Homem branco sem barba
-6. Homem branco com barba
-7. Mulher branca
-8. Alienígena (amigável, estilo cartoon)
+Estilo unificado: ilustração 3D estilo Memoji/Notion, cabeça+ombros centralizados com folga (sem precisar de recorte), fundo gradiente temático, iluminação consistente. Gerados via `google/gemini-3-pro-image-preview` para qualidade máxima.
 
-## Geração das imagens
-Vou gerar as 8 imagens via IA (estilo ilustração/cartoon consistente, fundo neutro, formato quadrado 512×512 PNG) e salvá-las em `src/assets/avatars/`. Como são assets do bundle, ficam servidas pelo Vite automaticamente — não precisa de upload no Storage.
+**8 humanos (livres para todos):**
+1. Homem negro · 2. Mulher negra · 3. Homem japonês · 4. Mulher japonesa
+5. Homem branco sem barba · 6. Homem branco com barba · 7. Mulher branca · 8. Alienígena humanoide
 
-## Arquivos
-**Criar:**
-- `src/assets/avatars/preset-1-homem-negro.png` … `preset-8-alienigena.png` (8 imagens geradas)
-- `src/lib/presetAvatars.ts` — exporta array com `{ id, label, src }` importando as imagens
+**4 de conquista (ocultos até desbloquear, com borda dourada+glow):**
+- 🦉 Coruja → `secret_night_owl`
+- 👽 Alienígena cósmico → `ultra_omniscient`
+- 🤖 Robô → `ultra_time_mage`
+- 🏴‍☠️ Pirata → `secret_phoenix`
+
+**1 admin (borda platina + coroa, só visível se `isAdmin`):**
+- 👑 Avatar de admin
+
+## 📁 Arquivos
+
+**Criar (13 PNGs):**
+- Sobrescrever `src/assets/avatars/preset-1` … `preset-8` com nova qualidade
+- Novos: `achievement-coruja.png`, `achievement-alienigena-cosmico.png`, `achievement-robo.png`, `achievement-pirata.png`, `admin-coroa.png`
+
+**Criar componente:**
+- `src/components/UserAvatar.tsx` — wrapper de `<Avatar>` que detecta se a `src` é um preset especial e aplica `borderClass`/glow correspondente. Props: `avatarUrl`, `displayName`, `size` (sm/md/lg/xl), `className`.
 
 **Editar:**
-- `src/pages/Configuracoes.tsx` — adicionar nova seção "Ou escolha um avatar pronto" no card "Meu Perfil", logo abaixo do botão "Trocar imagem":
-  - Grid responsivo `grid-cols-4 sm:grid-cols-8 gap-2`
-  - Cada item: botão circular com a imagem; ring primário no avatar atualmente selecionado
-  - Ao clicar: chama `selectPreset(src)` que faz `UPDATE profiles SET avatar_url = src, avatar_pending_url = null, avatar_status = 'approved'` e dá `refreshProfile()` + toast
-
-## Lógica de seleção (presets pulam aprovação)
-```tsx
-const selectPreset = async (url: string) => {
-  if (!profile) return;
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      avatar_url: url,
-      avatar_pending_url: null,
-      avatar_status: "approved",
-      avatar_reviewed_at: new Date().toISOString(),
-    })
-    .eq("id", profile.id);
-  if (error) {
-    toast({ title: "Erro", description: error.message, variant: "destructive" });
-    return;
+- `src/lib/presetAvatars.ts` — nova interface:
+  ```ts
+  interface PresetAvatar {
+    id: string;
+    label: string;
+    src: string;
+    category: "human" | "achievement" | "admin";
+    requiresAchievement?: string;
+    requiresAdmin?: boolean;
+    borderClass?: string; // tailwind ring/glow classes
   }
-  await refreshProfile();
-  toast({ title: "Avatar atualizado!" });
-};
-```
+  ```
+- `src/pages/Configuracoes.tsx`:
+  - Carregar `quiz_attempts` do usuário e calcular `computeAchievements`
+  - Filtrar: humanos sempre visíveis; conquista só se `unlocked`; admin só se `isAdmin`
+  - Renderizar até 3 seções: "Avatares humanos", "Avatares de conquista" (se houver desbloqueado), "Exclusivo Admin" (se isAdmin)
+- Trocar `<Avatar>` por `<UserAvatar>` em:
+  - `src/layouts/AppLayout.tsx` (header)
+  - `src/pages/Ranking.tsx` (linhas do leaderboard)
+  - `src/pages/Admin.tsx` (lista de alunos e pendentes)
+  - `src/pages/Configuracoes.tsx` (preview principal)
 
-Justificativa: presets são imagens oficiais da plataforma — não há risco de conteúdo impróprio, então não faz sentido obrigar revisão manual.
+## 🔒 Visibilidade — OCULTOS até desbloquear
+Avatares de conquista não aparecem na grade até serem desbloqueados (efeito surpresa). Sem cadeado, sem hint.
 
-## Sem mudanças no banco
-Reaproveita a coluna `avatar_url` que já existe. Nenhuma migração necessária.
+## 🌟 Bordas exclusivas (client-side, via `borderClass`)
+- Conquista: `ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)]`
+- Admin: `ring-4 ring-slate-300 shadow-[0_0_24px_rgba(203,213,225,0.7)]` + ícone coroa absoluta no canto
+
+## 🛠️ Sem mudanças no banco
+Continua usando `profiles.avatar_url`. Tudo é lookup client-side.

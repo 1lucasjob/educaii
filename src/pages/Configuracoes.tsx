@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -6,15 +6,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
 import { buildRenewalMailto, daysUntil, planLabel } from "@/lib/plans";
 import PlanBadge from "@/components/PlanBadge";
 import LoyaltyBadge from "@/components/LoyaltyBadge";
-import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2 } from "lucide-react";
+import UserAvatar from "@/components/UserAvatar";
+import { Settings, Check, Trophy, KeyRound, Eye, EyeOff, CreditCard, Calendar, RefreshCw, User as UserIcon, Upload, Trash2, Sparkles, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AvatarCropDialog from "@/components/AvatarCropDialog";
-import { PRESET_AVATARS } from "@/lib/presetAvatars";
+import { PRESET_AVATARS, type PresetAvatar } from "@/lib/presetAvatars";
+import { computeAchievements } from "@/lib/achievements";
 import { cn } from "@/lib/utils";
 
 export default function Configuracoes() {
@@ -32,6 +33,45 @@ export default function Configuracoes() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
+
+  // Carrega tentativas para calcular conquistas desbloqueadas → libera avatares de conquista
+  const [attempts, setAttempts] = useState<Array<{ topic: string; difficulty: string; score: number; created_at: string; time_spent_seconds?: number }>>([]);
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase
+      .from("quiz_attempts")
+      .select("topic,difficulty,score,created_at,time_spent_seconds")
+      .eq("user_id", profile.id)
+      .then(({ data }) => setAttempts((data as any) ?? []));
+  }, [profile?.id]);
+
+  const unlockedAchievements = useMemo(() => {
+    const list = computeAchievements(attempts);
+    return new Set(list.filter((a) => a.unlocked).map((a) => a.id));
+  }, [attempts]);
+
+  const visibleAvatars = useMemo(() => {
+    return PRESET_AVATARS.filter((p) => {
+      if (p.category === "human") return true;
+      if (p.category === "admin") return isAdmin;
+      if (p.category === "achievement") {
+        return p.requiresAchievement ? unlockedAchievements.has(p.requiresAchievement) : true;
+      }
+      return false;
+    });
+  }, [unlockedAchievements, isAdmin]);
+
+  const groupedAvatars = useMemo(() => {
+    const human: PresetAvatar[] = [];
+    const achievement: PresetAvatar[] = [];
+    const admin: PresetAvatar[] = [];
+    visibleAvatars.forEach((a) => {
+      if (a.category === "human") human.push(a);
+      else if (a.category === "achievement") achievement.push(a);
+      else admin.push(a);
+    });
+    return { human, achievement, admin };
+  }, [visibleAvatars]);
 
   const saveDisplayName = async () => {
     if (!profile) return;
@@ -198,12 +238,12 @@ export default function Configuracoes() {
         <h2 className="font-bold flex items-center gap-2 mb-4"><UserIcon className="w-4 h-4 text-primary" /> Meu Perfil</h2>
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <div className="flex flex-col items-center gap-2">
-            <Avatar className="w-24 h-24 border-2 border-border">
-              <AvatarImage src={profile?.avatar_url ?? undefined} alt="Avatar" />
-              <AvatarFallback className="text-2xl">
-                {(profile?.display_name || profile?.email || "?").charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              avatarUrl={profile?.avatar_url}
+              displayName={profile?.display_name}
+              email={profile?.email}
+              size="xl"
+            />
             <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarSelected} />
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar}>
@@ -248,38 +288,126 @@ export default function Configuracoes() {
           </div>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-border">
-          <p className="text-sm font-medium mb-1">Ou escolha um avatar pronto</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            Aplicação imediata, sem precisar de aprovação.
-          </p>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-            {PRESET_AVATARS.map((a) => {
-              const active = profile?.avatar_url === a.src;
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => selectPreset(a.src)}
-                  title={a.label}
-                  aria-label={a.label}
-                  className={cn(
-                    "relative aspect-square rounded-full overflow-hidden border-2 transition-all hover:scale-105",
-                    active ? "border-primary shadow-glow" : "border-border hover:border-primary/50",
-                  )}
-                >
-                  <img
-                    src={a.src}
-                    alt={a.label}
-                    width={128}
-                    height={128}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              );
-            })}
+        <div className="mt-6 pt-5 border-t border-border space-y-5">
+          <div>
+            <p className="text-sm font-medium mb-1">Ou escolha um avatar pronto</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Aplicação imediata, sem precisar de aprovação.
+            </p>
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+              {groupedAvatars.human.map((a) => {
+                const active = profile?.avatar_url === a.src;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => selectPreset(a.src)}
+                    title={a.label}
+                    aria-label={a.label}
+                    className={cn(
+                      "relative aspect-square rounded-full overflow-hidden border-2 transition-all hover:scale-105",
+                      active ? "border-primary shadow-glow" : "border-border hover:border-primary/50",
+                    )}
+                  >
+                    <img
+                      src={a.src}
+                      alt={a.label}
+                      width={128}
+                      height={128}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {groupedAvatars.achievement.length > 0 && (
+            <div>
+              <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                Avatares de conquista
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Desbloqueados pelas suas conquistas — borda dourada exclusiva.
+              </p>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                {groupedAvatars.achievement.map((a) => {
+                  const active = profile?.avatar_url === a.src;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => selectPreset(a.src)}
+                      title={a.label}
+                      aria-label={a.label}
+                      className={cn(
+                        "relative aspect-square rounded-full overflow-hidden transition-all hover:scale-105",
+                        a.borderClass,
+                        active && "scale-105",
+                      )}
+                    >
+                      <img
+                        src={a.src}
+                        alt={a.label}
+                        width={128}
+                        height={128}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                      {active && (
+                        <span className="absolute inset-0 ring-2 ring-primary rounded-full pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {groupedAvatars.admin.length > 0 && (
+            <div>
+              <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                Exclusivo Admin
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Borda platina + coroa — só você vê esta opção.
+              </p>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                {groupedAvatars.admin.map((a) => {
+                  const active = profile?.avatar_url === a.src;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => selectPreset(a.src)}
+                      title={a.label}
+                      aria-label={a.label}
+                      className={cn(
+                        "relative aspect-square rounded-full overflow-hidden transition-all hover:scale-105",
+                        a.borderClass,
+                        active && "scale-105",
+                      )}
+                    >
+                      <img
+                        src={a.src}
+                        alt={a.label}
+                        width={128}
+                        height={128}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                      {active && (
+                        <span className="absolute inset-0 ring-2 ring-primary rounded-full pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 

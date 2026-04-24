@@ -22,6 +22,7 @@ import RenewalBanner from "@/components/RenewalBanner";
 import PlanBadge from "@/components/PlanBadge";
 import LoyaltyBadge from "@/components/LoyaltyBadge";
 import TermsGate from "@/components/TermsGate";
+import UserAvatar from "@/components/UserAvatar";
 import { computeFreeTrial, computePlanWindows } from "@/lib/freeTrial";
 
 const items = [
@@ -189,13 +190,12 @@ export default function AppLayout() {
               )}
               {profile && <PlanBadge plan={profile.plan} isAdmin={isAdmin} size="sm" className="hidden sm:inline-flex" />}
               <div className="hidden md:flex items-center gap-2 min-w-0">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover border border-border" />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[11px] font-semibold text-muted-foreground">
-                    {(profile?.display_name || profile?.email || "?").charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <UserAvatar
+                  avatarUrl={profile?.avatar_url}
+                  displayName={profile?.display_name}
+                  email={profile?.email}
+                  size="xs"
+                />
                 <span className="text-sm truncate max-w-[160px]">
                   {profile?.display_name?.trim() || profile?.email?.split("@")[0]}
                 </span>
