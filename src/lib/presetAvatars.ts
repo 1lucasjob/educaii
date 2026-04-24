@@ -76,6 +76,8 @@ const PLAN_PREMIUM_GOLD_BORDER =
 export const PURPLE_PLAN_TIERS: AccessPlan[] = ["days_90", "days_180", "premium"];
 /** Planos elegíveis para os avatares exclusivos Premium. */
 export const PREMIUM_PLAN_TIERS: AccessPlan[] = ["premium"];
+/** Planos elegíveis para os avatares alienígenas (60 dias ou superior). */
+export const ALIEN_PLAN_TIERS: AccessPlan[] = ["days_60", "days_90", "days_180", "premium"];
 
 export const PRESET_AVATARS: PresetAvatar[] = [
   // ===== Humanos (livres para todos) — pares M/F =====
@@ -89,8 +91,8 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "mulher-branca-cacheada", label: "Mulher branca cabelo cacheado", src: preset13, category: "human" },
   { id: "homem-loiro", label: "Homem loiro", src: preset9, category: "human" },
   { id: "mulher-loira", label: "Mulher loira", src: preset10, category: "human" },
-  { id: "alienigena-masculo", label: "Alienígena másculo", src: preset11, category: "human" },
-  { id: "alienigena-feminina", label: "Alienígena feminina", src: preset12, category: "human" },
+  { id: "alienigena-masculo", label: "Alienígena másculo", src: preset11, category: "plan", requiresPlanIn: ALIEN_PLAN_TIERS },
+  { id: "alienigena-feminina", label: "Alienígena feminina", src: preset12, category: "plan", requiresPlanIn: ALIEN_PLAN_TIERS },
   // Novos presets humanos (recortados da nova grade de avatares)
   { id: "homem-dreads", label: "Homem com dreads", src: preset14, category: "human" },
   { id: "mulher-afro", label: "Mulher afro", src: preset15, category: "human" },
@@ -104,8 +106,8 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "mulher-ruiva", label: "Mulher ruiva", src: preset23, category: "human" },
   { id: "homem-negro-barba", label: "Homem negro com barba", src: preset24, category: "human" },
   { id: "mulher-asiatica", label: "Mulher asiática", src: preset25, category: "human" },
-  // Alienígena clássico (legado, mantido por compatibilidade com avatares já escolhidos)
-  { id: "alienigena-humano", label: "Alienígena clássico", src: preset8, category: "human" },
+  // Alienígena clássico (legado, mantido por compatibilidade — restrito a planos 60+)
+  { id: "alienigena-humano", label: "Alienígena clássico", src: preset8, category: "plan", requiresPlanIn: ALIEN_PLAN_TIERS },
 
   // ===== Conquistas (ocultos até desbloquear, exceto para admin) — pares M/F =====
   {
