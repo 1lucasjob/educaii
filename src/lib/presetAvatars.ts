@@ -76,6 +76,8 @@ const PLAN_PREMIUM_GOLD_BORDER =
 export const PURPLE_PLAN_TIERS: AccessPlan[] = ["days_90", "days_180", "premium"];
 /** Planos elegíveis para os avatares exclusivos Premium. */
 export const PREMIUM_PLAN_TIERS: AccessPlan[] = ["premium"];
+/** Planos elegíveis para os avatares alienígenas (60 dias ou superior). */
+export const ALIEN_PLAN_TIERS: AccessPlan[] = ["days_60", "days_90", "days_180", "premium"];
 
 export const PRESET_AVATARS: PresetAvatar[] = [
   // ===== Humanos (livres para todos) — pares M/F =====
