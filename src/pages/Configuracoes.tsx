@@ -34,6 +34,45 @@ export default function Configuracoes() {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
 
+  // Carrega tentativas para calcular conquistas desbloqueadas → libera avatares de conquista
+  const [attempts, setAttempts] = useState<Array<{ topic: string; difficulty: string; score: number; created_at: string; time_spent_seconds?: number }>>([]);
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase
+      .from("quiz_attempts")
+      .select("topic,difficulty,score,created_at,time_spent_seconds")
+      .eq("user_id", profile.id)
+      .then(({ data }) => setAttempts((data as any) ?? []));
+  }, [profile?.id]);
+
+  const unlockedAchievements = useMemo(() => {
+    const list = computeAchievements(attempts);
+    return new Set(list.filter((a) => a.unlocked).map((a) => a.id));
+  }, [attempts]);
+
+  const visibleAvatars = useMemo(() => {
+    return PRESET_AVATARS.filter((p) => {
+      if (p.category === "human") return true;
+      if (p.category === "admin") return isAdmin;
+      if (p.category === "achievement") {
+        return p.requiresAchievement ? unlockedAchievements.has(p.requiresAchievement) : true;
+      }
+      return false;
+    });
+  }, [unlockedAchievements, isAdmin]);
+
+  const groupedAvatars = useMemo(() => {
+    const human: PresetAvatar[] = [];
+    const achievement: PresetAvatar[] = [];
+    const admin: PresetAvatar[] = [];
+    visibleAvatars.forEach((a) => {
+      if (a.category === "human") human.push(a);
+      else if (a.category === "achievement") achievement.push(a);
+      else admin.push(a);
+    });
+    return { human, achievement, admin };
+  }, [visibleAvatars]);
+
   const saveDisplayName = async () => {
     if (!profile) return;
     const clean = displayName.trim().slice(0, 24);
