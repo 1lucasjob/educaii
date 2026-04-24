@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock, ShieldCheck } from "lucide-react";
+import { Lock, Unlock, Brain, Sparkles, Target, Zap, Award, Quote, Copy, Check, RotateCcw, Trash2, Clock, ShieldCheck, AlertTriangle, BookMarked } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTrial";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,6 +31,64 @@ function stripMarkdown(s: string): string {
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+const PONTOS_CRITICOS_RE = /^PONTOS\s+CR[IÍ]TICOS\s+PARA\s+PROVA\s+OU\s+CONCURSO\s*:?\s*$/i;
+const NORMAS_RE = /^NORMAS\s+REGULAMENTADORAS\s+APLIC[AÁ]VEIS\s+AO\s+CASO\s*:?\s*$/i;
+const SECTION_HEADER_RE = /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9 ()\/\-]{3,}:\s*$/;
+
+/**
+ * Separa do resumo as seções "PONTOS CRÍTICOS PARA PROVA OU CONCURSO" e
+ * "NORMAS REGULAMENTADORAS APLICÁVEIS AO CASO" para que sejam renderizadas
+ * destacadas e SEMPRE no final, depois da interpretação do texto.
+ */
+function splitSummaryHighlights(raw: string): {
+  body: string;
+  pontosCriticos: string | null;
+  normas: string | null;
+} {
+  const text = stripMarkdown(raw);
+  const lines = text.split("\n");
+
+  const isOtherHeader = (t: string) =>
+    SECTION_HEADER_RE.test(t) && !PONTOS_CRITICOS_RE.test(t) && !NORMAS_RE.test(t);
+
+  const extractFrom = (arr: string[], idx: number): string => {
+    const out: string[] = [];
+    for (let i = idx + 1; i < arr.length; i++) {
+      const t = arr[i].trim();
+      if (t && isOtherHeader(t)) break;
+      out.push(arr[i]);
+    }
+    return out.join("\n").trim();
+  };
+
+  const pIdx = lines.findIndex((l) => PONTOS_CRITICOS_RE.test(l.trim()));
+  const nIdx = lines.findIndex((l) => NORMAS_RE.test(l.trim()));
+  const pontosCriticos = pIdx >= 0 ? extractFrom(lines, pIdx) : null;
+  const normas = nIdx >= 0 ? extractFrom(lines, nIdx) : null;
+
+  const removeSection = (src: string, headerRe: RegExp): string => {
+    const arr = src.split("\n");
+    const idx = arr.findIndex((l) => headerRe.test(l.trim()));
+    if (idx < 0) return src;
+    let end = arr.length;
+    for (let i = idx + 1; i < arr.length; i++) {
+      const t = arr[i].trim();
+      if (t && isOtherHeader(t)) {
+        end = i;
+        break;
+      }
+    }
+    arr.splice(idx, end - idx);
+    return arr.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  };
+
+  let body = text;
+  body = removeSection(body, PONTOS_CRITICOS_RE);
+  body = removeSection(body, NORMAS_RE);
+
+  return { body, pontosCriticos, normas };
 }
 
 export default function Estudar() {
@@ -460,12 +518,50 @@ export default function Estudar() {
         </div>
       </Card>
 
-      {summary && (
+      {summary && (() => {
+        const { body, pontosCriticos, normas } = splitSummaryHighlights(summary);
+        return (
         <Card className="p-6 animate-fade-in">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain className="text-primary" /> Resumo Técnico</h3>
           <div className="max-w-none whitespace-pre-line text-sm leading-relaxed text-foreground space-y-1">
-            {stripMarkdown(summary)}
+            {body}
           </div>
+
+          {(pontosCriticos || normas) && (
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Reforço para a prova
+                </span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+
+              {pontosCriticos && (
+                <div className="rounded-lg border-2 border-warning/50 bg-warning/5 p-4">
+                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-warning-foreground">
+                    <AlertTriangle className="w-5 h-5 text-warning" />
+                    Pontos críticos para prova ou concurso
+                  </h4>
+                  <div className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+                    {pontosCriticos}
+                  </div>
+                </div>
+              )}
+
+              {normas && (
+                <div className="rounded-lg border-2 border-primary/40 bg-primary/5 p-4">
+                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-primary">
+                    <BookMarked className="w-5 h-5" />
+                    Normas regulamentadoras aplicáveis ao caso
+                  </h4>
+                  <div className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+                    {normas}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className={`grid ${hardUnlocked && userHasExpertAccess ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-3 mt-6`}>
             <Button onClick={() => startQuiz("easy")} variant="outline" className="border-primary/40 hover:bg-primary/10 h-14">
@@ -508,7 +604,8 @@ export default function Estudar() {
             )}
           </div>
         </Card>
-      )}
+        );
+      })()}
 
       {summary && sourceText && canExtractHighlights && (
         <Card className="p-6 animate-fade-in">

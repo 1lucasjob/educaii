@@ -21,7 +21,7 @@ REGRA CRÍTICA DE FORMATAÇÃO — TEXTO PLANO PARA LEITURA POR IA (TTS):
 - Entre cada SEÇÃO deixe UMA linha em branco. Entre cada ITEM numerado deixe UMA linha em branco. Isso garante respiro visual e pausas naturais para o TTS.
 - Frases diretas, completas, com pontuação clara. Nada de símbolos decorativos.
 
-ESTRUTURA OBRIGATÓRIA do resumo (texto plano, exatamente nesta ordem):
+ESTRUTURA OBRIGATÓRIA do resumo (texto plano, EXATAMENTE nesta ordem — primeiro a INTERPRETAÇÃO completa do texto do aluno, e SOMENTE no final os blocos de prova/normas):
 
 VISÃO GERAL DO TEMA:
 (um parágrafo reformulando com precisão técnica o que o aluno descreveu)
@@ -35,14 +35,14 @@ APLICAÇÃO PRÁTICA NO CONTEXTO DESCRITO:
 RISCOS E MEDIDAS DE CONTROLE PERTINENTES:
 (itens numerados, na hierarquia: eliminação, depois EPC, depois EPI)
 
-PONTOS CRÍTICOS PARA PROVA OU CONCURSO:
-(itens numerados com armadilhas de banca, pegadinhas e detalhes técnicos sobre ESTE tema)
-
-NORMAS REGULAMENTADORAS APLICÁVEIS AO CASO:
-(itens numerados citando apenas as NRs diretamente relacionadas, com itens e subitens quando possível)
-
 OBSERVAÇÕES DO PROFESSOR:
 (um parágrafo curto, máximo 4 linhas, em tom de orientação acadêmica — aqui e somente aqui você pode mencionar brevemente temas correlatos, conexões com outras NRs ou um comentário pessoal de mestre. Comece com "Vale a pena, aluno, observar que…")
+
+PONTOS CRÍTICOS PARA PROVA OU CONCURSO:
+(itens numerados com armadilhas de banca, pegadinhas e detalhes técnicos sobre ESTE tema. Esta seção DEVE ser a penúltima do resumo.)
+
+NORMAS REGULAMENTADORAS APLICÁVEIS AO CASO:
+(itens numerados citando apenas as NRs diretamente relacionadas, com itens e subitens quando possível. Esta seção DEVE ser a ÚLTIMA do resumo, fechando o material.)
 
 Linguagem: técnica, precisa, em português brasileiro. Sem rodeios. Sem floreios. Sem Markdown. Rigor de cátedra.`;
 
