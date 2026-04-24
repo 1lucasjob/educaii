@@ -518,12 +518,50 @@ export default function Estudar() {
         </div>
       </Card>
 
-      {summary && (
+      {summary && (() => {
+        const { body, pontosCriticos, normas } = splitSummaryHighlights(summary);
+        return (
         <Card className="p-6 animate-fade-in">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain className="text-primary" /> Resumo Técnico</h3>
           <div className="max-w-none whitespace-pre-line text-sm leading-relaxed text-foreground space-y-1">
-            {stripMarkdown(summary)}
+            {body}
           </div>
+
+          {(pontosCriticos || normas) && (
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Reforço para a prova
+                </span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+
+              {pontosCriticos && (
+                <div className="rounded-lg border-2 border-warning/50 bg-warning/5 p-4">
+                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-warning-foreground">
+                    <AlertTriangle className="w-5 h-5 text-warning" />
+                    Pontos críticos para prova ou concurso
+                  </h4>
+                  <div className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+                    {pontosCriticos}
+                  </div>
+                </div>
+              )}
+
+              {normas && (
+                <div className="rounded-lg border-2 border-primary/40 bg-primary/5 p-4">
+                  <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-primary">
+                    <BookMarked className="w-5 h-5" />
+                    Normas regulamentadoras aplicáveis ao caso
+                  </h4>
+                  <div className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+                    {normas}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className={`grid ${hardUnlocked && userHasExpertAccess ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-3 mt-6`}>
             <Button onClick={() => startQuiz("easy")} variant="outline" className="border-primary/40 hover:bg-primary/10 h-14">
