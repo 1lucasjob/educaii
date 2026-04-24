@@ -15,6 +15,11 @@ import achAlienCosmico from "@/assets/avatars/achievement-alienigena-cosmico.png
 import achRobo from "@/assets/avatars/achievement-robo.png";
 import achPirata from "@/assets/avatars/achievement-pirata.png";
 import achFenix from "@/assets/avatars/achievement-fenix.png";
+import achCorujaF from "@/assets/avatars/achievement-coruja-feminina.png";
+import achAlienCosmicoF from "@/assets/avatars/achievement-alienigena-cosmico-feminina.png";
+import achRoboF from "@/assets/avatars/achievement-robo-feminina.png";
+import achPirataF from "@/assets/avatars/achievement-pirata-feminina.png";
+import achFenixF from "@/assets/avatars/achievement-fenix-feminina.png";
 import adminCoroa from "@/assets/avatars/admin-coroa.png";
 import planAlienMasc from "@/assets/avatars/plan-alien-masculino.png";
 import type { AccessPlan } from "@/contexts/AuthContext";
@@ -100,6 +105,47 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     id: "ach-fenix",
     label: "Fênix",
     src: achFenix,
+    category: "achievement",
+    requiresAchievement: "secret_phoenix",
+    borderClass: PHOENIX_BORDER,
+  },
+  // ===== Versões femininas das conquistas =====
+  {
+    id: "ach-coruja-f",
+    label: "Coruja Noturna (feminina)",
+    src: achCorujaF,
+    category: "achievement",
+    requiresAchievement: "secret_night_owl",
+    borderClass: ACHIEVEMENT_BORDER,
+  },
+  {
+    id: "ach-alien-cosmico-f",
+    label: "Alienígena Cósmica (feminina)",
+    src: achAlienCosmicoF,
+    category: "achievement",
+    requiresAchievement: "ultra_omniscient",
+    borderClass: ACHIEVEMENT_BORDER,
+  },
+  {
+    id: "ach-robo-f",
+    label: "Robô (feminina)",
+    src: achRoboF,
+    category: "achievement",
+    requiresAchievement: "ultra_time_mage",
+    borderClass: ACHIEVEMENT_BORDER,
+  },
+  {
+    id: "ach-pirata-f",
+    label: "Pirata (feminina)",
+    src: achPirataF,
+    category: "achievement",
+    requiresAchievement: "secret_marathon",
+    borderClass: ACHIEVEMENT_BORDER,
+  },
+  {
+    id: "ach-fenix-f",
+    label: "Fênix (feminina)",
+    src: achFenixF,
     category: "achievement",
     requiresAchievement: "secret_phoenix",
     borderClass: PHOENIX_BORDER,
