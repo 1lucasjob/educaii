@@ -33,6 +33,64 @@ function stripMarkdown(s: string): string {
     .trim();
 }
 
+const PONTOS_CRITICOS_RE = /^PONTOS\s+CR[IÍ]TICOS\s+PARA\s+PROVA\s+OU\s+CONCURSO\s*:?\s*$/i;
+const NORMAS_RE = /^NORMAS\s+REGULAMENTADORAS\s+APLIC[AÁ]VEIS\s+AO\s+CASO\s*:?\s*$/i;
+const SECTION_HEADER_RE = /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9 ()\/\-]{3,}:\s*$/;
+
+/**
+ * Separa do resumo as seções "PONTOS CRÍTICOS PARA PROVA OU CONCURSO" e
+ * "NORMAS REGULAMENTADORAS APLICÁVEIS AO CASO" para que sejam renderizadas
+ * destacadas e SEMPRE no final, depois da interpretação do texto.
+ */
+function splitSummaryHighlights(raw: string): {
+  body: string;
+  pontosCriticos: string | null;
+  normas: string | null;
+} {
+  const text = stripMarkdown(raw);
+  const lines = text.split("\n");
+
+  const isOtherHeader = (t: string) =>
+    SECTION_HEADER_RE.test(t) && !PONTOS_CRITICOS_RE.test(t) && !NORMAS_RE.test(t);
+
+  const extractFrom = (arr: string[], idx: number): string => {
+    const out: string[] = [];
+    for (let i = idx + 1; i < arr.length; i++) {
+      const t = arr[i].trim();
+      if (t && isOtherHeader(t)) break;
+      out.push(arr[i]);
+    }
+    return out.join("\n").trim();
+  };
+
+  const pIdx = lines.findIndex((l) => PONTOS_CRITICOS_RE.test(l.trim()));
+  const nIdx = lines.findIndex((l) => NORMAS_RE.test(l.trim()));
+  const pontosCriticos = pIdx >= 0 ? extractFrom(lines, pIdx) : null;
+  const normas = nIdx >= 0 ? extractFrom(lines, nIdx) : null;
+
+  const removeSection = (src: string, headerRe: RegExp): string => {
+    const arr = src.split("\n");
+    const idx = arr.findIndex((l) => headerRe.test(l.trim()));
+    if (idx < 0) return src;
+    let end = arr.length;
+    for (let i = idx + 1; i < arr.length; i++) {
+      const t = arr[i].trim();
+      if (t && isOtherHeader(t)) {
+        end = i;
+        break;
+      }
+    }
+    arr.splice(idx, end - idx);
+    return arr.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  };
+
+  let body = text;
+  body = removeSection(body, PONTOS_CRITICOS_RE);
+  body = removeSection(body, NORMAS_RE);
+
+  return { body, pontosCriticos, normas };
+}
+
 export default function Estudar() {
   const { profile, isAdmin, refreshProfile } = useAuth();
   const { toast } = useToast();
