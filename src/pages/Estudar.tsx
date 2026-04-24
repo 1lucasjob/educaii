@@ -525,13 +525,25 @@ export default function Estudar() {
       </Card>
 
       {summary && (() => {
-        const { body, pontosCriticos, normas } = splitSummaryHighlights(summary);
+        const { body, pontosCriticos, normas, observacoes } = splitSummaryHighlights(summary);
         return (
         <Card className="p-6 animate-fade-in">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Brain className="text-primary" /> Resumo Técnico</h3>
           <div className="max-w-none whitespace-pre-line text-sm leading-relaxed text-foreground space-y-1">
             {body}
           </div>
+
+          {observacoes && (
+            <div className="mt-6 rounded-lg border-2 border-accent/60 bg-accent/10 p-4 shadow-glow">
+              <h4 className="font-bold text-base mb-2 flex items-center gap-2 text-accent-foreground">
+                <GraduationCap className="w-5 h-5 text-accent-foreground" />
+                Observações do Professor
+              </h4>
+              <div className="whitespace-pre-line text-sm leading-relaxed text-foreground font-medium">
+                {observacoes}
+              </div>
+            </div>
+          )}
 
           {(pontosCriticos || normas) && (
             <div className="mt-6 space-y-4">
