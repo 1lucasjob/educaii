@@ -6,6 +6,9 @@ import preset5 from "@/assets/avatars/preset-5-homem-branco-sem-barba.png";
 import preset6 from "@/assets/avatars/preset-6-homem-branco-com-barba.png";
 import preset7 from "@/assets/avatars/preset-7-mulher-branca.png";
 import preset8 from "@/assets/avatars/preset-8-alienigena.png";
+import preset9 from "@/assets/avatars/preset-9-homem-loiro.png";
+import preset10 from "@/assets/avatars/preset-10-mulher-loira.png";
+import preset11 from "@/assets/avatars/preset-11-alienigena-masculo.png";
 import achCoruja from "@/assets/avatars/achievement-coruja.png";
 import achAlienCosmico from "@/assets/avatars/achievement-alienigena-cosmico.png";
 import achRobo from "@/assets/avatars/achievement-robo.png";
@@ -54,6 +57,9 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "homem-branco-cb", label: "Homem branco com barba", src: preset6, category: "human" },
   { id: "mulher-branca", label: "Mulher branca", src: preset7, category: "human" },
   { id: "alienigena-humano", label: "Alienígena", src: preset8, category: "human" },
+  { id: "homem-loiro", label: "Homem loiro", src: preset9, category: "human" },
+  { id: "mulher-loira", label: "Mulher loira", src: preset10, category: "human" },
+  { id: "alienigena-masculo", label: "Alienígena másculo", src: preset11, category: "human" },
 
   // ===== Conquistas (ocultos até desbloquear, exceto para admin) =====
   {
