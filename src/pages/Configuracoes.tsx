@@ -57,20 +57,26 @@ export default function Configuracoes() {
       if (p.category === "achievement") {
         return p.requiresAchievement ? unlockedAchievements.has(p.requiresAchievement) : true;
       }
+      if (p.category === "plan") {
+        if (isAdmin) return true;
+        return !!(p.requiresPlanIn && profile?.plan && p.requiresPlanIn.includes(profile.plan));
+      }
       return false;
     });
-  }, [unlockedAchievements, isAdmin]);
+  }, [unlockedAchievements, isAdmin, profile?.plan]);
 
   const groupedAvatars = useMemo(() => {
     const human: PresetAvatar[] = [];
     const achievement: PresetAvatar[] = [];
+    const plan: PresetAvatar[] = [];
     const admin: PresetAvatar[] = [];
     visibleAvatars.forEach((a) => {
       if (a.category === "human") human.push(a);
       else if (a.category === "achievement") achievement.push(a);
+      else if (a.category === "plan") plan.push(a);
       else admin.push(a);
     });
-    return { human, achievement, admin };
+    return { human, achievement, plan, admin };
   }, [visibleAvatars]);
 
   const saveDisplayName = async () => {
