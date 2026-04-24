@@ -91,8 +91,8 @@ export const PRESET_AVATARS: PresetAvatar[] = [
   { id: "mulher-branca-cacheada", label: "Mulher branca cabelo cacheado", src: preset13, category: "human" },
   { id: "homem-loiro", label: "Homem loiro", src: preset9, category: "human" },
   { id: "mulher-loira", label: "Mulher loira", src: preset10, category: "human" },
-  { id: "alienigena-masculo", label: "Alienígena másculo", src: preset11, category: "human" },
-  { id: "alienigena-feminina", label: "Alienígena feminina", src: preset12, category: "human" },
+  { id: "alienigena-masculo", label: "Alienígena másculo", src: preset11, category: "plan", requiresPlanIn: ALIEN_PLAN_TIERS },
+  { id: "alienigena-feminina", label: "Alienígena feminina", src: preset12, category: "plan", requiresPlanIn: ALIEN_PLAN_TIERS },
   // Novos presets humanos (recortados da nova grade de avatares)
   { id: "homem-dreads", label: "Homem com dreads", src: preset14, category: "human" },
   { id: "mulher-afro", label: "Mulher afro", src: preset15, category: "human" },
