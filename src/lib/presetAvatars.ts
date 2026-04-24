@@ -11,8 +11,10 @@ import achAlienCosmico from "@/assets/avatars/achievement-alienigena-cosmico.png
 import achRobo from "@/assets/avatars/achievement-robo.png";
 import achPirata from "@/assets/avatars/achievement-pirata.png";
 import adminCoroa from "@/assets/avatars/admin-coroa.png";
+import planAlienMasc from "@/assets/avatars/plan-alien-masculino.png";
+import type { AccessPlan } from "@/contexts/AuthContext";
 
-export type AvatarCategory = "human" | "achievement" | "admin";
+export type AvatarCategory = "human" | "achievement" | "admin" | "plan";
 
 export interface PresetAvatar {
   id: string;
@@ -23,6 +25,8 @@ export interface PresetAvatar {
   requiresAchievement?: string;
   /** se true, só aparece para admins */
   requiresAdmin?: boolean;
+  /** planos mínimos elegíveis (para category "plan") */
+  requiresPlanIn?: AccessPlan[];
   /** classes Tailwind extras aplicadas no ring/glow exclusivo */
   borderClass?: string;
 }
@@ -31,6 +35,11 @@ const ACHIEVEMENT_BORDER =
   "ring-4 ring-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)]";
 const ADMIN_BORDER =
   "ring-4 ring-slate-200 shadow-[0_0_24px_rgba(203,213,225,0.85)]";
+const PLAN_PURPLE_BORDER =
+  "ring-4 ring-purple-500 shadow-[0_0_22px_rgba(168,85,247,0.7)]";
+
+/** Planos elegíveis para a borda roxa (90 dias ou superior). */
+export const PURPLE_PLAN_TIERS: AccessPlan[] = ["days_90", "days_180", "premium"];
 
 export const PRESET_AVATARS: PresetAvatar[] = [
   // ===== Humanos (livres para todos) =====
@@ -77,6 +86,16 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     borderClass: ACHIEVEMENT_BORDER,
   },
 
+  // ===== Plano 90 dias ou superior (borda roxa exclusiva) =====
+  {
+    id: "plan-alien-masc",
+    label: "Alienígena Humanoide",
+    src: planAlienMasc,
+    category: "plan",
+    requiresPlanIn: PURPLE_PLAN_TIERS,
+    borderClass: PLAN_PURPLE_BORDER,
+  },
+
   // ===== Admin =====
   {
     id: "admin-coroa",
@@ -92,4 +111,10 @@ export const PRESET_AVATARS: PresetAvatar[] = [
 export function findPresetBySrc(url: string | null | undefined): PresetAvatar | undefined {
   if (!url) return undefined;
   return PRESET_AVATARS.find((p) => p.src === url);
+}
+
+/** Verifica se um plano dá direito à borda roxa. */
+export function planQualifiesForPurple(plan: AccessPlan | null | undefined): boolean {
+  if (!plan) return false;
+  return PURPLE_PLAN_TIERS.includes(plan);
 }

@@ -57,20 +57,26 @@ export default function Configuracoes() {
       if (p.category === "achievement") {
         return p.requiresAchievement ? unlockedAchievements.has(p.requiresAchievement) : true;
       }
+      if (p.category === "plan") {
+        if (isAdmin) return true;
+        return !!(p.requiresPlanIn && profile?.plan && p.requiresPlanIn.includes(profile.plan));
+      }
       return false;
     });
-  }, [unlockedAchievements, isAdmin]);
+  }, [unlockedAchievements, isAdmin, profile?.plan]);
 
   const groupedAvatars = useMemo(() => {
     const human: PresetAvatar[] = [];
     const achievement: PresetAvatar[] = [];
+    const plan: PresetAvatar[] = [];
     const admin: PresetAvatar[] = [];
     visibleAvatars.forEach((a) => {
       if (a.category === "human") human.push(a);
       else if (a.category === "achievement") achievement.push(a);
+      else if (a.category === "plan") plan.push(a);
       else admin.push(a);
     });
-    return { human, achievement, admin };
+    return { human, achievement, plan, admin };
   }, [visibleAvatars]);
 
   const saveDisplayName = async () => {
@@ -334,6 +340,49 @@ export default function Configuracoes() {
               </p>
               <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
                 {groupedAvatars.achievement.map((a) => {
+                  const active = profile?.avatar_url === a.src;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => selectPreset(a.src)}
+                      title={a.label}
+                      aria-label={a.label}
+                      className={cn(
+                        "relative aspect-square rounded-full overflow-hidden transition-all hover:scale-105",
+                        a.borderClass,
+                        active && "scale-105",
+                      )}
+                    >
+                      <img
+                        src={a.src}
+                        alt={a.label}
+                        width={128}
+                        height={128}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                      {active && (
+                        <span className="absolute inset-0 ring-2 ring-primary rounded-full pointer-events-none" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {groupedAvatars.plan.length > 0 && (
+            <div>
+              <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                Exclusivos do plano 90 dias ou superior
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Borda roxa exclusiva para assinantes dos planos 90/180 dias e Premium.
+              </p>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                {groupedAvatars.plan.map((a) => {
                   const active = profile?.avatar_url === a.src;
                   return (
                     <button
