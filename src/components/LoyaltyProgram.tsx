@@ -217,7 +217,6 @@ export default function LoyaltyProgram({ startDate, className }: Props) {
         {LOYALTY_TIERS.map((tier) => {
           const unlocked = tier.months <= userMonths;
           const Icon = tier.Icon;
-          const Extra = tier.extraIcon;
           return (
             <div
               key={tier.months}
@@ -231,14 +230,22 @@ export default function LoyaltyProgram({ startDate, className }: Props) {
                 className={cn(
                   "relative w-12 h-12 rounded-full flex items-center justify-center",
                   tier.bgClass,
+                  tier.ringClass,
                   unlocked ? tier.glowClass : "shadow-none",
                   unlocked && tier.pulse && "animate-pulse",
                 )}
               >
-                <Icon className={cn("w-6 h-6", tier.iconClass)} strokeWidth={2} />
-                {Extra && unlocked && (
-                  <Extra className="absolute -bottom-0.5 -right-0.5 w-3 h-3 text-cyan-200 bg-background rounded-full p-0.5 border border-cyan-400/50" />
+                {/* Ornate dotted halo for upper tiers */}
+                {unlocked && tier.ornate && (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute inset-[-3px] rounded-full pointer-events-none",
+                      "border border-dashed border-white/25",
+                    )}
+                  />
                 )}
+                <Icon className={cn("w-6 h-6", tier.iconClass)} />
                 {!unlocked && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-background border border-border flex items-center justify-center">
                     <Lock className="w-2.5 h-2.5 text-muted-foreground" />
