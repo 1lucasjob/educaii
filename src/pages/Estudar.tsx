@@ -252,7 +252,7 @@ export default function Estudar() {
   const meetsExpert = topicLength >= MIN_CHARS_EXPERT || isAdmin;
   const titleValid = titleLength >= TITLE_MIN && titleLength <= TITLE_MAX;
   const userHasExpertAccess = expertActive({ plan: profile?.plan, expertUnlockedUntil: profile?.expert_unlocked_until, isAdmin }) || fromFramework;
-  const canExtractHighlights = highlightsActive({ plan: profile?.plan, highlightsUnlockedUntil: profile?.highlights_unlocked_until, isAdmin }) || fromFramework;
+  const canExtractHighlights = highlightsActive({ plan: profile?.plan, createdAt: profile?.created_at, highlightsUnlockedUntil: profile?.highlights_unlocked_until, isAdmin }) || fromFramework;
   const highlightsViaAdmin =
     !isAdmin &&
     !fromFramework &&

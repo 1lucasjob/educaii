@@ -1,7 +1,7 @@
 import type { AccessPlan } from "@/contexts/AuthContext";
 
 const DAY_MS = 86_400_000;
-const CHAT_HARD_TRIAL_DAYS = 15;
+const CHAT_HARD_TRIAL_DAYS = 30;
 const BASE_TRIAL_DAYS = 30;
 
 // days_60 plan: chat = 15 days, hard simulado = 10 days from activation
@@ -116,13 +116,19 @@ export function performanceAnalysisActive(opts: {
  */
 export function highlightsActive(opts: {
   plan: AccessPlan | null | undefined;
+  createdAt?: string | null | undefined;
   highlightsUnlockedUntil: string | null | undefined;
   isAdmin?: boolean;
 }): boolean {
   if (opts.isAdmin) return true;
   if (opts.plan && ["days_60", "days_90", "days_180", "premium"].includes(opts.plan)) return true;
   if (opts.highlightsUnlockedUntil) {
-    return new Date(opts.highlightsUnlockedUntil).getTime() > Date.now();
+    if (new Date(opts.highlightsUnlockedUntil).getTime() > Date.now()) return true;
+  }
+  // Plano FREE: extração liberada nos primeiros 30 dias após o cadastro
+  if (opts.plan === "free" && opts.createdAt) {
+    const days = Math.floor((Date.now() - new Date(opts.createdAt).getTime()) / DAY_MS);
+    return days < 30;
   }
   return false;
 }
