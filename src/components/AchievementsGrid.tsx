@@ -87,7 +87,7 @@ export function AchievementsGrid({ items, revealSecrets = false, isOwner = false
             )}
             <div className="w-full mt-auto space-y-1">
               <Progress value={isHiddenSecret ? 0 : a.progress} className="h-1.5" />
-              {!isHiddenSecret && revealSecrets && (
+              {!isHiddenSecret && showCriteria && (
                 <p className="text-[10px] text-muted-foreground">
                   {a.hint}
                 </p>
