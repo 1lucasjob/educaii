@@ -20,6 +20,7 @@ export function AchievementsGrid({ items, revealSecrets = false, isOwner = false
         const Icon = a.icon;
         const isHiddenSecret = !!a.secret && !a.unlocked && !revealSecrets;
         const showSecretBadge = !!a.secret && (a.unlocked || revealSecrets);
+        const showCriteria = revealSecrets || (isOwner && a.unlocked);
 
         return (
           <Card
