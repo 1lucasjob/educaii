@@ -80,7 +80,7 @@ export function AchievementsGrid({ items, revealSecrets = false, isOwner = false
             <p className="font-semibold text-sm leading-tight">
               {a.title}
             </p>
-            {!isHiddenSecret && revealSecrets && (
+            {!isHiddenSecret && showCriteria && (
               <p className="text-[11px] text-muted-foreground leading-tight">
                 {a.description}
               </p>
