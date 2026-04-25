@@ -1,7 +1,7 @@
 import type { AccessPlan } from "@/contexts/AuthContext";
 
 const DAY_MS = 86_400_000;
-const CHAT_HARD_TRIAL_DAYS = 15;
+const CHAT_HARD_TRIAL_DAYS = 30;
 const BASE_TRIAL_DAYS = 30;
 
 // days_60 plan: chat = 15 days, hard simulado = 10 days from activation
