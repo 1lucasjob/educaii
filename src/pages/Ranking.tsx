@@ -271,7 +271,7 @@ export default function Ranking() {
                     {unlockedCount}/{ach.length} desbloqueadas
                   </span>
                 </div>
-                <AchievementsGrid items={ach} revealSecrets={isAdmin} />
+                <AchievementsGrid items={ach} revealSecrets={isAdmin} isOwner={selectedId === user?.id} />
               </>
             );
           })()}

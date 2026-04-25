@@ -9,15 +9,18 @@ interface Props {
   items: Achievement[];
   /** When true, locked secret achievements are revealed (admin view). */
   revealSecrets?: boolean;
+  /** When true, the viewer is the owner of these achievements — show criteria for unlocked ones. */
+  isOwner?: boolean;
 }
 
-export function AchievementsGrid({ items, revealSecrets = false }: Props) {
+export function AchievementsGrid({ items, revealSecrets = false, isOwner = false }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {items.map((a) => {
         const Icon = a.icon;
         const isHiddenSecret = !!a.secret && !a.unlocked && !revealSecrets;
         const showSecretBadge = !!a.secret && (a.unlocked || revealSecrets);
+        const showCriteria = revealSecrets || (isOwner && a.unlocked);
 
         return (
           <Card
@@ -77,14 +80,14 @@ export function AchievementsGrid({ items, revealSecrets = false }: Props) {
             <p className="font-semibold text-sm leading-tight">
               {a.title}
             </p>
-            {!isHiddenSecret && revealSecrets && (
+            {!isHiddenSecret && showCriteria && (
               <p className="text-[11px] text-muted-foreground leading-tight">
                 {a.description}
               </p>
             )}
             <div className="w-full mt-auto space-y-1">
               <Progress value={isHiddenSecret ? 0 : a.progress} className="h-1.5" />
-              {!isHiddenSecret && revealSecrets && (
+              {!isHiddenSecret && showCriteria && (
                 <p className="text-[10px] text-muted-foreground">
                   {a.hint}
                 </p>

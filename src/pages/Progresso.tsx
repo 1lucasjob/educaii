@@ -197,7 +197,7 @@ export default function Progresso() {
             {unlockedCount}/{achievements.length} desbloqueadas
           </span>
         </div>
-        <AchievementsGrid items={normalAchievements} revealSecrets={isAdmin} />
+        <AchievementsGrid items={normalAchievements} revealSecrets={isAdmin} isOwner={true} />
       </Card>
 
       {showSecretSection && (
@@ -218,7 +218,7 @@ export default function Progresso() {
           <p className="text-xs text-muted-foreground mb-4">
             Conquistas raras e desafiadoras — algumas exigem maestria, velocidade ou persistência fora do comum.
           </p>
-          <AchievementsGrid items={secretAchievements} revealSecrets={isAdmin} />
+          <AchievementsGrid items={secretAchievements} revealSecrets={isAdmin} isOwner={true} />
         </Card>
       )}
 
