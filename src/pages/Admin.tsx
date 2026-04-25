@@ -362,9 +362,6 @@ export default function Admin() {
                     tier.pulse && "animate-pulse",
                   )}
                 >
-                  {tier.ornate && (
-                    <span aria-hidden className="absolute inset-[-3px] rounded-full pointer-events-none border border-dashed border-white/25" />
-                  )}
                   <Icon className={cn("w-7 h-7", tier.iconClass)} />
                 </div>
                 <p className={cn("text-[11px] leading-tight w-full", tier.titleClass ?? "font-medium text-foreground")}>
