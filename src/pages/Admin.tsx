@@ -348,7 +348,6 @@ export default function Admin() {
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:flex-wrap sm:overflow-visible">
           {LOYALTY_TIERS.map((tier) => {
             const Icon = tier.Icon;
-            const Extra = tier.extraIcon;
             return (
               <div
                 key={tier.months}
@@ -358,14 +357,15 @@ export default function Admin() {
                   className={cn(
                     "relative w-14 h-14 rounded-full flex items-center justify-center",
                     tier.bgClass,
+                    tier.ringClass,
                     tier.glowClass,
                     tier.pulse && "animate-pulse",
                   )}
                 >
-                  <Icon className={cn("w-7 h-7", tier.iconClass)} strokeWidth={2} />
-                  {Extra && (
-                    <Extra className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-cyan-200 bg-background rounded-full p-0.5 border border-cyan-400/50" />
+                  {tier.ornate && (
+                    <span aria-hidden className="absolute inset-[-3px] rounded-full pointer-events-none border border-dashed border-white/25" />
                   )}
+                  <Icon className={cn("w-7 h-7", tier.iconClass)} />
                 </div>
                 <p className={cn("text-[11px] leading-tight w-full", tier.titleClass ?? "font-medium text-foreground")}>
                   {tier.short}
