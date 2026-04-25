@@ -9,9 +9,11 @@ interface Props {
   items: Achievement[];
   /** When true, locked secret achievements are revealed (admin view). */
   revealSecrets?: boolean;
+  /** When true, the viewer is the owner of these achievements — show criteria for unlocked ones. */
+  isOwner?: boolean;
 }
 
-export function AchievementsGrid({ items, revealSecrets = false }: Props) {
+export function AchievementsGrid({ items, revealSecrets = false, isOwner = false }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {items.map((a) => {
