@@ -199,7 +199,7 @@ export default function LoyaltyProgram({ startDate, className }: Props) {
         <p className="text-xs text-muted-foreground">{progressLabel}</p>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:flex-wrap sm:overflow-visible">
+      <div className="flex gap-2 max-w-full overflow-x-auto pb-2 px-0.5 sm:flex-wrap sm:overflow-visible">
         {LOYALTY_TIERS.map((tier) => {
           const unlocked = tier.months <= userMonths;
           const Icon = tier.Icon;
@@ -214,16 +214,16 @@ export default function LoyaltyProgram({ startDate, className }: Props) {
             >
               <div
                 className={cn(
-                  "relative w-12 h-12 rounded-full flex items-center justify-center",
-                  tier.bgClass,
+                  "relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-[3px] bg-card/70 flex items-center justify-center",
+                  tier.borderClass,
                   tier.ringClass,
                   unlocked ? tier.glowClass : "shadow-none",
                   unlocked && tier.pulse && "animate-pulse",
                 )}
               >
-                <Icon className={cn("w-6 h-6", tier.iconClass)} />
+                <Icon className={cn("w-10 h-10 sm:w-11 sm:h-11", tier.iconClass)} />
                 {!unlocked && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-background border border-border flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-background border border-border flex items-center justify-center">
                     <Lock className="w-2.5 h-2.5 text-muted-foreground" />
                   </span>
                 )}
