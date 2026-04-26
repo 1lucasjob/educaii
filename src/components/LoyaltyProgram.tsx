@@ -126,24 +126,25 @@ interface Tier {
   iconClass: string;
   bgClass: string;
   ringClass: string;
+  borderClass: string;
   glowClass: string;
   titleClass?: string;
   pulse?: boolean;
 }
 
 export const LOYALTY_TIERS: Tier[] = [
-  { months: 1,  title: "Recruta",                 short: "Recruta",      Icon: CrystalShard,      iconClass: "text-zinc-200",                                                       bgClass: "bg-gradient-to-br from-zinc-700 to-zinc-900",                                       ringClass: "ring-1 ring-zinc-500/40",                          glowClass: "shadow-[0_0_10px_rgba(161,161,170,0.45)]" },
-  { months: 2,  title: "Estudante",               short: "Estudante",    Icon: CrystalBiPyramid,  iconClass: "text-slate-100",                                                      bgClass: "bg-gradient-to-br from-slate-400 to-slate-600",                                     ringClass: "ring-1 ring-slate-300/50",                         glowClass: "shadow-[0_0_10px_rgba(226,232,240,0.5)]" },
-  { months: 3,  title: "Prevencionista Júnior",   short: "Prev. Jr.",    Icon: CrystalEmerald,    iconClass: "text-emerald-300 drop-shadow-[0_0_4px_rgba(52,211,153,0.85)]",        bgClass: "bg-gradient-to-br from-emerald-700 to-emerald-950",                                  ringClass: "ring-1 ring-emerald-400/40",                       glowClass: "shadow-[0_0_12px_rgba(52,211,153,0.55)]" },
-  { months: 4,  title: "Inspetor de Risco",       short: "Inspetor",     Icon: CrystalHexPrism,   iconClass: "text-yellow-300 drop-shadow-[0_0_4px_rgba(250,204,21,0.9)]",          bgClass: "bg-gradient-to-br from-yellow-700 to-amber-950",                                     ringClass: "ring-1 ring-yellow-400/45",                        glowClass: "shadow-[0_0_12px_rgba(250,204,21,0.55)]" },
-  { months: 6,  title: "Analista de Segurança",   short: "Analista",     Icon: CrystalBrilliant,  iconClass: "text-blue-300 drop-shadow-[0_0_4px_rgba(59,130,246,0.95)]",           bgClass: "bg-gradient-to-br from-blue-700 to-blue-950",                                        ringClass: "ring-1 ring-blue-400/50",                          glowClass: "shadow-[0_0_14px_rgba(59,130,246,0.6)]" },
-  { months: 8,  title: "Estrategista de SESMT",   short: "Estrategista", Icon: CrystalMarquise,   iconClass: "text-red-300 drop-shadow-[0_0_4px_rgba(239,68,68,0.95)]",             bgClass: "bg-gradient-to-br from-red-700 to-red-950",                                          ringClass: "ring-1 ring-red-400/50",                           glowClass: "shadow-[0_0_14px_rgba(239,68,68,0.6)]" },
-  { months: 10, title: "Especialista em NRs",     short: "Especialista", Icon: CrystalHeart,      iconClass: "text-purple-300 drop-shadow-[0_0_4px_rgba(168,85,247,0.95)]",         bgClass: "bg-gradient-to-br from-purple-700 to-purple-950",                                    ringClass: "ring-1 ring-purple-400/50",                        glowClass: "shadow-[0_0_14px_rgba(168,85,247,0.6)]" },
-  { months: 12, title: "Guardião da Vida",        short: "Guardião",     Icon: CrystalStar5,      iconClass: "text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,1)]",           bgClass: "bg-gradient-to-br from-emerald-600 to-emerald-950",                                  ringClass: "ring-2 ring-emerald-300/55",                       glowClass: "shadow-[0_0_16px_rgba(16,185,129,0.7)]" },
-  { months: 15, title: "Auditor de Ouro",         short: "Auditor",      Icon: CrystalStar6,      iconClass: "text-amber-300 drop-shadow-[0_0_5px_rgba(251,191,36,1)]",             bgClass: "bg-gradient-to-br from-amber-500 via-yellow-700 to-amber-950",                       ringClass: "ring-2 ring-amber-300/60",                         glowClass: "shadow-[0_0_16px_rgba(251,191,36,0.75)]" },
-  { months: 18, title: "Mestre SST",              short: "Mestre",       Icon: CrystalOctagon,    iconClass: "text-cyan-200 drop-shadow-[0_0_6px_rgba(103,232,249,1)]",             bgClass: "bg-gradient-to-br from-cyan-600 to-sky-950",                                         ringClass: "ring-2 ring-cyan-300/60",                          glowClass: "shadow-[0_0_18px_rgba(103,232,249,0.75)]" },
-  { months: 21, title: "Visionário da Prevenção", short: "Visionário",   Icon: CrystalRose,       iconClass: "text-pink-200 drop-shadow-[0_0_6px_rgba(236,72,153,1)]",              bgClass: "bg-gradient-to-br from-purple-600 via-pink-600 to-red-700",                          ringClass: "ring-2 ring-pink-300/60",                          glowClass: "shadow-[0_0_20px_rgba(236,72,153,0.8)]", titleClass: "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 font-bold" },
-  { months: 24, title: "Lenda da Segurança",      short: "Lenda",        Icon: CrystalLegend,     iconClass: "text-cyan-100 drop-shadow-[0_0_8px_rgba(34,211,238,1)]",              bgClass: "bg-gradient-to-br from-cyan-500 via-emerald-500 to-blue-700",                        ringClass: "ring-2 ring-cyan-200/70",                          glowClass: "shadow-[0_0_22px_rgba(34,211,238,0.9),0_0_32px_rgba(16,185,129,0.7)]", pulse: true, titleClass: "text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-emerald-300 to-blue-400 font-extrabold" },
+  { months: 1,  title: "Recruta",                 short: "Recruta",      Icon: CrystalShard,      iconClass: "text-zinc-200",                                               bgClass: "bg-gradient-to-br from-zinc-700 to-zinc-900",                 ringClass: "ring-1 ring-zinc-500/40",    borderClass: "border-zinc-500/70",    glowClass: "shadow-[0_0_10px_rgba(161,161,170,0.45)]" },
+  { months: 2,  title: "Estudante",               short: "Estudante",    Icon: CrystalBiPyramid,  iconClass: "text-slate-100",                                              bgClass: "bg-gradient-to-br from-slate-400 to-slate-600",               ringClass: "ring-1 ring-slate-300/50",   borderClass: "border-slate-300/80",   glowClass: "shadow-[0_0_10px_rgba(226,232,240,0.5)]" },
+  { months: 3,  title: "Prevencionista Júnior",   short: "Prev. Jr.",    Icon: CrystalEmerald,    iconClass: "text-emerald-300 drop-shadow-[0_0_7px_rgba(52,211,153,0.95)]", bgClass: "bg-gradient-to-br from-emerald-700 to-emerald-950",            ringClass: "ring-1 ring-emerald-400/40", borderClass: "border-emerald-400/80", glowClass: "shadow-[0_0_12px_rgba(52,211,153,0.55)]" },
+  { months: 4,  title: "Inspetor de Risco",       short: "Inspetor",     Icon: CrystalHexPrism,   iconClass: "text-yellow-300 drop-shadow-[0_0_7px_rgba(250,204,21,1)]",     bgClass: "bg-gradient-to-br from-yellow-700 to-amber-950",               ringClass: "ring-1 ring-yellow-400/45",  borderClass: "border-yellow-400/80",  glowClass: "shadow-[0_0_12px_rgba(250,204,21,0.55)]" },
+  { months: 6,  title: "Analista de Segurança",   short: "Analista",     Icon: CrystalBrilliant,  iconClass: "text-blue-300 drop-shadow-[0_0_7px_rgba(59,130,246,1)]",      bgClass: "bg-gradient-to-br from-blue-700 to-blue-950",                  ringClass: "ring-1 ring-blue-400/50",    borderClass: "border-blue-400/80",    glowClass: "shadow-[0_0_14px_rgba(59,130,246,0.6)]" },
+  { months: 8,  title: "Estrategista de SESMT",   short: "Estrategista", Icon: CrystalMarquise,   iconClass: "text-red-300 drop-shadow-[0_0_7px_rgba(239,68,68,1)]",        bgClass: "bg-gradient-to-br from-red-700 to-red-950",                    ringClass: "ring-1 ring-red-400/50",     borderClass: "border-red-400/80",     glowClass: "shadow-[0_0_14px_rgba(239,68,68,0.6)]" },
+  { months: 10, title: "Especialista em NRs",     short: "Especialista", Icon: CrystalHeart,      iconClass: "text-purple-300 drop-shadow-[0_0_7px_rgba(168,85,247,1)]",    bgClass: "bg-gradient-to-br from-purple-700 to-purple-950",              ringClass: "ring-1 ring-purple-400/50",  borderClass: "border-purple-400/80",  glowClass: "shadow-[0_0_14px_rgba(168,85,247,0.6)]" },
+  { months: 12, title: "Guardião da Vida",        short: "Guardião",     Icon: CrystalStar5,      iconClass: "text-emerald-300 drop-shadow-[0_0_8px_rgba(16,185,129,1)]",    bgClass: "bg-gradient-to-br from-emerald-600 to-emerald-950",            ringClass: "ring-2 ring-emerald-300/55", borderClass: "border-emerald-300",    glowClass: "shadow-[0_0_16px_rgba(16,185,129,0.7)]" },
+  { months: 15, title: "Auditor de Ouro",         short: "Auditor",      Icon: CrystalStar6,      iconClass: "text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,1)]",      bgClass: "bg-gradient-to-br from-amber-500 via-yellow-700 to-amber-950", ringClass: "ring-2 ring-amber-300/60",   borderClass: "border-amber-300",      glowClass: "shadow-[0_0_16px_rgba(251,191,36,0.75)]" },
+  { months: 18, title: "Mestre SST",              short: "Mestre",       Icon: CrystalOctagon,    iconClass: "text-cyan-200 drop-shadow-[0_0_8px_rgba(103,232,249,1)]",      bgClass: "bg-gradient-to-br from-cyan-600 to-sky-950",                   ringClass: "ring-2 ring-cyan-300/60",    borderClass: "border-cyan-300",       glowClass: "shadow-[0_0_18px_rgba(103,232,249,0.75)]" },
+  { months: 21, title: "Visionário da Prevenção", short: "Visionário",   Icon: CrystalRose,       iconClass: "text-pink-200 drop-shadow-[0_0_9px_rgba(236,72,153,1)]",       bgClass: "bg-gradient-to-br from-purple-600 via-pink-600 to-red-700",    ringClass: "ring-2 ring-pink-300/60",    borderClass: "border-pink-300",       glowClass: "shadow-[0_0_20px_rgba(236,72,153,0.8)]", titleClass: "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 font-bold" },
+  { months: 24, title: "Lenda da Segurança",      short: "Lenda",        Icon: CrystalLegend,     iconClass: "text-cyan-100 drop-shadow-[0_0_10px_rgba(34,211,238,1)]",      bgClass: "bg-gradient-to-br from-cyan-500 via-emerald-500 to-blue-700",  ringClass: "ring-2 ring-cyan-200/70",    borderClass: "border-cyan-200",       glowClass: "shadow-[0_0_22px_rgba(34,211,238,0.9),0_0_32px_rgba(16,185,129,0.7)]", pulse: true, titleClass: "text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-emerald-300 to-blue-400 font-extrabold" },
 ];
 
 function monthsBetween(start: Date, end: Date): number {
@@ -198,7 +199,7 @@ export default function LoyaltyProgram({ startDate, className }: Props) {
         <p className="text-xs text-muted-foreground">{progressLabel}</p>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:flex-wrap sm:overflow-visible">
+      <div className="flex gap-2 max-w-full overflow-x-auto pb-2 px-0.5 sm:flex-wrap sm:overflow-visible">
         {LOYALTY_TIERS.map((tier) => {
           const unlocked = tier.months <= userMonths;
           const Icon = tier.Icon;
@@ -213,16 +214,16 @@ export default function LoyaltyProgram({ startDate, className }: Props) {
             >
               <div
                 className={cn(
-                  "relative w-12 h-12 rounded-full flex items-center justify-center",
-                  tier.bgClass,
+                  "relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-[3px] bg-card/70 flex items-center justify-center",
+                  tier.borderClass,
                   tier.ringClass,
                   unlocked ? tier.glowClass : "shadow-none",
                   unlocked && tier.pulse && "animate-pulse",
                 )}
               >
-                <Icon className={cn("w-6 h-6", tier.iconClass)} />
+                <Icon className={cn("w-10 h-10 sm:w-11 sm:h-11", tier.iconClass)} />
                 {!unlocked && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-background border border-border flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-background border border-border flex items-center justify-center">
                     <Lock className="w-2.5 h-2.5 text-muted-foreground" />
                   </span>
                 )}

@@ -223,15 +223,15 @@ export default function Admin() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 min-w-0">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 min-w-0 overflow-hidden text-[13px] sm:text-base">
       <div>
-        <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2"><ShieldCheck className="text-primary shrink-0 w-6 h-6 sm:w-8 sm:h-8" /> Gestão de Cadastros</h1>
+        <h1 className="text-lg sm:text-3xl font-bold leading-tight flex items-center gap-2 min-w-0"><ShieldCheck className="text-primary shrink-0 w-5 h-5 sm:w-8 sm:h-8" /> <span className="min-w-0">Gestão de Cadastros</span></h1>
         <p className="text-muted-foreground mt-1 text-xs sm:text-base">Libere acessos individuais protegidos por PIN.</p>
       </div>
 
-      <Card className="p-4 sm:p-6 border-primary/30 bg-primary/5">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-3">
+      <Card className="p-3 sm:p-6 border-primary/30 bg-primary/5 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+          <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
             <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
               <FlaskConical className="w-5 h-5 text-primary" />
             </div>
@@ -240,13 +240,13 @@ export default function Admin() {
                 Modo de teste
                 {demoEnabled && <Badge className="gradient-primary text-primary-foreground border-0">Ativo</Badge>}
               </h2>
-              <p className="text-sm text-muted-foreground max-w-xl">
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-xl leading-snug">
                 Visualize Ranking e Meu Progresso com dados fictícios e pré-visualize temas — visível apenas para você. Nenhum dado é salvo no banco.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Label htmlFor="demo-switch" className="text-sm">Ativar dados fake</Label>
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto rounded-md border border-border/60 bg-background/40 px-3 py-2 sm:border-0 sm:bg-transparent sm:p-0">
+            <Label htmlFor="demo-switch" className="text-xs sm:text-sm">Ativar dados fake</Label>
             <Switch id="demo-switch" checked={demoEnabled} onCheckedChange={setDemoEnabled} />
           </div>
         </div>
@@ -336,7 +336,7 @@ export default function Admin() {
         )}
       </Card>
 
-      <Card className="p-4 sm:p-5 border-primary/30 bg-gradient-to-br from-background to-primary/5">
+      <Card className="p-3 sm:p-5 border-primary/30 bg-gradient-to-br from-background to-primary/5 overflow-hidden">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Trophy className="w-4 h-4 text-primary" />
           <h2 className="font-bold">Preview · Cristais de Fidelidade</h2>
@@ -345,24 +345,24 @@ export default function Admin() {
         <p className="text-xs text-muted-foreground mb-4">
           Visualização de todos os {LOYALTY_TIERS.length} níveis com brilho, cores e ícones — exatamente como aparecem ao lado do nick e na timeline do aluno.
         </p>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 sm:flex-wrap sm:overflow-visible">
+        <div className="flex gap-2 max-w-full overflow-x-auto pb-2 px-0.5 sm:flex-wrap sm:overflow-visible">
           {LOYALTY_TIERS.map((tier) => {
             const Icon = tier.Icon;
             return (
               <div
                 key={tier.months}
-                className="shrink-0 w-[80px] sm:w-[88px] flex flex-col items-center gap-1.5 text-center"
+                className="shrink-0 w-[72px] sm:w-[88px] flex flex-col items-center gap-1.5 text-center"
               >
                 <div
                   className={cn(
-                    "relative w-14 h-14 rounded-full flex items-center justify-center",
-                    tier.bgClass,
+                    "relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-[3px] bg-card/70 flex items-center justify-center",
+                    tier.borderClass,
                     tier.ringClass,
                     tier.glowClass,
                     tier.pulse && "animate-pulse",
                   )}
                 >
-                  <Icon className={cn("w-7 h-7", tier.iconClass)} />
+                  <Icon className={cn("w-10 h-10 sm:w-11 sm:h-11", tier.iconClass)} />
                 </div>
                 <p className={cn("text-[11px] leading-tight w-full", tier.titleClass ?? "font-medium text-foreground")}>
                   {tier.short}
@@ -374,8 +374,8 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-4 sm:p-6 shadow-glow border-primary/30 bg-gradient-to-br from-background via-background to-primary/10">
-        <div className="flex items-center gap-4 sm:gap-5">
+      <Card className="p-3 sm:p-6 shadow-glow border-primary/30 bg-gradient-to-br from-background via-background to-primary/10 overflow-hidden">
+        <div className="grid grid-cols-[auto_1fr] gap-3 sm:flex sm:items-center sm:gap-5">
           <div className="relative shrink-0">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl gradient-primary flex flex-col items-center justify-center shadow-glow">
               <span
@@ -388,7 +388,7 @@ export default function Admin() {
               </span>
             </div>
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 self-center">
             <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">
               Vagas disponíveis
             </p>
@@ -402,7 +402,7 @@ export default function Admin() {
           <Button
             onClick={() => setOpen(true)}
             size="sm"
-            className="gradient-primary text-primary-foreground shadow-glow shrink-0 h-9 px-3 sm:h-10 sm:px-4"
+            className="gradient-primary text-primary-foreground shadow-glow col-span-2 sm:col-span-1 shrink-0 h-9 px-3 sm:h-10 sm:px-4 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Gerar link</span>
@@ -411,12 +411,12 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-4 sm:p-6 border-amber-500/30 bg-amber-500/5">
+      <Card className="p-3 sm:p-6 border-warning/30 bg-warning/5 overflow-hidden">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <ImageIcon className="w-4 h-4 text-amber-500" />
+          <ImageIcon className="w-4 h-4 text-warning" />
           <h2 className="font-bold">Imagens de perfil pendentes</h2>
           {pendingAvatars.length > 0 && (
-            <Badge className="bg-amber-500 text-white border-0">{pendingAvatars.length}</Badge>
+            <Badge className="bg-warning text-warning-foreground border-0">{pendingAvatars.length}</Badge>
           )}
         </div>
         <p className="text-xs text-muted-foreground mb-4">
@@ -431,14 +431,14 @@ export default function Admin() {
                 <img
                   src={p.avatar_pending_url ?? ""}
                   alt={`Pendente — ${p.email}`}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-amber-500/60 shrink-0"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-warning/60 shrink-0"
                 />
                 <div className="flex-1 min-w-0 space-y-2">
                   <p className="text-xs font-medium break-all leading-snug">{p.email}</p>
                   <div className="flex gap-1.5 flex-wrap">
                     <Button
                       size="sm"
-                      className="h-7 text-xs bg-success text-success-foreground hover:bg-success/90"
+                      className="h-8 text-[13px] sm:text-xs bg-success text-success-foreground hover:bg-success/90"
                       onClick={() => approveAvatar(p.id, p.email)}
                     >
                       <Check className="w-3 h-3 mr-1" /> Aprovar
@@ -446,7 +446,7 @@ export default function Admin() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
+                      className="h-8 text-[13px] sm:text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
                       onClick={() => rejectAvatar(p.id, p.email)}
                     >
                       <X className="w-3 h-3 mr-1" /> Rejeitar
@@ -459,8 +459,8 @@ export default function Admin() {
         )}
       </Card>
 
-      <Card className="p-4 sm:p-6">
-        <h2 className="font-bold mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
+      <Card className="p-3 sm:p-6 overflow-hidden">
+        <h2 className="font-bold mb-3 sm:mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Convites ({invites.length})</h2>
 
         {/* Mobile: cards */}
         <div className="md:hidden space-y-3">
@@ -546,8 +546,8 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-4 sm:p-6">
-        <h2 className="font-bold mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Alunos cadastrados ({students.length})</h2>
+      <Card className="p-3 sm:p-6 overflow-hidden">
+        <h2 className="font-bold mb-3 sm:mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Alunos cadastrados ({students.length})</h2>
 
         {/* Mobile: cards */}
         <div className="md:hidden space-y-3">
@@ -595,7 +595,7 @@ export default function Admin() {
                             <span className="block"><strong className="text-foreground">Última nota:</strong> {s.last_score} pts</span>
                           </div>
                         </div>
-                        <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockStudy(s.id, s.email)}>
+                        <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockStudy(s.id, s.email)}>
                           <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
                         </Button>
                       </div>
@@ -608,14 +608,14 @@ export default function Admin() {
                         <Award className="w-3 h-3" /> Ativo até {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" style={{ borderColor: "hsl(280 80% 55% / 0.4)" }} onClick={() => unlockExpert(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" style={{ borderColor: "hsl(280 80% 55% / 0.4)" }} onClick={() => unlockExpert(s.id, s.email)}>
                         <Award className="w-3 h-3 mr-1" /> Liberar 24h
                       </Button>
                     )}
                   </div>
                   <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Pacote Expert (30d)</span>
-                    <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                    <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => purchaseExpertPack(s.id, s.email)}>
                       <Award className="w-3 h-3 mr-1" /> Liberar +30 dias
                     </Button>
                   </div>
@@ -626,7 +626,7 @@ export default function Admin() {
                         <Quote className="w-3 h-3" /> Liberado até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockHighlights(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockHighlights(s.id, s.email)}>
                         <Quote className="w-3 h-3 mr-1" /> Liberar Trechos (30d)
                       </Button>
                     )}
@@ -638,7 +638,7 @@ export default function Admin() {
                         <PlayCircle className="w-3 h-3" /> Liberado até {new Date(s.model_quiz_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockModelQuiz(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockModelQuiz(s.id, s.email)}>
                         <PlayCircle className="w-3 h-3 mr-1" /> Liberar Modelos (30d)
                       </Button>
                     )}
@@ -646,7 +646,7 @@ export default function Admin() {
                   <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Renovar</span>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
-                      <SelectTrigger className="h-8 text-xs w-full">
+                      <SelectTrigger className="h-9 text-base sm:text-xs w-full">
                         <RefreshCw className="w-3 h-3 mr-1" />
                         <SelectValue placeholder="Renovar plano" />
                       </SelectTrigger>
@@ -728,7 +728,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-xs w-full"
+                          className="h-9 text-[13px] sm:h-8 sm:text-xs w-full"
                           onClick={() => unlockStudy(s.id, s.email)}
                         >
                           <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
@@ -743,7 +743,7 @@ export default function Admin() {
                           <Award className="w-3 h-3" /> Até{" "}
                           {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                         </span>
-                        <Button size="sm" variant="ghost" className="h-7 text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                        <Button size="sm" variant="ghost" className="h-8 text-[13px] sm:h-7 sm:text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
                           <Award className="w-3 h-3 mr-1" /> +30d Pacote
                         </Button>
                       </div>
@@ -752,13 +752,13 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-xs"
+                          className="h-8 text-[13px] sm:text-xs"
                           style={{ borderColor: "hsl(280 80% 55% / 0.4)" }}
                           onClick={() => unlockExpert(s.id, s.email)}
                         >
                           <Award className="w-3 h-3 mr-1" /> Liberar 24h
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-7 text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                        <Button size="sm" variant="ghost" className="h-8 text-[13px] sm:h-7 sm:text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
                           <Award className="w-3 h-3 mr-1" /> +30d Pacote
                         </Button>
                       </div>
@@ -770,7 +770,7 @@ export default function Admin() {
                         <Quote className="w-3 h-3" /> Até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => unlockHighlights(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-8 text-[13px] sm:text-xs" onClick={() => unlockHighlights(s.id, s.email)}>
                         <Quote className="w-3 h-3 mr-1" /> Liberar 30d
                       </Button>
                     )}
@@ -781,14 +781,14 @@ export default function Admin() {
                         <PlayCircle className="w-3 h-3" /> Até {new Date(s.model_quiz_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => unlockModelQuiz(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-8 text-[13px] sm:text-xs" onClick={() => unlockModelQuiz(s.id, s.email)}>
                         <PlayCircle className="w-3 h-3 mr-1" /> Liberar 30d
                       </Button>
                     )}
                   </TableCell>
                   <TableCell>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
-                      <SelectTrigger className="h-8 w-[130px] text-xs">
+                      <SelectTrigger className="h-9 w-full sm:h-8 sm:w-[130px] text-base sm:text-xs">
                         <RefreshCw className="w-3 h-3 mr-1" />
                         <SelectValue placeholder="Renovar" />
                       </SelectTrigger>
@@ -810,8 +810,8 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-4 sm:p-6">
-        <h2 className="font-bold mb-4 flex items-center gap-2">
+      <Card className="p-3 sm:p-6 overflow-hidden">
+        <h2 className="font-bold mb-3 sm:mb-4 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" /> Histórico de liberações de estudo ({unlockLogs.length})
         </h2>
         {/* Mobile: cards */}
@@ -862,7 +862,7 @@ export default function Admin() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><KeyRound className="text-primary" /> Liberar novo acesso</DialogTitle>
           </DialogHeader>
@@ -870,7 +870,7 @@ export default function Admin() {
           <div className="space-y-2">
             <Label>Plano de acesso</Label>
             <Select value={plan} onValueChange={(v) => setPlan(v as AccessPlan)}>
-              <SelectTrigger>
+              <SelectTrigger className="text-base sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -887,7 +887,7 @@ export default function Admin() {
           </div>
           <div className="space-y-2">
             <Label>PIN do administrador</Label>
-            <Input type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
+            <Input className="text-base sm:text-sm" type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
           </div>
           <Button onClick={release} disabled={loading || pin.length !== 4} className="gradient-primary text-primary-foreground">
             {loading ? "Liberando…" : `Confirmar — ${planLabel(plan)}`}
@@ -896,7 +896,7 @@ export default function Admin() {
       </Dialog>
 
       <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setDeletePin(""); } }}>
-        <DialogContent>
+        <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <Trash2 /> Excluir convite

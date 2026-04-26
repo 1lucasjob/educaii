@@ -29,8 +29,8 @@ export default function LoyaltyBadge({ startDate, size = "xs" }: Props) {
   if (!tier || userMonths < 1) return null;
 
   const Icon = tier.Icon;
-  const dim = size === "sm" ? "w-6 h-6" : "w-5 h-5";
-  const iconSize = size === "sm" ? "w-3.5 h-3.5" : "w-3 h-3";
+  const dim = size === "sm" ? "w-8 h-8" : "w-7 h-7";
+  const iconSize = size === "sm" ? "w-6 h-6" : "w-5 h-5";
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -39,9 +39,9 @@ export default function LoyaltyBadge({ startDate, size = "xs" }: Props) {
           <span
             aria-label={`Fidelidade: ${tier.title} (${tier.months} ${tier.months === 1 ? "mês" : "meses"})`}
             className={cn(
-              "inline-flex items-center justify-center rounded-full shrink-0",
+              "inline-flex items-center justify-center rounded-lg border-[2.5px] bg-card/80 shrink-0",
               dim,
-              tier.bgClass,
+              tier.borderClass,
               tier.glowClass,
               tier.pulse && "animate-pulse",
             )}
