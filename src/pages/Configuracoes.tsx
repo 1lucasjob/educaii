@@ -649,26 +649,27 @@ export default function Configuracoes() {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="font-bold mb-1">Tema</h2>
-        <p className="text-sm text-muted-foreground mb-4">Escolha a paleta de cores da sua área de estudo.</p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <p className="text-sm text-muted-foreground mb-3">Escolha a paleta de cores da sua área de estudo.</p>
+        <div className="flex flex-wrap gap-1.5">
           {THEMES.map((t) => {
             const active = current === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => choose(t.id)}
-                className={`text-left p-4 rounded-lg border-2 transition-all ${
-                  active ? "border-primary shadow-glow" : "border-border hover:border-primary/50"
-                }`}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs sm:text-sm transition-colors",
+                  active
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+                title={t.description}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">{t.emoji}</span>
-                  {active && <Check className="text-primary w-5 h-5" />}
-                </div>
-                <p className="font-semibold">{t.label}</p>
-                <p className="text-xs text-muted-foreground">{t.description}</p>
+                <span aria-hidden>{t.emoji}</span>
+                <span className="font-medium">{t.label}</span>
+                {active && <Check className="text-primary w-3.5 h-3.5" />}
               </button>
             );
           })}

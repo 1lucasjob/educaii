@@ -227,7 +227,7 @@ export default function AppLayout() {
               </Button>
             </div>
           )}
-          <main className="flex-1 p-4 md:p-8 animate-fade-in space-y-4 min-w-0 overflow-x-hidden">
+          <main className="flex-1 p-3 sm:p-4 md:p-8 animate-fade-in space-y-4 min-w-0 overflow-x-hidden">
             <RenewalBanner />
             <Outlet />
           </main>
