@@ -143,13 +143,13 @@ export default function Progresso() {
   const reversed = [...attempts].reverse();
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 min-w-0">
-      <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2">
-        <BarChart3 className="text-primary shrink-0 w-6 h-6 sm:w-8 sm:h-8" />
+    <div className="w-full max-w-4xl mx-auto space-y-3 sm:space-y-6 min-w-0 overflow-hidden">
+      <h1 className="text-lg sm:text-3xl font-bold flex items-center gap-2">
+        <BarChart3 className="text-primary shrink-0 w-5 h-5 sm:w-8 sm:h-8" />
         <span className="truncate">{viewAsRow ? `Progresso de ${viewAsRow.display_name}` : "Meu Progresso"}</span>
       </h1>
       {demoEnabled && (
-        <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-sm">
+        <Card className="p-3 border-primary/40 bg-primary/5 flex items-center gap-2 text-xs sm:text-sm">
           <FlaskConical className="w-4 h-4 text-primary shrink-0" />
           {viewAsRow ? (
             <span>
@@ -161,30 +161,30 @@ export default function Progresso() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        <Card className="p-3 sm:p-5">
-          <p className="text-xs sm:text-sm text-muted-foreground">Simulados</p>
-          <p className="text-2xl sm:text-3xl font-bold">{total}</p>
+      <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+        <Card className="p-2.5 sm:p-5">
+          <p className="text-[10px] sm:text-sm text-muted-foreground">Simulados</p>
+          <p className="text-xl sm:text-3xl font-bold">{total}</p>
         </Card>
-        <Card className="p-3 sm:p-5">
-          <p className="text-xs sm:text-sm text-muted-foreground">Média</p>
-          <p className="text-2xl sm:text-3xl font-bold text-primary">{avg}</p>
+        <Card className="p-2.5 sm:p-5">
+          <p className="text-[10px] sm:text-sm text-muted-foreground">Média</p>
+          <p className="text-xl sm:text-3xl font-bold text-primary">{avg}</p>
         </Card>
-        <Card className="p-3 sm:p-5">
-          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Trophy className="w-3 h-3" /> Melhor</p>
-          <p className="text-2xl sm:text-3xl font-bold text-primary">{best}</p>
+        <Card className="p-2.5 sm:p-5">
+          <p className="text-[10px] sm:text-sm text-muted-foreground flex items-center gap-1"><Trophy className="w-3 h-3" /> Melhor</p>
+          <p className="text-xl sm:text-3xl font-bold text-primary">{best}</p>
         </Card>
-        <Card className="p-3 sm:p-5">
-          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Target className="w-3 h-3" /> Aprovações</p>
-          <p className="text-2xl sm:text-3xl font-bold">{passed}</p>
+        <Card className="p-2.5 sm:p-5">
+          <p className="text-[10px] sm:text-sm text-muted-foreground flex items-center gap-1"><Target className="w-3 h-3" /> Aprovações</p>
+          <p className="text-xl sm:text-3xl font-bold">{passed}</p>
         </Card>
-        <Card className="p-3 sm:p-5">
-          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo total</p>
-          <p className="text-lg sm:text-2xl font-bold break-words">{formatDuration(totalTime)}</p>
+        <Card className="p-2.5 sm:p-5">
+          <p className="text-[10px] sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo total</p>
+          <p className="text-sm sm:text-2xl font-bold break-words">{formatDuration(totalTime)}</p>
         </Card>
-        <Card className="p-3 sm:p-5">
-          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo médio</p>
-          <p className="text-lg sm:text-2xl font-bold break-words">{formatDuration(avgTime)}</p>
+        <Card className="p-2.5 sm:p-5">
+          <p className="text-[10px] sm:text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Tempo médio</p>
+          <p className="text-sm sm:text-2xl font-bold break-words">{formatDuration(avgTime)}</p>
         </Card>
       </div>
 

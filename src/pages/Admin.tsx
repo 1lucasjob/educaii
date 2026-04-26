@@ -223,7 +223,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 min-w-0 overflow-hidden text-[13px] sm:text-base">
+    <div className="w-full max-w-4xl mx-auto space-y-3 sm:space-y-6 min-w-0 overflow-hidden">
       <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 sm:p-4">
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg gradient-primary flex items-center justify-center shadow-glow shrink-0">
           <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
@@ -274,23 +274,29 @@ export default function Admin() {
           <p className="text-sm font-medium flex items-center gap-2 mb-2">
             <Palette className="w-4 h-4 text-primary" /> Pré-visualizar tema
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => {
-                  setPreviewTheme(t.id);
-                  applyTheme(t.id);
-                }}
-                className={`text-left p-3 rounded-md border transition-colors ${
-                  previewTheme === t.id ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"
-                }`}
-              >
-                <p className="text-lg">{t.emoji}</p>
-                <p className="text-sm font-medium">{t.label}</p>
-                <p className="text-[11px] text-muted-foreground">{t.description}</p>
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-1.5">
+            {THEMES.map((t) => {
+              const active = previewTheme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    setPreviewTheme(t.id);
+                    applyTheme(t.id);
+                  }}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs transition-colors",
+                    active
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                  )}
+                  title={t.description}
+                >
+                  <span aria-hidden>{t.emoji}</span>
+                  <span className="font-medium">{t.label}</span>
+                </button>
+              );
+            })}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             A troca aplica o tema imediatamente em todo o app (até você sair ou escolher outro em Configurações).
