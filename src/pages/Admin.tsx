@@ -374,14 +374,41 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-4 sm:p-8 shadow-glow text-center">
-        <p className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wider">Vagas disponíveis</p>
-        <p className="text-4xl sm:text-6xl font-bold gradient-primary bg-clip-text text-transparent my-2" style={{ WebkitTextFillColor: "transparent", backgroundImage: "var(--gradient-primary)" }}>
-          {slots}
-        </p>
-        <Button onClick={() => setOpen(true)} className="gradient-primary text-primary-foreground shadow-glow mt-2">
-          <Plus className="mr-2" /> Liberar +1 acesso
-        </Button>
+      <Card className="p-4 sm:p-6 shadow-glow border-primary/30 bg-gradient-to-br from-background via-background to-primary/10">
+        <div className="flex items-center gap-4 sm:gap-5">
+          <div className="relative shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl gradient-primary flex flex-col items-center justify-center shadow-glow">
+              <span
+                className="text-2xl sm:text-3xl font-extrabold leading-none text-primary-foreground"
+              >
+                {slots}
+              </span>
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-primary-foreground/80 mt-0.5">
+                vagas
+              </span>
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">
+              Vagas disponíveis
+            </p>
+            <p className="text-sm sm:text-base font-semibold leading-snug mt-0.5">
+              Gere um link de cadastro
+            </p>
+            <p className="text-xs text-muted-foreground leading-snug mt-0.5 hidden sm:block">
+              Protegido por PIN. Use uma vez para liberar acesso ao aluno.
+            </p>
+          </div>
+          <Button
+            onClick={() => setOpen(true)}
+            size="sm"
+            className="gradient-primary text-primary-foreground shadow-glow shrink-0 h-9 px-3 sm:h-10 sm:px-4"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Gerar link</span>
+            <span className="sm:hidden">Gerar</span>
+          </Button>
+        </div>
       </Card>
 
       <Card className="p-4 sm:p-6 border-amber-500/30 bg-amber-500/5">
