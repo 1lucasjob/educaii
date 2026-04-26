@@ -356,7 +356,7 @@ export default function Admin() {
                 <div
                   className={cn(
                     "relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-[3px] bg-card/70 flex items-center justify-center",
-                    tier.bgClass,
+                    tier.borderClass,
                     tier.ringClass,
                     tier.glowClass,
                     tier.pulse && "animate-pulse",
