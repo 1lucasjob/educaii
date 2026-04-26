@@ -224,42 +224,47 @@ export default function Admin() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 min-w-0 overflow-hidden text-[13px] sm:text-base">
-      <div>
-        <h1 className="text-lg sm:text-3xl font-bold leading-tight flex items-center gap-2 min-w-0"><ShieldCheck className="text-primary shrink-0 w-5 h-5 sm:w-8 sm:h-8" /> <span className="min-w-0">Gestão de Cadastros</span></h1>
-        <p className="text-muted-foreground mt-1 text-xs sm:text-base">Libere acessos individuais protegidos por PIN.</p>
+      <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 sm:p-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg gradient-primary flex items-center justify-center shadow-glow shrink-0">
+          <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-base sm:text-2xl font-bold leading-tight truncate">Gestão de Cadastros</h1>
+          <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">Libere acessos individuais protegidos por PIN.</p>
+        </div>
       </div>
 
-      <Card className="p-3 sm:p-6 border-primary/30 bg-primary/5 overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-          <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-              <FlaskConical className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="font-bold flex items-center gap-2">
+      <Card className="p-3 sm:p-6 border-primary/30 bg-primary/5">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+            <FlaskConical className="w-5 h-5 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h2 className="font-bold text-sm sm:text-base flex items-center gap-2">
                 Modo de teste
                 {demoEnabled && <Badge className="gradient-primary text-primary-foreground border-0">Ativo</Badge>}
               </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-xl leading-snug">
-                Visualize Ranking e Meu Progresso com dados fictícios e pré-visualize temas — visível apenas para você. Nenhum dado é salvo no banco.
-              </p>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="demo-switch" className="text-[11px] sm:text-sm text-muted-foreground">Dados fake</Label>
+                <Switch id="demo-switch" checked={demoEnabled} onCheckedChange={setDemoEnabled} />
+              </div>
             </div>
-          </div>
-          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto rounded-md border border-border/60 bg-background/40 px-3 py-2 sm:border-0 sm:bg-transparent sm:p-0">
-            <Label htmlFor="demo-switch" className="text-xs sm:text-sm">Ativar dados fake</Label>
-            <Switch id="demo-switch" checked={demoEnabled} onCheckedChange={setDemoEnabled} />
+            <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug mt-1">
+              Visualize Ranking e Meu Progresso com dados fictícios e pré-visualize temas — visível apenas para você. Nenhum dado é salvo no banco.
+            </p>
           </div>
         </div>
 
         {demoEnabled && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={() => navigate("/app/ranking")} className="gap-1 border-primary/40">
-              <Trophy className="w-3.5 h-3.5 text-primary" /> Ver Ranking demo
+          <div className="mt-3 grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/ranking")} className="gap-1.5 border-primary/40 justify-center">
+              <Trophy className="w-3.5 h-3.5 text-primary" /> Ranking demo
             </Button>
-            <Button size="sm" variant="outline" onClick={() => navigate("/app/progresso")} className="gap-1 border-primary/40">
-              <Eye className="w-3.5 h-3.5 text-primary" /> Ver Meu Progresso
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/progresso")} className="gap-1.5 border-primary/40 justify-center">
+              <Eye className="w-3.5 h-3.5 text-primary" /> Meu Progresso
             </Button>
-            <Button size="sm" variant="outline" onClick={() => navigate("/app/estudar-demo")} className="gap-1 border-primary/40">
+            <Button size="sm" variant="outline" onClick={() => navigate("/app/estudar-demo")} className="gap-1.5 border-primary/40 justify-center">
               <FlaskConical className="w-3.5 h-3.5 text-primary" /> Demo de Estudo
             </Button>
           </div>
@@ -374,13 +379,11 @@ export default function Admin() {
         </div>
       </Card>
 
-      <Card className="p-3 sm:p-6 shadow-glow border-primary/30 bg-gradient-to-br from-background via-background to-primary/10 overflow-hidden">
-        <div className="grid grid-cols-[auto_1fr] gap-3 sm:flex sm:items-center sm:gap-5">
+      <Card className="p-3 sm:p-6 shadow-glow border-primary/30 bg-gradient-to-br from-background via-background to-primary/10">
+        <div className="flex items-center gap-3 sm:gap-5">
           <div className="relative shrink-0">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl gradient-primary flex flex-col items-center justify-center shadow-glow">
-              <span
-                className="text-2xl sm:text-3xl font-extrabold leading-none text-primary-foreground"
-              >
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl gradient-primary flex flex-col items-center justify-center shadow-glow">
+              <span className="text-xl sm:text-3xl font-extrabold leading-none text-primary-foreground">
                 {slots}
               </span>
               <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-primary-foreground/80 mt-0.5">
@@ -388,25 +391,25 @@ export default function Admin() {
               </span>
             </div>
           </div>
-          <div className="min-w-0 flex-1 self-center">
+          <div className="min-w-0 flex-1">
             <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">
               Vagas disponíveis
             </p>
-            <p className="text-sm sm:text-base font-semibold leading-snug mt-0.5">
+            <p className="text-sm sm:text-base font-semibold leading-snug mt-0.5 truncate">
               Gere um link de cadastro
             </p>
-            <p className="text-xs text-muted-foreground leading-snug mt-0.5 hidden sm:block">
+            <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 hidden sm:block">
               Protegido por PIN. Use uma vez para liberar acesso ao aluno.
             </p>
           </div>
           <Button
             onClick={() => setOpen(true)}
             size="sm"
-            className="gradient-primary text-primary-foreground shadow-glow col-span-2 sm:col-span-1 shrink-0 h-9 px-3 sm:h-10 sm:px-4 w-full sm:w-auto"
+            className="gradient-primary text-primary-foreground shadow-glow shrink-0 h-9 px-3 sm:h-10 sm:px-4 gap-1.5"
+            aria-label="Gerar novo link de cadastro"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Gerar link</span>
-            <span className="sm:hidden">Gerar</span>
+            <span>Gerar</span>
           </Button>
         </div>
       </Card>
@@ -425,7 +428,7 @@ export default function Admin() {
         {pendingAvatars.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma imagem aguardando aprovação.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
             {pendingAvatars.map((p) => (
               <div key={p.id} className="rounded-md border border-border p-3 flex gap-3 items-start">
                 <img
@@ -474,9 +477,9 @@ export default function Admin() {
                 <div><span className="block text-[10px] uppercase">Criado</span>{new Date(i.created_at).toLocaleDateString("pt-BR")}</div>
                 <div><span className="block text-[10px] uppercase">Expira link</span>{new Date(i.expires_at).toLocaleDateString("pt-BR")}</div>
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="grid grid-cols-2 gap-2">
                 {!i.used && new Date(i.expires_at) > new Date() && (
-                  <Button size="sm" variant="outline" onClick={() => copyLink(i.token)} className="flex-1">
+                  <Button size="sm" variant="outline" onClick={() => copyLink(i.token)} className="w-full justify-center">
                     <Copy className="w-3 h-3 mr-1" /> Copiar
                   </Button>
                 )}
@@ -484,7 +487,7 @@ export default function Admin() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1 text-destructive border-destructive/40 hover:bg-destructive/10"
+                    className="w-full justify-center text-destructive border-destructive/40 hover:bg-destructive/10"
                     onClick={() => { setDeleteTarget(i); setDeletePin(""); }}
                   >
                     <Trash2 className="w-3 h-3 mr-1" /> Excluir
@@ -574,7 +577,7 @@ export default function Admin() {
                     </span>
                   ) : "—"}
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-1 gap-2.5">
                   <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Estudo</span>
                     {s.current_topic_unlocked ? (
@@ -889,7 +892,7 @@ export default function Admin() {
             <Label>PIN do administrador</Label>
             <Input className="text-base sm:text-sm" type="password" inputMode="numeric" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
           </div>
-          <Button onClick={release} disabled={loading || pin.length !== 4} className="gradient-primary text-primary-foreground">
+          <Button onClick={release} disabled={loading || pin.length !== 4} className="gradient-primary text-primary-foreground w-full h-10">
             {loading ? "Liberando…" : `Confirmar — ${planLabel(plan)}`}
           </Button>
         </DialogContent>
