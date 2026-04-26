@@ -438,7 +438,7 @@ export default function Admin() {
                   <div className="flex gap-1.5 flex-wrap">
                     <Button
                       size="sm"
-                      className="h-7 text-xs bg-success text-success-foreground hover:bg-success/90"
+                      className="h-8 text-[13px] sm:text-xs bg-success text-success-foreground hover:bg-success/90"
                       onClick={() => approveAvatar(p.id, p.email)}
                     >
                       <Check className="w-3 h-3 mr-1" /> Aprovar
@@ -446,7 +446,7 @@ export default function Admin() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
+                      className="h-8 text-[13px] sm:text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
                       onClick={() => rejectAvatar(p.id, p.email)}
                     >
                       <X className="w-3 h-3 mr-1" /> Rejeitar
@@ -595,7 +595,7 @@ export default function Admin() {
                             <span className="block"><strong className="text-foreground">Última nota:</strong> {s.last_score} pts</span>
                           </div>
                         </div>
-                        <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockStudy(s.id, s.email)}>
+                        <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockStudy(s.id, s.email)}>
                           <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
                         </Button>
                       </div>
@@ -608,14 +608,14 @@ export default function Admin() {
                         <Award className="w-3 h-3" /> Ativo até {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" style={{ borderColor: "hsl(280 80% 55% / 0.4)" }} onClick={() => unlockExpert(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" style={{ borderColor: "hsl(280 80% 55% / 0.4)" }} onClick={() => unlockExpert(s.id, s.email)}>
                         <Award className="w-3 h-3 mr-1" /> Liberar 24h
                       </Button>
                     )}
                   </div>
                   <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Pacote Expert (30d)</span>
-                    <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                    <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => purchaseExpertPack(s.id, s.email)}>
                       <Award className="w-3 h-3 mr-1" /> Liberar +30 dias
                     </Button>
                   </div>
@@ -626,7 +626,7 @@ export default function Admin() {
                         <Quote className="w-3 h-3" /> Liberado até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockHighlights(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockHighlights(s.id, s.email)}>
                         <Quote className="w-3 h-3 mr-1" /> Liberar Trechos (30d)
                       </Button>
                     )}
@@ -638,7 +638,7 @@ export default function Admin() {
                         <PlayCircle className="w-3 h-3" /> Liberado até {new Date(s.model_quiz_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs w-full" onClick={() => unlockModelQuiz(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockModelQuiz(s.id, s.email)}>
                         <PlayCircle className="w-3 h-3 mr-1" /> Liberar Modelos (30d)
                       </Button>
                     )}
@@ -728,7 +728,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-xs w-full"
+                          className="h-9 text-[13px] sm:h-8 sm:text-xs w-full"
                           onClick={() => unlockStudy(s.id, s.email)}
                         >
                           <Unlock className="w-3 h-3 mr-1" /> Liberar estudo
@@ -743,7 +743,7 @@ export default function Admin() {
                           <Award className="w-3 h-3" /> Até{" "}
                           {new Date(s.expert_unlocked_until!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                         </span>
-                        <Button size="sm" variant="ghost" className="h-7 text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                        <Button size="sm" variant="ghost" className="h-8 text-[13px] sm:h-7 sm:text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
                           <Award className="w-3 h-3 mr-1" /> +30d Pacote
                         </Button>
                       </div>
@@ -752,13 +752,13 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-xs"
+                          className="h-8 text-[13px] sm:text-xs"
                           style={{ borderColor: "hsl(280 80% 55% / 0.4)" }}
                           onClick={() => unlockExpert(s.id, s.email)}
                         >
                           <Award className="w-3 h-3 mr-1" /> Liberar 24h
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-7 text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
+                        <Button size="sm" variant="ghost" className="h-8 text-[13px] sm:h-7 sm:text-[11px] justify-start px-2" onClick={() => purchaseExpertPack(s.id, s.email)}>
                           <Award className="w-3 h-3 mr-1" /> +30d Pacote
                         </Button>
                       </div>
@@ -770,7 +770,7 @@ export default function Admin() {
                         <Quote className="w-3 h-3" /> Até {new Date(s.highlights_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => unlockHighlights(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-8 text-[13px] sm:text-xs" onClick={() => unlockHighlights(s.id, s.email)}>
                         <Quote className="w-3 h-3 mr-1" /> Liberar 30d
                       </Button>
                     )}
@@ -781,14 +781,14 @@ export default function Admin() {
                         <PlayCircle className="w-3 h-3" /> Até {new Date(s.model_quiz_unlocked_until!).toLocaleDateString("pt-BR")}
                       </span>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => unlockModelQuiz(s.id, s.email)}>
+                      <Button size="sm" variant="outline" className="h-8 text-[13px] sm:text-xs" onClick={() => unlockModelQuiz(s.id, s.email)}>
                         <PlayCircle className="w-3 h-3 mr-1" /> Liberar 30d
                       </Button>
                     )}
                   </TableCell>
                   <TableCell>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
-                      <SelectTrigger className="h-8 w-full sm:w-[130px] text-base sm:text-xs">
+                      <SelectTrigger className="h-9 w-full sm:h-8 sm:w-[130px] text-base sm:text-xs">
                         <RefreshCw className="w-3 h-3 mr-1" />
                         <SelectValue placeholder="Renovar" />
                       </SelectTrigger>
