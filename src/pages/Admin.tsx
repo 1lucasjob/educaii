@@ -159,7 +159,16 @@ export default function Admin() {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Simulados dos Modelos liberados!", description: `${email} pode usar o recurso por 30 dias.` });
+  };
+
+  const unlockSavedStudies = async (userId: string, email: string) => {
+    if (!confirm(`Liberar Guardar Estudo por 30 dias para ${email}?`)) return;
+    const { error } = await (supabase as any).rpc("admin_unlock_saved_studies", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Guardar Estudo liberado!", description: `${email} pode usar o recurso por 30 dias.` });
     load();
   };
 
