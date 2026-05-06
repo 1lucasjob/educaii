@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X, Quote, PlayCircle } from "lucide-react";
+import { ShieldCheck, KeyRound, Copy, Plus, FlaskConical, Palette, Eye, EyeOff, Trophy, RefreshCw, Users, Unlock, Lock, History, Award, Trash2, ImageIcon, Check, X, Quote, PlayCircle, Archive } from "lucide-react";
 import { useDemoMode } from "@/contexts/DemoModeContext";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +42,7 @@ interface StudentRow {
   expert_unlocked_until: string | null;
   highlights_unlocked_until: string | null;
   model_quiz_unlocked_until: string | null;
+  saved_studies_unlocked_until: string | null;
 }
 
 export default function Admin() {
@@ -67,7 +68,7 @@ export default function Admin() {
     const [{ data: s }, { data: i }, { data: st }, { data: logs }, { data: roles }, { data: pend }] = await Promise.all([
       supabase.from("available_slots").select("count").eq("id", 1).single(),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
-      (supabase as any).from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until,highlights_unlocked_until,model_quiz_unlocked_until").order("access_expires_at", { ascending: true }),
+      (supabase as any).from("profiles").select("id,email,plan,access_expires_at,last_score,current_topic,current_topic_unlocked,expert_unlocked_until,highlights_unlocked_until,model_quiz_unlocked_until,saved_studies_unlocked_until").order("access_expires_at", { ascending: true }),
       supabase.from("study_unlock_logs").select("id,created_at,admin_email,student_email,previous_topic").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("user_id").eq("role", "admin"),
       supabase.from("profiles").select("id,email,avatar_pending_url,avatar_url").eq("avatar_status", "pending").order("updated_at", { ascending: false }),
@@ -159,7 +160,16 @@ export default function Admin() {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Simulados dos Modelos liberados!", description: `${email} pode usar o recurso por 30 dias.` });
+  };
+
+  const unlockSavedStudies = async (userId: string, email: string) => {
+    if (!confirm(`Liberar Guardar Estudo por 30 dias para ${email}?`)) return;
+    const { error } = await (supabase as any).rpc("admin_unlock_saved_studies", { _user_id: userId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Guardar Estudo liberado!", description: `${email} pode usar o recurso por 30 dias.` });
     load();
   };
 
@@ -641,6 +651,18 @@ export default function Admin() {
                     )}
                   </div>
                   <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Guardar Estudo</span>
+                    {s.saved_studies_unlocked_until && new Date(s.saved_studies_unlocked_until) > new Date() ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
+                        <Archive className="w-3 h-3" /> Liberado até {new Date(s.saved_studies_unlocked_until).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockSavedStudies(s.id, s.email)}>
+                        <Archive className="w-3 h-3 mr-1" /> Liberar Guardar (30d)
+                      </Button>
+                    )}
+                  </div>
+                  <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Simulados dos Modelos</span>
                     {modelQuizActiveNow ? (
                       <span className="inline-flex items-center gap-1 text-xs text-success">
@@ -687,6 +709,7 @@ export default function Admin() {
               <TableHead>Expert 24h</TableHead>
               <TableHead>Trechos (30d)</TableHead>
               <TableHead>Modelos (30d)</TableHead>
+              <TableHead>Guardar (30d)</TableHead>
               <TableHead>Renovar</TableHead>
             </TableRow>
           </TableHeader>
@@ -792,6 +815,17 @@ export default function Admin() {
                     ) : (
                       <Button size="sm" variant="outline" className="h-8 text-[13px] sm:text-xs" onClick={() => unlockModelQuiz(s.id, s.email)}>
                         <PlayCircle className="w-3 h-3 mr-1" /> Liberar 30d
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {s.saved_studies_unlocked_until && new Date(s.saved_studies_unlocked_until) > new Date() ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success" title={new Date(s.saved_studies_unlocked_until).toLocaleString("pt-BR")}>
+                        <Archive className="w-3 h-3" /> Até {new Date(s.saved_studies_unlocked_until).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-[13px] sm:text-xs" onClick={() => unlockSavedStudies(s.id, s.email)}>
+                        <Archive className="w-3 h-3 mr-1" /> Liberar 30d
                       </Button>
                     )}
                   </TableCell>

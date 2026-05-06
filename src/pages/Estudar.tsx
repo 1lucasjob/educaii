@@ -15,6 +15,7 @@ import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTria
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
 import { getFrameworkById, topicMatchesFrameworkTemplate, type Framework } from "@/lib/studyFrameworks";
+import SavedStudies from "@/components/SavedStudies";
 
 const FROM_FRAMEWORK_KEY = "estudar:from-framework";
 
@@ -317,6 +318,15 @@ export default function Estudar() {
     setTopic("");
   };
 
+  const loadSavedStudy = (s: { title: string; body: string; summary: string }) => {
+    setSummary(s.summary);
+    setSourceText(s.body);
+    setActiveTopic(s.title);
+    setHighlights([]);
+    try { localStorage.setItem(`study_body:${s.title}`, s.body); } catch {}
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 100);
+  };
+
   const extractHighlights = async () => {
     if (!sourceText) return;
     setLoadingHighlights(true);
@@ -523,6 +533,11 @@ export default function Estudar() {
           </Button>
         </div>
       </Card>
+
+      <SavedStudies
+        current={summary && activeTopic && sourceText ? { title: activeTopic, body: sourceText, summary } : null}
+        onLoad={loadSavedStudy}
+      />
 
       {summary && (() => {
         const { body, pontosCriticos, normas, observacoes } = splitSummaryHighlights(summary);
