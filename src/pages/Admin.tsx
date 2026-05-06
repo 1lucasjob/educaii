@@ -819,6 +819,17 @@ export default function Admin() {
                     )}
                   </TableCell>
                   <TableCell>
+                    {s.saved_studies_unlocked_until && new Date(s.saved_studies_unlocked_until) > new Date() ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success" title={new Date(s.saved_studies_unlocked_until).toLocaleString("pt-BR")}>
+                        <Archive className="w-3 h-3" /> Até {new Date(s.saved_studies_unlocked_until).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 text-[13px] sm:text-xs" onClick={() => unlockSavedStudies(s.id, s.email)}>
+                        <Archive className="w-3 h-3 mr-1" /> Liberar 30d
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Select onValueChange={(v) => renew(s.id, v as AccessPlan)}>
                       <SelectTrigger className="h-9 w-full sm:h-8 sm:w-[130px] text-base sm:text-xs">
                         <RefreshCw className="w-3 h-3 mr-1" />
