@@ -318,6 +318,15 @@ export default function Estudar() {
     setTopic("");
   };
 
+  const loadSavedStudy = (s: { title: string; body: string; summary: string }) => {
+    setSummary(s.summary);
+    setSourceText(s.body);
+    setActiveTopic(s.title);
+    setHighlights([]);
+    try { localStorage.setItem(`study_body:${s.title}`, s.body); } catch {}
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 100);
+  };
+
   const extractHighlights = async () => {
     if (!sourceText) return;
     setLoadingHighlights(true);
