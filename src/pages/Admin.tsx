@@ -661,6 +661,7 @@ export default function Admin() {
                         <Archive className="w-3 h-3 mr-1" /> Liberar Guardar (30d)
                       </Button>
                     )}
+                  </div>
                   <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Simulados dos Modelos</span>
                     {modelQuizActiveNow ? (
