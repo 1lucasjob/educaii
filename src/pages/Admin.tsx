@@ -42,6 +42,7 @@ interface StudentRow {
   expert_unlocked_until: string | null;
   highlights_unlocked_until: string | null;
   model_quiz_unlocked_until: string | null;
+  saved_studies_unlocked_until: string | null;
 }
 
 export default function Admin() {
