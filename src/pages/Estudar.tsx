@@ -15,6 +15,7 @@ import { computeFreeTrial, expertActive, highlightsActive } from "@/lib/freeTria
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getResumableQuiz, getResumableQuizMerged, clearQuiz, type SavedQuiz } from "@/lib/quizPersistence";
 import { getFrameworkById, topicMatchesFrameworkTemplate, type Framework } from "@/lib/studyFrameworks";
+import SavedStudies from "@/components/SavedStudies";
 
 const FROM_FRAMEWORK_KEY = "estudar:from-framework";
 
