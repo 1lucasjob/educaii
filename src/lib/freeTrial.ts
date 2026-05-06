@@ -133,6 +133,35 @@ export function highlightsActive(opts: {
   return false;
 }
 
+/**
+ * Acesso ao recurso "Guardar Estudo".
+ * Liberado para admin sempre, FREE nos primeiros 30 dias após cadastro,
+ * ou via liberação ADM temporária (30 dias).
+ */
+export function savedStudiesActive(opts: {
+  plan: AccessPlan | null | undefined;
+  createdAt: string | null | undefined;
+  savedStudiesUnlockedUntil: string | null | undefined;
+  isAdmin?: boolean;
+}): boolean {
+  if (opts.isAdmin) return true;
+  if (opts.savedStudiesUnlockedUntil && new Date(opts.savedStudiesUnlockedUntil).getTime() > Date.now()) return true;
+  if (opts.plan === "free" && opts.createdAt) {
+    const days = Math.floor((Date.now() - new Date(opts.createdAt).getTime()) / DAY_MS);
+    return days < 30;
+  }
+  return false;
+}
+
+export function savedStudiesLimit(opts: {
+  plan: AccessPlan | null | undefined;
+  isAdmin?: boolean;
+}): number {
+  if (opts.isAdmin) return 7;
+  if (opts.plan === "free") return 3;
+  return 5;
+}
+
 export function modelQuizEasyActive(opts: {
   plan: AccessPlan | null | undefined;
   createdAt: string | null | undefined;
