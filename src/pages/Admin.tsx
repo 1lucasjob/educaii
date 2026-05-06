@@ -709,6 +709,7 @@ export default function Admin() {
               <TableHead>Expert 24h</TableHead>
               <TableHead>Trechos (30d)</TableHead>
               <TableHead>Modelos (30d)</TableHead>
+              <TableHead>Guardar (30d)</TableHead>
               <TableHead>Renovar</TableHead>
             </TableRow>
           </TableHeader>
