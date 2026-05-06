@@ -651,6 +651,17 @@ export default function Admin() {
                     )}
                   </div>
                   <div>
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">Guardar Estudo</span>
+                    {s.saved_studies_unlocked_until && new Date(s.saved_studies_unlocked_until) > new Date() ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-success">
+                        <Archive className="w-3 h-3" /> Liberado até {new Date(s.saved_studies_unlocked_until).toLocaleDateString("pt-BR")}
+                      </span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-9 text-[13px] sm:h-8 sm:text-xs w-full" onClick={() => unlockSavedStudies(s.id, s.email)}>
+                        <Archive className="w-3 h-3 mr-1" /> Liberar Guardar (30d)
+                      </Button>
+                    )}
+                  <div>
                     <span className="text-[10px] uppercase text-muted-foreground block mb-1">Simulados dos Modelos</span>
                     {modelQuizActiveNow ? (
                       <span className="inline-flex items-center gap-1 text-xs text-success">
