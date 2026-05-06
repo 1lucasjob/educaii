@@ -534,6 +534,11 @@ export default function Estudar() {
         </div>
       </Card>
 
+      <SavedStudies
+        current={summary && activeTopic && sourceText ? { title: activeTopic, body: sourceText, summary } : null}
+        onLoad={loadSavedStudy}
+      />
+
       {summary && (() => {
         const { body, pontosCriticos, normas, observacoes } = splitSummaryHighlights(summary);
         return (
