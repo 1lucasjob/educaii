@@ -28,6 +28,7 @@ interface Profile {
   highlights_unlocked_until: string | null;
   model_quiz_unlocked_until: string | null;
   avatar_border: string | null;
+  saved_studies_unlocked_until: string | null;
 }
 
 interface AuthCtx {
