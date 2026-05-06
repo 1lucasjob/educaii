@@ -199,6 +199,7 @@ export type Database = {
           model_quiz_unlocked_until: string | null
           plan: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash: string | null
+          saved_studies_unlocked_until: string | null
           secret_answer_hash: string | null
           secret_question: string | null
           show_in_ranking: boolean
@@ -228,6 +229,7 @@ export type Database = {
           model_quiz_unlocked_until?: string | null
           plan?: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash?: string | null
+          saved_studies_unlocked_until?: string | null
           secret_answer_hash?: string | null
           secret_question?: string | null
           show_in_ranking?: boolean
@@ -257,6 +259,7 @@ export type Database = {
           model_quiz_unlocked_until?: string | null
           plan?: Database["public"]["Enums"]["access_plan"]
           reserve_code_hash?: string | null
+          saved_studies_unlocked_until?: string | null
           secret_answer_hash?: string | null
           secret_question?: string | null
           show_in_ranking?: boolean
@@ -353,6 +356,39 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_studies: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          saved_by_admin: boolean
+          saved_by_admin_id: string | null
+          summary: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          saved_by_admin?: boolean
+          saved_by_admin_id?: string | null
+          summary: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          saved_by_admin?: boolean
+          saved_by_admin_id?: string | null
+          summary?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_sessions: {
         Row: {
           created_at: string
@@ -445,12 +481,25 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_save_study_for_user: {
+        Args: {
+          _body: string
+          _summary: string
+          _title: string
+          _user_id: string
+        }
+        Returns: string
+      }
       admin_unlock_expert: { Args: { _user_id: string }; Returns: undefined }
       admin_unlock_highlights: {
         Args: { _user_id: string }
         Returns: undefined
       }
       admin_unlock_model_quiz: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
+      admin_unlock_saved_studies: {
         Args: { _user_id: string }
         Returns: undefined
       }
